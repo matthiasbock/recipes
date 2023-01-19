@@ -1,0 +1,8 @@
+gcc-arm-none-eabi
+g++-arm-none-eabi
+cpp-arm-none-eabi
+binutils-arm-none-eabi
+libc6-dev-armel-cross
+libnewlib-nano-arm-none-eabi
+libstdc++-arm-none-eabi-newlib
+picolibc-arm-none-eabi

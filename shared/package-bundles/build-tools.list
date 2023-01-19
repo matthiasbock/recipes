@@ -1,5 +1,6 @@
 ccache
 make
+cmake
 gradle
 ant
 maven
@@ -7,4 +8,3 @@ rake
 automake
 autoconf
 ninja-build
-

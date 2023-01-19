@@ -1,0 +1,6 @@
+gcc-arm-linux-gnueabi
+g++-arm-linux-gnueabi
+cpp-arm-linux-gnueabi
+gccgo-arm-linux-gnueabi
+binutils-arm-linux-gnueabi
+linux-libc-dev-armel-cross
