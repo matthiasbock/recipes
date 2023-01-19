@@ -2,28 +2,23 @@
 name: debian-base
 
 on:
-  push:
-    paths:
-      - '!.**'
-      - '!**'
-      - '.github/workflows/debian-base.yml'
-      - 'containers/systems/debian/**'
-      # - 'common/**'
-      # - 'containers/setup.sh'
-      # - 'containers/build.sh'
-      # - 'containers/commit.sh'
-      # - 'containers/publish-dockerhub.sh'
-
-  # Allows you to run this workflow manually from the Actions tab
+  # Run manually (from Actions tab)
   workflow_dispatch:
 
+  # Run automatically when files were modified
+  # push:
+  #   paths:
+  #     - '!.**'
+  #     - '!**'
+  #     - '.github/workflows/debian-base.yml'
+  #     - 'containers/systems/debian/**'
 
 jobs:
-  build:
-    name: Build image and publish on Docker Hub
+  debian-base_buster-amd64:
+    name: Basic Debian image
     runs-on: ubuntu-latest
     env:
-      config: systems/debian/amd64.sh
+      config: systems/debian/buster-amd64.sh
     steps:
       - uses: actions/checkout@v2
         with:
@@ -35,7 +30,29 @@ jobs:
       - name: Create image from container
         run: ${{ github.workspace }}/containers/commit.sh ${{ env.config }}
 
-      - name: Publish image on Docker Hub
+      - name: Publish image to Docker Hub
+        env:
+          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+        run: ${{ github.workspace }}/containers/publish-dockerhub.sh ${{ env.config }}
+
+  debian-base_bullseye-amd64:
+    name: Basic Debian image
+    runs-on: ubuntu-latest
+    env:
+      config: systems/debian/bullseye-amd64.sh
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Build container
+        run: ${{ github.workspace }}/containers/build.sh ${{ env.config }}
+
+      - name: Create image from container
+        run: ${{ github.workspace }}/containers/commit.sh ${{ env.config }}
+
+      - name: Publish image to Docker Hub
         env:
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
