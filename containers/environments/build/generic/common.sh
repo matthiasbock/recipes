@@ -1,10 +1,10 @@
 
 export image_name="buildenv-generic"
-export release="buster"
-export architecture="amd64"
+
+# Debian release and target architecture are defined in separate files.
 export image_tag="${release}-${architecture}"
 export base_image="docker.io/matthiasbock/debian-base:${image_tag}"
-export container_name="${image_name}-${image_tag}"
+export container_name="${image_name}_${image_tag}"
 
 export user="runner"
 export hostname="${image_name}"
@@ -15,12 +15,9 @@ export dockerhub_repository="docker.io/matthiasbock/${image_name}:${image_tag}"
 
 function container_setup()
 {
-  # Set hostname
-  container_set_hostname $container_name "$hostname" \
-   || { echo "Failed to set hostname. Aborting."; exit 1; }
-
   # Install additional packages
-  container_debian_install_package_bundles keyrings debian-essentials console-tools version-control build-tools c \
+  container_debian_install_package_bundles \
+    keyrings debian-essentials console-tools version-control build-tools \
    || { echo "Failed to install packages. Aborting."; exit 1; }
 
   # Clean up
