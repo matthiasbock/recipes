@@ -1,11 +1,7 @@
 
 export image_name="ubuntu-base"
-export release="focal"
-export architecture="amd64"
 export image_tag="${release}-${architecture}"
 export container_name="${image_name}-${image_tag}"
-
-export base_image="docker.io/ubuntu:20.04"
 
 export user="runner"
 export image_config="USER=${user} WORKDIR=/home/${user} CMD=/bin/bash"
