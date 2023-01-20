@@ -12,7 +12,7 @@ on:
       # - 'containers/setup.sh'
       # - 'containers/build.sh'
       # - 'containers/commit.sh'
-      # - 'containers/publish-dockerhub.sh'
+      # - 'containers/push.sh'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -38,4 +38,4 @@ jobs:
         env:
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-        run: ${{ github.workspace }}/containers/publish-dockerhub.sh ${{ env.config }}
+        run: ${{ github.workspace }}/containers/push.sh ${{ env.config }}

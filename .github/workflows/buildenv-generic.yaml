@@ -34,7 +34,7 @@ jobs:
         env:
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-        run: ${{ github.workspace }}/containers/publish-dockerhub.sh ${{ env.config }}
+        run: ${{ github.workspace }}/containers/push.sh ${{ env.config }}
 
   buildenv-generic_bullseye-amd64:
     name: Generic build environment with a couple of compilers
@@ -56,4 +56,4 @@ jobs:
         env:
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-        run: ${{ github.workspace }}/containers/publish-dockerhub.sh ${{ env.config }}
+        run: ${{ github.workspace }}/containers/push.sh ${{ env.config }}
