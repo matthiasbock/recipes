@@ -6,22 +6,30 @@
 
 set -e
 
-# Change to the folder containing this script
-export initial_pwd="$(pwd)"
-export scriptpath="$(pwd)"
+# Remember where execution started
+export initial_pwd="$(realpath .)"
+
+# Determine the full path to this script
+export scriptpath="$(realpath .)"
 argc=${#BASH_SOURCE[@]}
 for argv in ${BASH_SOURCE}; do
   if [[ "$argv" == *"build.sh"* ]]; then
-    scriptpath="$argv"
+    scriptpath="$(realpath $argv)"
     break
   fi
 done
+# Verify script path
 test -f "${scriptpath}" \
- || { echo "Error: Script not found: $scriptpath. Aborting."; exit 1; }
-cd $(dirname $(realpath "$scriptpath")) \
+ || { echo "Error: Script not found: \"${scriptpath}\". Aborting."; exit 1; }
+
+ # Change to the folder containing this script
+cd $(dirname "${scriptpath}") \
  || { echo "Error: Failed to change to working directory. Aborting."; exit 1; }
 
-# Default: don't skip; can be enabled in the setup script (below)
+#
+# A container configuration may skip container creation or startup.
+# Default: don't skip anything
+#
 export skip_container_creation=false
 export skip_container_start=false
 
@@ -37,7 +45,7 @@ if $skip_container_creation; then
   echo "Skipping container creation as requested."
 else
   if container_exists "$container_name"; then
-  	echo "Warning: Container '$container_name' already exists. Aborting."
+  	echo "Warning: Container \"$container_name\" already exists. Aborting."
   	exit 0
   fi
   create_container "$container_name" $container_constructor \
