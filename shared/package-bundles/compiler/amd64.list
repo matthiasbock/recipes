@@ -1,5 +1,10 @@
+ccache
 gcc
 g++
 cpp
-gccgo
 binutils
+libc6-dev
+linux-libc-dev
+libc-dev-bin
+libc-devtools
+libncurses-dev
