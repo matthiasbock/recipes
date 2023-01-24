@@ -9,11 +9,6 @@ export image_name="microsoft-teams"
 export image_tag="linux-$architecture-$(echo -n $(date +%Y-%m-%d))"
 export container_name="${image_name}-${image_tag}"
 
-# Container/image parameters
-export container_networking=""
-#   --pod "$pod"
-#		--net $net --network-alias $container_name
-
 export user="runner"
 
 # Commit the result as image
@@ -45,7 +40,12 @@ function container_setup()
   container_exec $container_name apt-key add /tmp/microsoft.asc
 
   # Fetch package list
-  container_exec $container_name apt-get update
+  container_exec $container_name apt-get -q update
+
+  # gdebi-core
+  container exec $container_name apt-get -q install -y libsecret-1-0 teams
+  mkdir -p "/home/$user/.config/Microsoft/Microsoft Teams/logs"
+  touch "/home/$user/.config/Microsoft/Microsoft Teams/hooks.json"
 
   # Clean up
   container_expendables_import "${bash_container_library}/expendables/default.list"
