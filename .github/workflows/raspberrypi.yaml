@@ -1,0 +1,35 @@
+
+name: raspberrypi-os
+
+on:
+  workflow_dispatch:
+
+  # push:
+  #   paths:
+  #     - '!.**'
+  #     - '!**'
+  #     - '.github/workflows/debian-base.yml'
+  #     - 'containers/systems/debian/**'
+
+jobs:
+  build:
+    name: Build image and publish on Docker Hub
+    runs-on: ubuntu-latest
+    env:
+      config: systems/raspios/lite.sh
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Build container
+        run: ${{ github.workspace }}/containers/build.sh ${{ env.config }}
+
+      - name: Create image from container
+        run: ${{ github.workspace }}/containers/commit.sh ${{ env.config }}
+
+      - name: Publish image on Docker Hub
+        env:
+          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+        run: ${{ github.workspace }}/containers/push.sh ${{ env.config }}
