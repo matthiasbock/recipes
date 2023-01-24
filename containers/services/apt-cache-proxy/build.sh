@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#set -x
+set -x
 
 set -e
 cd $(dirname $0)
@@ -15,12 +15,26 @@ create_volume "$volume_name"
 
 function constructor()
 {
+#		--pod "$pod" \
 	$cli run \
-		--pod "$pod" \
+		--network=host \
 		--name "$container_name" \
 		-v "$volume_name:/var/cache/apt-cacher-ng" \
 		--detach \
 		$parent_repository
+
+# TODO: Disable non-functional kernel logging in rsyslog:
+# line
+#  module(load="imklog")
+# in /etc/rsyslogd.conf
+
+	filename="rsyslog.conf"
+	$cli cp ${container_name}:/etc/${filename} .
+	cat ${filename} | fgrep -v 'module(load="imklog")' > ${filename}.patched
+	mv ${filename}.patched ${filename}
+	$cli cp ${filename} ${container_name}:/etc/
+	rm ${filename}
+
 #	&> /dev/null
 
 #		--net $net \
