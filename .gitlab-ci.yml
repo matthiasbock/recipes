@@ -1,0 +1,9 @@
+
+stages:
+  - setup
+  - build
+  - test
+  - pack
+  - publish
+
+include: "containers/systems/debian/bullseye-amd64.yml"

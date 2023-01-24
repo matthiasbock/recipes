@@ -1,0 +1,27 @@
+
+debian-base_bullseye-amd64:
+  image: docker.io/matthiasbock/debian-base:stable-amd64
+  stage: build
+  variables:
+    CONFIG: "systems/debian/bullseye-amd64.sh"
+    CONTAINER_CLI: podman
+  script:
+    - pwd
+    - whoami
+    - sudo mkdir -p /etc/apt/apt.conf.d
+    - sudo touch /etc/apt/apt.conf.d/proxy.conf
+    - sudo chmod 666 /etc/apt/apt.conf.d/proxy.conf
+    - if [ "${HTTP_PROXY}" != "" ]; then echo "${HTTP_PROXY}"; echo "Acquire::http::Proxy \"${HTTP_PROXY}\"; Acquire::https::Proxy \"${HTTP_PROXY}\";" > /etc/apt/apt.conf.d/proxy.conf; fi;
+    - export PATH=$PATH:/home/$(whoami)/.local/bin
+    - echo $PATH
+    - source shared/config/shell/debconf.bashrc
+    - sudo apt-get update -q
+    - if [ -f dependencies.txt ]; then sudo apt-get -qy install --no-install-recommends $(cat dependencies.txt); fi
+    - if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi
+    - if [ -e /usr/bin/pytest-3 ]; then sudo ln -s /usr/bin/pytest-3 /usr/bin/pytest; fi
+    - echo "Building container..."
+    - sudo ./containers/build.sh $CONFIG
+    - echo "Creating image from container..."
+    - sudo ./containers/commit.sh $CONFIG
+    - echo "Publishing image to container registry..."
+    - sudo ./containers/push.sh $CONFIG
