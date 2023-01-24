@@ -1,6 +1,6 @@
-[submodule "common/bash-container-api"]
+[submodule "shared/bash-container-library"]
 	path = shared/bash-container-library
-	url = git@github.com:matthiasbock/bash-container-library.git
-[submodule "common/sdat2img"]
+	url = https://github.com/matthiasbock/bash-container-library.git
+[submodule "shared/sdat2img"]
 	path = shared/sdat2img
-	url = git@github.com:xpirt/sdat2img.git
+	url = https://github.com/xpirt/sdat2img.git

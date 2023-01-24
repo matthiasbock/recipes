@@ -1,5 +1,7 @@
 bash
 sudo
 coreutils
+git
+openssh-client
 docker.io
 podman
