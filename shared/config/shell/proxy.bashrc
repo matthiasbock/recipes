@@ -7,75 +7,112 @@
 # - docker client
 #
 # Note:
-# Requires jq to be installed and
-# sudo to be configured with NOPASSWD for the current user.
+# apt configuration requires sudo with NOPASSWD for the current user.
+# docker configuration requires jq to be installed.
 #
 
 #
-# Ensure environment variable name capitalization
+# The respective environment variables may
+# be provided as upper or lower case,
+# that should not make a difference.
 #
-if [ "${http_proxy}" != "" ]; then
+if [ "${http_proxy:+set}" == set ]; then
   export HTTP_PROXY=${http_proxy}
+elif [ "${HTTP_PROXY:+set}" == set ]; then
+  export http_proxy=${HTTP_PROXY}
 fi
-if [ "${https_proxy}" != "" ]; then
+if [ "${https_proxy:+set}" == set ]; then
   export HTTPS_PROXY=${https_proxy}
+elif [ "${HTTPS_PROXY:+set}" == set ]; then
+  export https_proxy=${HTTPS_PROXY}
 fi
-if [ "${no_proxy}" != "" ]; then
+if [ "${ftp_proxy:+set}" == set ]; then
+  export FTP_PROXY=${ftp_proxy}
+elif [ "${FTP_PROXY:+set}" == set ]; then
+  export ftp_proxy=${FTP_PROXY}
+fi
+if [ "${no_proxy:+set}" == set ]; then
   export NO_PROXY=${no_proxy}
+elif [ "${NO_PROXY:+set}" == set ]; then
+  export no_proxy=${NO_PROXY}
 fi
 
 #
-# Use proxy to access Debian package archives
+# Add missing variables
 #
-APT_PROXY_CONF="/etc/apt/apt.conf.d/proxy.conf"
-sudo mkdir -p $(dirname ${APT_PROXY_CONF})
-sudo echo > ${APT_PROXY_CONF}
-sudo chmod 644 ${APT_PROXY_CONF}
-if [ "${HTTP_PROXY}" != "" ]; then
-  # HTTP proxy
-  sudo echo "Acquire::http::Proxy \"${HTTP_PROXY}\";" >> ${APT_PROXY_CONF}
+if [ "${HTTP_PROXY:+set}" != set ] && [ "${HTTPS_PROXY:+set}" == set ]; then
+  export HTTP_PROXY=${HTTPS_PROXY}
+  export http_proxy=${HTTPS_PROXY}
+fi
+if [ "${HTTPS_PROXY:+set}" != set ] && [ "${HTTP_PROXY:+set}" == set ]; then
+  export HTTPS_PROXY=${HTTP_PROXY}
+  export https_proxy=${HTTP_PROXY}
+fi
+if [ "${FTP_PROXY:+set}" != set ] && [ "${HTTP_PROXY:+set}" == set ]; then
+  export FTP_PROXY=${HTTP_PROXY}
+  export ftp_proxy=${HTTP_PROXY}
+fi
 
-  # If no separate proxy is defined for HTTPS, use the HTTP proxy.
-  if [ "${HTTPS_PROXY}" == "" ]; then
-    sudo echo "Acquire::https::Proxy \"${HTTP_PROXY}\";" >> ${APT_PROXY_CONF}
+#
+# Make sure, apt uses the proxy to access Debian package archives.
+#
+unset sudo
+if [ "$(which sudo)" != "" ]; then
+  # sudo is installed.
+  sudo="$(which sudo)"
+elif [ "$USER" == "root" ]; then
+  # sudo is not installed, but root doesn't need it anyway.
+  sudo=""
+fi
+if [ "${sudo:+set}" != set ]; then
+  echo "Warning: sudo is required for apt proxy auto-configuration. Install with \"apt install sudo\"."
+else
+  APT_PROXY_CONF="/etc/apt/apt.conf.d/10proxy.conf"
+  $sudo mkdir -p $(dirname ${APT_PROXY_CONF})
+  $sudo rm -f ${APT_PROXY_CONF}
+
+  # Proxy for package archives accessed via HTTP
+  if [ "${HTTP_PROXY:+set}" == set ]; then
+    echo "Acquire::http::Proxy \"${HTTP_PROXY}\";" | $sudo tee ${APT_PROXY_CONF}
   fi
-fi;
 
-# Dedicated proxy for HTTPS
-if [ "${HTTPS_PROXY}" != "" ]; then
-  sudo echo "Acquire::https::Proxy \"${HTTPS_PROXY}\";" >> ${APT_PROXY_CONF}
+  # Proxy for package archives accessed via HTTPS
+  if [ "${HTTPS_PROXY:+set}" == set ]; then
+    echo "Acquire::https::Proxy \"${HTTPS_PROXY}\";" | $sudo tee -a ${APT_PROXY_CONF}
+  fi
+
+  # Proxy for package archives accessed via FTP
+  if [ "${FTP_PROXY:+set}" == set ]; then
+    echo "Acquire::ftp::Proxy \"${FTP_PROXY}\";" | $sudo tee -a ${APT_PROXY_CONF}
+  fi
 fi
+unset sudo
 
 #
-# Use proxy to access git repositories
+# If git is installed,
+# configure proxy used to access git repositories.
 #
 if [ "$(which git)" != "" ]; then
-  # If git is installed...
-  if [ "${HTTP_PROXY}" != "" ]; then
-    # Configure HTTP proxy
+  # Proxy for git repositories accessed via HTTP
+  if [ "${HTTP_PROXY:+set}" == set ]; then
     git config --global http.proxy "${HTTP_PROXY}"
+  fi
 
-    # If no separate proxy is defined for HTTPS, use the HTTP proxy.
-    if [ "${HTTPS_PROXY}" == "" ]; then
-      git config --global https.proxy "${HTTP_PROXY}"
-    fi
-  fi;
-
-  # Dedicated proxy for HTTPS
-  if [ "${HTTPS_PROXY}" != "" ]; then
+  # Proxy for git repositories accessed via HTTPS
+  if [ "${HTTPS_PROXY:+set}" == set ]; then
     git config --global https.proxy "${HTTPS_PROXY}"
   fi
 fi
 
 #
-# Use proxy to access docker container registries
+# If docker and jq are installed,
+# configure proxy to access docker container registries.
 #
 if [ "$(which docker)" != "" ]; then
   if [ "$(which jq)" == "" ]; then
-    echo "Warning: jq is required for docker proxy setup. Install with \"sudo apt install jq\"."
+    echo "Warning: jq is required for docker proxy auto-configuration. Install with \"apt install jq\"."
   else
-    DOCKER_CONFIG="~/.docker/config.json"
-    DOCKER_CONFIG_TMP=${DOCKER_CONFIG}.tmp
+    DOCKER_CONFIG="$HOME/.docker/config.json"
 
     # If no docker config is present, create an empty one.
     mkdir -p $(dirname ${DOCKER_CONFIG})
@@ -83,28 +120,25 @@ if [ "$(which docker)" != "" ]; then
       echo "{}" > ${DOCKER_CONFIG}
     fi
 
-    # HTTP proxy
-    if [ "${HTTP_PROXY}" != "" ]; then
-      jq --indent 2 ".proxies.default.httpProxy = \"${HTTP_PROXY}\"" ${DOCKER_CONFIG} > ${DOCKER_CONFIG_TMP}
-      mv ${DOCKER_CONFIG_TMP} ${DOCKER_CONFIG}
+    # Proxy for docker container respositories accessed via HTTP
+    if [ "${HTTP_PROXY:+set}" == set ]; then
+      cat ${DOCKER_CONFIG} \
+      | jq --indent 2 ".proxies.default.httpProxy=\"${HTTP_PROXY}\"" \
+      | tee ${DOCKER_CONFIG}
+    fi
 
-      # If no separate proxy is defined for HTTPS, use the HTTP proxy.
-      if [ "${HTTPS_PROXY}" == "" ]; then
-        jq --indent 2 ".proxies.default.httpsProxy = \"${HTTP_PROXY}\"" ${DOCKER_CONFIG} > ${DOCKER_CONFIG_TMP}
-        mv ${DOCKER_CONFIG_TMP} ${DOCKER_CONFIG}
-      fi
-    fi;
-
-    # Dedicated proxy for HTTPS
-    if [ "${HTTPS_PROXY}" != "" ]; then
-      jq --indent 2 ".proxies.default.httpsProxy = \"${HTTPS_PROXY}\"" ${DOCKER_CONFIG} > ${DOCKER_CONFIG_TMP}
-      mv ${DOCKER_CONFIG_TMP} ${DOCKER_CONFIG}
+    # Proxy for docker container respositories accessed via HTTPS
+    if [ "${HTTPS_PROXY+set}" == set ]; then
+      cat ${DOCKER_CONFIG} \
+      | jq --indent 2 ".proxies.default.httpsProxy=\"${HTTPS_PROXY}\"" \
+      | tee ${DOCKER_CONFIG}
     fi
 
     # Proxy exceptions
-    if [ "${NO_PROXY}" != "" ]; then
-      jq --indent 2 ".proxies.default.noProxy = \"${NO_PROXY}\"" ${DOCKER_CONFIG} > ${DOCKER_CONFIG_TMP}
-      mv ${DOCKER_CONFIG_TMP} ${DOCKER_CONFIG}
+    if [ "${NO_PROXY:+set}" == set ]; then
+      cat ${DOCKER_CONFIG} \
+      | jq --indent 2 ".proxies.default.noProxy=\"${NO_PROXY}\"" \
+      | tee ${DOCKER_CONFIG}
     fi
   fi
 fi
