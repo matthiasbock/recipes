@@ -5,24 +5,30 @@ debian-base_bullseye-amd64:
   variables:
     CONFIG: "systems/debian/bullseye-amd64.sh"
     CONTAINER_CLI: podman
-  script:
+  before_script:
+    # Check environment
+    - env
+    - echo ${USER:=$(whoami)}
+    - echo ${HOME:=~}
     - pwd
-    - whoami
-    - sudo mkdir -p /etc/apt/apt.conf.d
-    - sudo touch /etc/apt/apt.conf.d/proxy.conf
-    - sudo chmod 666 /etc/apt/apt.conf.d/proxy.conf
-    - if [ "${HTTP_PROXY}" != "" ]; then echo "${HTTP_PROXY}"; echo "Acquire::http::Proxy \"${HTTP_PROXY}\"; Acquire::https::Proxy \"${HTTP_PROXY}\";" > /etc/apt/apt.conf.d/proxy.conf; fi;
-    - export PATH=$PATH:/home/$(whoami)/.local/bin
+    - export PATH=$HOME/.local/bin:$PATH
     - echo $PATH
-    - source shared/config/shell/debconf.bashrc
+    # Apply proxy settings
+    - . shared/config/shell/proxy.bashrc
+    # Install dependencies
+    - . shared/config/shell/debconf.bashrc
     - sudo apt-get update -q
     - if [ -f dependencies.txt ]; then sudo apt-get -qy install --no-install-recommends $(cat dependencies.txt); fi
     - if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi
     - if [ -e /usr/bin/pytest-3 ]; then sudo ln -s /usr/bin/pytest-3 /usr/bin/pytest; fi
-    - if [ "${HTTP_PROXY}" != "" ]; then git config --global http.proxy "${HTTP_PROXY}"; git config --global https.proxy "${HTTP_PROXY}"; fi;
+    # Apply proxy settings again: Additional packages and possibly dependencies have been installed.
+    - . shared/config/shell/proxy.bashrc
+    - cat $HOME/.docker/config.json
+    # Fetch submodules
     - git config --global pull.rebase false
     - git submodule init
     - git submodule update
+  script:
     - echo "Building container..."
     - sudo ./containers/build.sh $CONFIG
     - echo "Creating image from container..."
