@@ -22,7 +22,7 @@ debian-base_bullseye-amd64:
     - if [ "${HTTP_PROXY}" != "" ]; then git config --global http.proxy "${HTTP_PROXY}"; git config --global https.proxy "${HTTP_PROXY}"; fi;
     - git config --global pull.rebase false
     - git submodule init
-    - git submodule foreach git pull
+    - git submodule update
     - echo "Building container..."
     - sudo ./containers/build.sh $CONFIG
     - echo "Creating image from container..."
