@@ -5,29 +5,6 @@ debian-base_bullseye-amd64:
   variables:
     CONFIG: "systems/debian/bullseye-amd64.sh"
     CONTAINER_CLI: podman
-  before_script:
-    # Check environment
-    - env
-    - echo ${USER:=$(whoami)}
-    - echo ${HOME:=~}
-    - pwd
-    - export PATH=$HOME/.local/bin:$PATH
-    - echo $PATH
-    # Apply proxy settings
-    - . shared/config/shell/proxy.bashrc
-    # Install dependencies
-    - . shared/config/shell/debconf.bashrc
-    - sudo apt-get update -q
-    - if [ -f dependencies.txt ]; then sudo apt-get -qy install --no-install-recommends $(cat dependencies.txt); fi
-    - if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi
-    - if [ -e /usr/bin/pytest-3 ]; then sudo ln -s /usr/bin/pytest-3 /usr/bin/pytest; fi
-    # Apply proxy settings again: Additional packages and possibly dependencies have been installed.
-    - . shared/config/shell/proxy.bashrc
-    - cat $HOME/.docker/config.json
-    # Fetch submodules
-    - git config --global pull.rebase false
-    - git submodule init
-    - git submodule update
   script:
     - echo "Building container..."
     - sudo ./containers/build.sh $CONFIG
