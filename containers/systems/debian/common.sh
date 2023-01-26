@@ -43,7 +43,7 @@ function container_setup()
   rm -f "$tmpfile"
 
   #
-  # Configure APT
+  # Configure APT and install packages
   #
   echo "Configuring APT ..."
   container_add_file $container_name $common/config/apt/apt.conf /etc/apt/apt.conf
@@ -76,16 +76,20 @@ function container_setup()
   # netselect was unable to operate successfully, please check the errors,
   # most likely you don't have enough permission.
 
-  # Prepare ccache folder
-  container_exec $container_name mkdir -p /home/$user/.ccache
-  container_exec $container_name ln -s ../home/$user/.ccache /root/.ccache
-  container_exec $container_name chown $user.$user /home/$user/.ccache
-
   # Install additional packages
   container_debian_install_package_bundles debian-essentials console-tools \
    || { echo "Error: Failed to install packages. Aborting."; exit 1; }
 
-  # Enable sudo without password
+  #
+  # Configure ccache
+  #
+  container_exec $container_name mkdir -p /home/$user/.ccache
+  container_exec $container_name ln -s ../home/$user/.ccache /root/.ccache
+  container_exec $container_name chown $user.$user /home/$user/.ccache
+
+  #
+  # Add permission to use sudo without password
+  #
   echo "Granting sudo priviledges to $user ..."
   srcfile="$common/config/sudoers.d/runner"
   dstpath="/etc/sudoers.d"
@@ -97,7 +101,9 @@ function container_setup()
   container_exec $container_name chmod 440 "$dstfile" \
    || { echo "Error: Failed to change permissions for $dstfile. Aborting."; exit 1; }
 
+  #
   # Clean up
+  #
   container_expendables_import "${bash_container_library}/expendables/default.list"
   container_expendables_delete $container_name $container_expendables
 }
