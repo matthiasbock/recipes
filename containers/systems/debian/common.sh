@@ -9,8 +9,7 @@ export container_name="${image_name}-${image_tag}"
 # Container/image parameters
 export container_networking=""
 export user="runner"
-export group="runner"
-export groups="$group sudo docker"
+export groups="runner sudo docker"
 
 # This pool is used before package verification using GPG is available.
 # Use a HTTPS package pool here to at least have transport encryption.
@@ -28,8 +27,6 @@ function container_setup()
   # Configure bash, user and groups
   #
   echo "Creating new user $user ..."
-  container_create_groups $container_name $groups \
-   || { echo "Error: Failed to create groups. Aborting."; exit 1; }
   container_create_user $container_name $user $groups \
    || { echo "Error: Failed to create user. Aborting."; exit 1; }
 
