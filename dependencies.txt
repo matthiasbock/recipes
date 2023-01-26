@@ -1,8 +1,11 @@
 bash
 sudo
 coreutils
+uidmap
+wget
 git
 jq
 openssh-client
 docker.io
 podman
+slirp4netns
