@@ -44,15 +44,23 @@ function container_setup()
   #
   # Configure APT and install packages
   #
-  echo "Configuring APT ..."
+  echo "Configuring apt ..."
   container_add_file $container_name $common/config/apt/apt.conf /etc/apt/apt.conf
+  for conf in proxy.conf 00proxy.conf 10proxy.conf; do
+    if [ -f /etc/apt/apt.conf.d/$conf ]; then
+      echo "Adding proxy configuration ..."
+      container_add_file $container_name /etc/apt/apt.conf.d/$conf /etc/apt/apt.conf.d/10proxy.conf
+    fi
+  done
 
   # Workaround for installation problems (e.g. with openjdk-11-jdk)
   $container_cli exec -t $container_name mkdir -p /usr/share/man/man1/
 
   # Manually facilitate SSL certificate verification
   for pkg in libncursesw6 dialog libssl1.1 openssl ca-certificates; do
-    container_debian_download_package_and_install $container_name $pkg $debian_release $target_architecture
+    echo "Installing $pkg without verification ..."
+    container_debian_download_package_and_install $container_name $pkg $debian_release $target_architecture \
+    || exit 1
   done
 
   # Bootstrap using a trustworthy HTTPS package repository
@@ -103,6 +111,7 @@ function container_setup()
   #
   # Clean up
   #
+  container_rm_file /etc/apt/apt.conf.d/10proxy.conf
   container_expendables_import "${bash_container_library}/expendables/default.list"
   container_expendables_delete $container_name $container_expendables
 }
