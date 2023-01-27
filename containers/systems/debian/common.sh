@@ -46,22 +46,21 @@ function container_setup()
   #
   echo "Configuring apt ..."
   container_add_file $container_name $common/config/apt/apt.conf /etc/apt/apt.conf
-  for conf in proxy.conf 00proxy.conf 10proxy.conf; do
-    if [ -f /etc/apt/apt.conf.d/$conf ]; then
-      echo "Adding proxy configuration ..."
-      container_add_file $container_name /etc/apt/apt.conf.d/$conf /etc/apt/apt.conf.d/10proxy.conf
-    fi
-  done
 
   # Workaround for installation problems (e.g. with openjdk-11-jdk)
   $container_cli exec -t $container_name mkdir -p /usr/share/man/man1/
 
+  set +e
+
   # Manually facilitate SSL certificate verification
   for pkg in libncursesw6 dialog libssl1.1 openssl ca-certificates; do
     echo "Installing $pkg without verification ..."
-    container_debian_download_package_and_install $container_name $pkg $debian_release $target_architecture \
-    || exit 1
+    container_debian_download_package_and_install $container_name $pkg $debian_release $target_architecture
+    local retval=$?
+    [[ $retval == 0 ]] || { echo "Error: Installation failed."; exit $retval; }
   done
+
+  set -e
 
   # Bootstrap using a trustworthy HTTPS package repository
   container_add_file $container_name "$sources_list" "/etc/apt/sources.list" \
@@ -84,8 +83,9 @@ function container_setup()
   # most likely you don't have enough permission.
 
   # Install additional packages
-  container_debian_install_package_bundles debian-essentials console-tools \
-   || { echo "Error: Failed to install packages. Aborting."; exit 1; }
+  container_debian_install_package_bundles debian-essentials console-tools
+  local retval=$?
+  [[ $retval == 0 ]] || { echo "Error: Failed to install package bundles."; exit $retval; }
 
   #
   # Configure ccache
