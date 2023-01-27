@@ -3,7 +3,7 @@ image_name="debian"
 
 # Derive container/image from this image
 base_image="docker.io/debian:$debian_release-slim"
-image_tag="${release}-$target_architecture"
+image_tag="${debian_release}-$target_architecture"
 container_name="${image_name}_$image_tag"
 
 # Container/image parameters
@@ -52,7 +52,7 @@ function container_setup()
 
   # Manually facilitate SSL certificate verification
   for pkg in libncursesw6 dialog libssl1.1 openssl ca-certificates; do
-    container_debian_install_manually $container_name $release $target_architecture $pkg
+    container_debian_download_package_and_install $container_name $pkg $debian_release $target_architecture
   done
 
   # Bootstrap using a trustworthy HTTPS package repository
