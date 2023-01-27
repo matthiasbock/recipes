@@ -1,24 +1,22 @@
 
-export image_name="debian-base"
+image_name="debian"
 
 # Derive container/image from this image
-export base_image="docker.io/debian:${release}-slim"
-export image_tag="${release}-${architecture}"
-export container_name="${image_name}-${image_tag}"
+base_image="docker.io/debian:$debian_release-slim"
+image_tag="${release}-$target_architecture"
+container_name="${image_name}_$image_tag"
 
 # Container/image parameters
-export container_networking=""
-export user="runner"
-export groups="runner sudo docker"
+user="runner"
+groups="runner sudo docker"
 
 # This pool is used before package verification using GPG is available.
 # Use a HTTPS package pool here to at least have transport encryption.
-export package_pool="https://ftp.gwdg.de/pub/linux/debian/debian/pool/"
-export sources_list="$common/config/apt/sources.list.d/$release.list"
+package_pool="https://ftp.gwdg.de/pub/linux/debian/debian/pool/"
+sources_list="$common/config/apt/sources.list.d/$debian_release.list"
 
 # Commit the result as image
-export image_config="USER=${user} WORKDIR=/home/${user} CMD=/bin/bash"
-export dockerhub_repository="docker.io/matthiasbock/${image_name}:${image_tag}"
+image_config="USER=${user} WORKDIR=/home/${user} CMD=/bin/bash"
 
 
 function container_setup()
@@ -54,7 +52,7 @@ function container_setup()
 
   # Manually facilitate SSL certificate verification
   for pkg in libncursesw6 dialog libssl1.1 openssl ca-certificates; do
-    container_debian_install_manually $container_name $release $architecture $pkg
+    container_debian_install_manually $container_name $release $target_architecture $pkg
   done
 
   # Bootstrap using a trustworthy HTTPS package repository

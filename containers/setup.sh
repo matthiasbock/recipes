@@ -33,5 +33,5 @@ source "${container_config}" \
 
 # Include container management routines for bash
 export bash_container_library="$common/bash-container-library"
-source "$bash_container_library/library.sh" \
+source "$bash_container_library/include.sh" \
  || { echo "Error: Failed to load bash container library. Aborting."; exit 1; }
