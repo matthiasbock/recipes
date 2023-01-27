@@ -57,7 +57,7 @@ function container_setup()
     echo "Installing $pkg without verification ..."
     container_debian_download_package_and_install $container_name $pkg $debian_release $target_architecture
     local retval=$?
-    [[ $retval == 0 ]] || { echo "Error: Installation failed."; exit $retval; }
+    [[ $retval == 0 ]] || { echo "Error: Installation failed (error $retval)."; exit $retval; }
   done
 
   set -e
@@ -111,7 +111,7 @@ function container_setup()
   #
   # Clean up
   #
-  container_rm_file /etc/apt/apt.conf.d/10proxy.conf
+  container_rm_file $container_name /etc/apt/apt.conf.d/10proxy.conf
   container_expendables_import "${bash_container_library}/expendables/default.list"
   container_expendables_delete $container_name $container_expendables
 }

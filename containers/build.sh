@@ -7,22 +7,16 @@
 set -e
 
 # Remember where execution started
-export initial_pwd="$(realpath .)"
+initial_pwd="$(realpath .)"
 
 # Determine the full path to this script
-export scriptpath="$(realpath .)"
-argc=${#BASH_SOURCE[@]}
-for argv in ${BASH_SOURCE}; do
-  if [[ "$argv" == *"build.sh"* ]]; then
-    scriptpath="$(realpath $argv)"
-    break
-  fi
-done
+scriptpath="$(realpath "$0")"
+
 # Verify script path
-test -f "${scriptpath}" \
+test -f "$scriptpath" \
  || { echo "Error: Script not found: \"${scriptpath}\". Aborting."; exit 1; }
 
- # Change to the folder containing this script
+# Change to the folder containing this script
 cd $(dirname "${scriptpath}") \
  || { echo "Error: Failed to change to working directory. Aborting."; exit 1; }
 
@@ -35,7 +29,7 @@ export skip_container_start=false
 
 # Prepare for script execution
 export container_config="$1"
-source "setup.sh" \
+. "setup.sh" \
  || { echo "Error: Failed to load setup script. Aborting."; exit 1; }
 
 #
