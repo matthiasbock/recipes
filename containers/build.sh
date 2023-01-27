@@ -24,11 +24,11 @@ cd $(dirname "${scriptpath}") \
 # A container configuration may skip container creation or startup.
 # Default: don't skip anything
 #
-export skip_container_creation=false
-export skip_container_start=false
+skip_container_creation=false
+skip_container_start=false
 
 # Prepare for script execution
-export container_config="$1"
+container_config="$1"
 . "setup.sh" \
  || { echo "Error: Failed to load setup script. Aborting."; exit 1; }
 

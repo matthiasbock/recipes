@@ -3,36 +3,29 @@
 set -e
 
 # Change to the folder containing this script
-export initial_pwd="$(pwd)"
-export scriptpath="$(pwd)"
-argc=${#BASH_SOURCE[@]}
-for argv in ${BASH_SOURCE}; do
-  if [[ "$argv" == *"commit.sh"* ]]; then
-    scriptpath="$argv"
-    break
-  fi
-done
+initial_pwd="$(pwd)"
+scriptpath="$(realpath "$0")"
+
+# Verify script path
 test -f "${scriptpath}" \
  || { echo "Error: Script not found: $scriptpath. Aborting."; exit 1; }
+
+# Change to the folder containing this script
 cd $(dirname $(realpath "$scriptpath")) \
  || { echo "Error: Failed to change to working directory. Aborting."; exit 1; }
 
 # Prepare for script execution
-export container_config="$1"
-source "setup.sh" \
+container_config="$1"
+. "setup.sh" \
  || { echo "Error: Failed to load setup script. Aborting."; exit 1; }
 
-
+# Run a pre-commit hook, if one is defined
 if [ "$(type -t pre_commit_hook)" == "function" ]; then
   pre_commit_hook
 fi
 
-# TODO: Do a little cleanup beforehand?
-# apt-get -q clean
-# rm -fR /tmp; mkdir /tmp
-
 # Commit container as image
 echo "Committing..."
-container_commit "$container_name" "$image_name" "$image_tag" "$image_config" \
+create_image_from_container $container_name $image_name $image_tag "$image_config" \
  || { echo "Error: Image creation failed. Aborting."; exit 1; }
 echo "Image creation complete."
