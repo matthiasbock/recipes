@@ -1,6 +1,6 @@
 
 # Specify where to find common resources
-project_root="$(realpath "$(dirname "$script_filename")/../")"
+project_root="$(realpath "$script_dir/../")"
 echo "Project root: $project_root"
 shared_dir="$project_root/shared"
 echo "Shared files directory: $shared_dir"
@@ -14,10 +14,24 @@ fi
 # Verify, that file exists
 if [ ! -f "$container_config" ]; then
   # Maybe the path was specified relative to the initial working directory
-  container_config="$initial_dir/$container_config"
-  if [ ! -f "$container_config" ]; then
-    echo "Error: Configuration script not found: \"$container_config\""
-    exit 1
+  f="$initial_dir/$container_config"
+  if [ -f "$f" ]; then
+    container_config="$f"
+  else
+    # ...or relative to the script directory
+    f="$script_dir/$container_config"
+    if [ -f "$f" ]; then
+      container_config="$f"
+    else
+      # ...or relative to the project root
+      f="$project_root/$container_config"
+      if [ -f "$f" ]; then
+        container_config="$f"
+      else
+        echo "Error: Configuration script not found: \"$container_config\""
+        exit 1
+      fi
+    fi
   fi
 fi
 

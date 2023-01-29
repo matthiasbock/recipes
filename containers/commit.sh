@@ -4,7 +4,7 @@
 #
 
 # Path to container configuration/setup script
-container_config="$(realpath "$1")"
+container_config="$1"
 
 # Change to the folder containing this script
 initial_dir="$(realpath "$(pwd)")"
