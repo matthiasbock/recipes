@@ -1,0 +1,31 @@
+
+debian_bullseye-amd64:
+  image: docker.io/matthiasbock/debian:bullseye-amd64
+  stage: build
+  rules:
+    - when: manual
+  variables:
+    CONFIG: "systems/debian/bullseye-amd64.sh"
+  script:
+    - echo "Building container..."
+    - ./containers/build.sh $CONFIG
+    - echo "Creating image from container..."
+    - ./containers/commit.sh $CONFIG
+    - echo "Publishing image to container registry..."
+    - ./containers/push.sh $CONFIG
+
+
+debian_buster-amd64:
+  image: docker.io/matthiasbock/debian:bullseye-amd64
+  stage: build
+  rules:
+    - when: manual
+  variables:
+    CONFIG: "systems/debian/buster-amd64.sh"
+  script:
+    - echo "Building container..."
+    - ./containers/build.sh $CONFIG
+    - echo "Creating image from container..."
+    - ./containers/commit.sh $CONFIG
+    - echo "Publishing image to container registry..."
+    - ./containers/push.sh $CONFIG

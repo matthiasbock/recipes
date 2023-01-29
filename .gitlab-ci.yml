@@ -6,4 +6,4 @@ stages:
   - pack
   - publish
 
-include: "containers/systems/debian/bullseye-amd64.yml"
+include: "containers/systems/debian/gitlab-ci.yml"
