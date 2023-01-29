@@ -15,7 +15,7 @@ groups="runner sudo docker"
 package_pool="https://ftp.gwdg.de/pub/linux/debian/debian/pool/"
 bootstrap_packages="libncursesw6 dialog libssl1.1 openssl ca-certificates"
 sources_list="$shared_dir/config/apt/sources.list.d/$debian_release.list"
-package_bundles="$shared_dir/package-bundles/debian-essentials.list $shared_dir/package-bundles/console-tools.list"
+package_bundles="debian-essentials console-tools"
 
 # Commit the result as image
 image_config="USER=$user WORKDIR=/home/$user CMD=/bin/bash"
@@ -85,9 +85,14 @@ function container_setup() {
   # most likely you don't have enough permission.
 
   # Install additional packages
-  container_debian_install_package_bundles $package_bundles
+  local bundles=""
+  for bundle in $package_bundles; do
+    bundles="$bundles $shared_dir/package-bundles/${bundle}.list"
+  done
+  container_debian_install_package_bundles $bundles
   local retval=$?
   [[ $retval == 0 ]] || { echo "Error: Failed to install package bundles."; exit $retval; }
+  unset bundles
 
   #
   # Configure ccache
