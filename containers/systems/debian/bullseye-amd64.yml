@@ -1,6 +1,6 @@
 
 debian-base_bullseye-amd64:
-  image: docker.io/matthiasbock/debian-base:stable-amd64
+  image: docker.io/matthiasbock/debian:bullseye-amd64
   stage: build
   variables:
     CONFIG: "systems/debian/bullseye-amd64.sh"
