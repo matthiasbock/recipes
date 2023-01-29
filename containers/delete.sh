@@ -1,23 +1,38 @@
 #!/bin/bash
+#
+# Delete the container specified in the given container configuration file
+#
 
-set -e
+# Path to container configuration/setup script
+container_config="$(realpath "$1")"
 
 # Change to the folder containing this script
-initial_pwd="$(pwd)"
-scriptpath="$(realpath "$0")"
+initial_dir="$(realpath "$(pwd)")"
+script_filename="$(realpath "$0")"
+script_dir="$(dirname "$script_filename")"
 
 # Verify script path
-test -f "$scriptpath" \
- || { echo "Error: Script not found: $scriptpath. Aborting."; exit 1; }
+[[ -f "$script_filename" ]] \
+ || { echo "Error: Script not found: \"$script_filename\""; exit 2; }
 
 # Change to the folder containing this script
-cd $(dirname "$scriptpath") \
- || { echo "Error: Failed to change to working directory. Aborting."; exit 1; }
+cd "$script_dir" \
+ || { echo "Error: Failed to change to working directory \"$script_dir\"."; exit 3; }
 
-# Prepare for script execution
-container_config="$1"
+# Include shared setup routines as well as container config script
 . "setup.sh" \
- || { echo "Error: Failed to load setup script. Aborting."; exit 1; }
+ || { echo "Error: Failed to include setup script."; exit 1; }
 
 
-container_remove "$container_name"
+if container_exists "$container_name"; then
+  # Delete the container
+  echo "Deleting container \"$container_name\"..."
+  container_remove "$container_name"
+else
+  echo "No such container: \"$container_name\""
+  # exit 1;
+fi
+
+
+# Return to original directory
+cd "$initial_dir"

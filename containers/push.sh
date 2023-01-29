@@ -1,32 +1,51 @@
 #!/bin/bash
+#
+# Push a local container image
+# to one container registry
+# specified via environment variables
+#
 
-set -e
+# Path to container configuration/setup script
+container_config="$(realpath "$1")"
 
 # Change to the folder containing this script
-initial_pwd="$(pwd)"
-scriptpath="$(realpath "$0")"
+initial_dir="$(realpath "$(pwd)")"
+script_filename="$(realpath "$0")"
+script_dir="$(dirname "$script_filename")"
 
 # Verify script path
-test -f "${scriptpath}" \
- || { echo "Error: Script not found: $scriptpath. Aborting."; exit 1; }
+[[ -f "$script_filename" ]] \
+ || { echo "Error: Script not found: $script_filename."; exit 2; }
 
 # Change to the folder containing this script
-cd $(dirname $(realpath "$scriptpath")) \
- || { echo "Error: Failed to change to working directory. Aborting."; exit 1; }
+cd "$script_dir" \
+ || { echo "Error: Failed to change to working directory."; exit 3; }
 
-# Prepare for script execution
-container_config="$1"
-source "setup.sh" \
- || { echo "Error: Failed to load setup script. Aborting."; exit 1; }
+# Include shared setup routines as well as container config script
+. "setup.sh" \
+ || { echo "Error: Failed to load setup script. Aborting."; exit 4; }
 
 
-if ! image_exists "${image_name}:${image_tag}"; then
-  echo "Fatal: Image '${image_name}:${image_tag}' not found."
-  exit 1
+# Check if the image exists
+image_id="$image_name:$image_tag"
+if ! image_exists "$image_id"; then
+  echo "Error: Image not found: \"$image_id\""
+  exit 5
 fi
 
-# TODO: Check: Are Docker Hub credentials defined?
+# Push this image under all configured tags
+image_tags="$image_tag $image_tags"
+echo "Image tags: $image_tags"
+echo "Image repositories: $image_repositories"
+for tag in $image_tags; do
+  # Push image to all configured repositories
+  for repository in $image_repositories; do
+    echo "Pushing image \"$image_id\" to \"$repository:$tag\"..."
+    $container_cli push "$image_id" "$repository:$tag"
+  done
+done
+echo "Pushing complete."
 
-$container_cli login -u $DOCKER_HUB_USERNAME -p $DOCKER_HUB_ACCESS_TOKEN docker.io
 
-$container_cli push "${image_name}:${image_tag}" "${dockerhub_repository}"
+# Return to original directory
+cd "$initial_dir"
