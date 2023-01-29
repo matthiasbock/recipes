@@ -1,26 +1,26 @@
 
 # Derive from configured, stable Debian installation
-export architecture="amd64"
-export base_release="stable"
-export base_image="docker.io/matthiasbock/debian-base:${base_release}-${architecture}"
+architecture="amd64"
+base_release="stable"
+base_image="docker.io/matthiasbock/debian-base:${base_release}-${architecture}"
 
 # Microsoft Teams version -> container tag
-export image_name="microsoft-teams"
-export image_tag="linux-$architecture-$(echo -n $(date +%Y-%m-%d))"
-export container_name="${image_name}-${image_tag}"
+image_name="microsoft-teams"
+image_tag="linux-$architecture-$(echo -n $(date +%Y-%m-%d))"
+container_name="${image_name}-${image_tag}"
 
-export user="runner"
+user="runner"
 
 # Commit the result as image
-export image_config="USER=${user} WORKDIR=/home/${user} CMD=/bin/bash"
-export dockerhub_repository="docker.io/matthiasbock/${image_name}:${image_tag}"
+image_config="USER=${user} WORKDIR=/home/${user} CMD=/bin/bash"
+image_repositories="docker.io/matthiasbock/$image_name registry.bihealth.org:443/bockm/recipes/$image_name"
 
 
 function container_setup()
 {
   # Add Microsoft's package repository sources.list
   echo "Configuring Microsoft package repositories ..."
-  srcfile="$common/config/apt/sources.list.d/microsoft.list"
+  srcfile="$shared_dir/config/apt/sources.list.d/microsoft.list"
   dstpath="/etc/apt/sources.list.d"
   dstfile="$dstpath/microsoft.list"
   container_add_file $container_name "$srcfile" "$dstfile" \
@@ -32,7 +32,7 @@ function container_setup()
 
   # Import Microsoft's repo GPG key
   echo "Adding and trusing Microsoft's repo public key ..."
-  srcfile="$common/keys/microsoft.asc"
+  srcfile="$shared_dir/keys/microsoft.asc"
   dstpath="/tmp"
   dstfile="$dstpath/microsoft.key"
   container_add_file $container_name "$srcfile" "$dstfile" \

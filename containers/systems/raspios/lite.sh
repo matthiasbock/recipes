@@ -1,23 +1,23 @@
 
-export image_name="raspberry-pi"
-export image_tag="bullseye"
-export container_name="${image_name}-${image_tag}"
-export dockerhub_repository="docker.io/matthiasbock/${image_name}:${image_tag}"
+image_name="raspberry-pi"
+image_tag="bullseye"
+container_name="${image_name}-${image_tag}"
 
 # Select qemu matching the image's architecture (32 or 64 bit)
-#export qemu="qemu-aarch64-static"
-export qemu="qemu-arm-static"
+#qemu="qemu-aarch64-static"
+qemu="qemu-arm-static"
 
-export image_config="USER=root WORKDIR=/ CMD=['/$qemu','/bin/bash']"
+image_config="USER=root WORKDIR=/ CMD=['/$qemu','/bin/bash']"
+image_repositories="docker.io/matthiasbock/$image_name registry.bihealth.org:443/bockm/recipes/$image_name"
 
 # Derive container from this precompiled image:
-#export download_url="https://downloads.raspberrypi.org/raspios_lite_armhf/images/raspios_lite_armhf-2021-11-08/2021-10-30-raspios-bullseye-armhf-lite.zip"
-#export download_sha256sum="008d7377b8c8b853a6663448a3f7688ba98e2805949127a1d9e8859ff96ee1a9"
+#download_url="https://downloads.raspberrypi.org/raspios_lite_armhf/images/raspios_lite_armhf-2021-11-08/2021-10-30-raspios-bullseye-armhf-lite.zip"
+#download_sha256sum="008d7377b8c8b853a6663448a3f7688ba98e2805949127a1d9e8859ff96ee1a9"
 # https://github-releases.githubusercontent.com/381703204/5a33b428-9059-4cc3-b6de-562cd1d8e3e1?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIWNJYAX4CSVEH53A%2F20211117%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20211117T155539Z&X-Amz-Expires=300&X-Amz-Signature=926342bc0ebedc357622fc55d96db5c33c6777f2a90c6d994dc3ae58111bc8df&X-Amz-SignedHeaders=host&actor_id=1587578&key_id=0&repo_id=381703204&response-content-disposition=attachment%3B%20filename%3Doctopi-0.18.0-1.7.2.zip&response-content-type=application%2Foctet-stream
 
 # We create the container here; don't create or start it in the main build script.
-export skip_container_creation=0
-export skip_container_start=0
+skip_container_creation=0
+skip_container_start=0
 
 
 function container_setup() {
@@ -71,11 +71,11 @@ function container_setup() {
   cp -av $(which $qemu) $RASPIROOT/
 
   # Copy over some essentials
-  cp -av $common/config/apt/sources.list.d/raspi.list $RASPIROOT/etc/apt/sources.list.d/
-  cp -av $common/config/vimrc/default $RASPIROOT/root/.vimrc
-  cat $common/config/shell/bash-completion.bashrc  $common/config/shell/color.bashrc >> $RASPIROOT/root/.bashrc
+  cp -av $shared_dir/config/apt/sources.list.d/raspi.list $RASPIROOT/etc/apt/sources.list.d/
+  cp -av $shared_dir/config/vimrc/default $RASPIROOT/root/.vimrc
+  cat $shared_dir/config/shell/bash-completion.bashrc  $shared_dir/config/shell/color.bashrc >> $RASPIROOT/root/.bashrc
 
-  export DEBIAN_FRONTEND=noninteractive
+  DEBIAN_FRONTEND=noninteractive
 
   #
   # Emulate using chroot or systemd-nspawn
@@ -94,18 +94,18 @@ function container_setup() {
   $run apt-get -q update
   $run apt-get -q install -y \
     ca-certificates \
-    $(cat $common/package-bundles/keyrings.list) \
-    $(cat $common/package-bundles/raspberrypi.list)
+    $(cat $shared_dir/package-bundles/keyrings.list) \
+    $(cat $shared_dir/package-bundles/raspberrypi.list)
   $run apt-get -q update
   $run apt-get -q install -y dialog locales
-  cp -av $common/config/locale.gen $RASPIROOT/etc/
+  cp -av $shared_dir/config/locale.gen $RASPIROOT/etc/
   $run locale-gen
 
   $run apt-get -q install -y \
-    $(cat $common/package-bundles/debian-essentials.list) \
-    $(cat $common/package-bundles/console-tools.list) \
-    $(cat $common/package-bundles/networking.list) \
-    $(cat $common/package-bundles/python3.list) \
+    $(cat $shared_dir/package-bundles/debian-essentials.list) \
+    $(cat $shared_dir/package-bundles/console-tools.list) \
+    $(cat $shared_dir/package-bundles/networking.list) \
+    $(cat $shared_dir/package-bundles/python3.list) \
     docker.io podman
 
   $run systemctl disable systemd-resolved

@@ -1,15 +1,15 @@
 #!/bin/bash
 
 # TODO: Enable running from paths other than the one containing this script.
-export common="../../../../../common"
+shared_dir=$(realpath "../../../../../shared")
 
 # Load container configuration
-source config.sh
+. config.sh
 
 # Include container management routines for bash
-export bash_container_library="$common/bash-container-library"
-source "$bash_container_library/library.sh" \
- || { echo "Error: Failed to load bash container library. Aborting."; exit 1; }
+bash_container_library="$shared_dir/bash-container-library"
+. "$bash_container_library/include.sh" \
+ || { echo "Error: Failed to load bash container library."; exit 1; }
 
 # Commit folder as image
 dir="image"

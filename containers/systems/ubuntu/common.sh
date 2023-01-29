@@ -1,12 +1,11 @@
 
-export image_name="ubuntu-base"
-export image_tag="${release}-${architecture}"
-export container_name="${image_name}-${image_tag}"
+image_name="ubuntu-base"
+image_tag="${release}-${architecture}"
+container_name="${image_name}-${image_tag}"
 
-export user="runner"
-export image_config="USER=${user} WORKDIR=/home/${user} CMD=/bin/bash"
-
-export dockerhub_repository="docker.io/matthiasbock/${image_name}:${image_tag}"
+user="runner"
+image_config="USER=${user} WORKDIR=/home/${user} CMD=/bin/bash"
+image_repositories="docker.io/matthiasbock/$image_name registry.bihealth.org:443/bockm/recipes/$image_name"
 
 
 function container_setup()
@@ -18,7 +17,7 @@ function container_setup()
 
   echo "Adding a .bashrc for root and $user ..."
   tmpfile=".bashrc"
-  cat $common/config/shell/*.bashrc > "$tmpfile"
+  cat $shared_dir/config/shell/*.bashrc > "$tmpfile"
   container_add_file $container_name "$tmpfile" "/root/" \
    || { echo "Error: Failed to add bashrc for user root. Aborting."; exit 1; }
   container_exec $container_name chown -R root.root /root/ \
@@ -37,7 +36,7 @@ function container_setup()
   # Configure APT
   echo "Configuring APT ..."
 
-  container_add_file $container_name $common/config/apt/apt.conf /etc/apt/apt.conf
+  container_add_file $container_name $shared_dir/config/apt/apt.conf /etc/apt/apt.conf
 
   container_exec $container_name echo 'APT::Get::Install-Recommends "false"; APT::Get::Install-Suggests "false";' >> /etc/apt/apt.conf
   container_exec $container_name apt-get -q update
@@ -50,7 +49,7 @@ function container_setup()
 
   # Enable sudo without password
   echo "Granting sudo priviledges to $user ..."
-  srcfile="$common/config/sudoers.d/runner"
+  srcfile="$shared_dir/config/sudoers.d/runner"
   dstpath="/etc/sudoers.d"
   dstfile="$dstpath/runner"
   container_add_file $container_name "$srcfile" "$dstfile" \
