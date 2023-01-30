@@ -175,4 +175,8 @@ function verify_ownerships() {
   # All configuration belongs to root
   container_exec $container_name chown -R root.root /etc \
   || { echo "Error: Failed to adjust ownership of \"/etc\"."; exit 4; }
+
+  # Configuration should only be writeable by root
+  container_exec $container_name chmod -R ga-w /etc \
+  || { echo "Error: Failed to adjust permissions of \"/etc\"."; exit 5; }
 }
