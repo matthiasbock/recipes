@@ -37,7 +37,7 @@ function container_setup() {
   # Configure bash, user and groups
   #
   add_user
-  add_bashrc
+  configure_shell
 
   #
   # Configure APT and install packages

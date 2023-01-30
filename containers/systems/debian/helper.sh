@@ -16,24 +16,39 @@ function add_user() {
 #
 # Configure the shell
 #
-function add_bashrc() {
-  echo "Adding a .bashrc for root and $user ..."
+function configure_shell() {
+  src_profile="path color git bash-completion debconf proxy ssh-keygen shortcuts"
+  src_bashrc_root="ssh-host-keygen apt-update"
+
+  echo -n "Configuring global shell profile..."
+  for file in $src_profile; do
+    local filepath="$shared_dir/config/shell/${file}.bashrc"
+    container_add_file $container_name $filepath /etc/profile.d/ \
+    || { echo "Error: Failed to add file to container."; exit 2; }
+  done
+  echo "done."
+
+  echo -n "Creating .bashrc for root... "
   tmpfile=".bashrc"
-  cat $shared_dir/config/shell/*.bashrc > "$tmpfile"
-  container_add_file $container_name "$tmpfile" "/root/" \
-   || { echo "Error: Failed to add bashrc for user root."; exit 1; }
-  container_add_file $container_name "$tmpfile" "/home/$user/" \
-   || { echo "Error: Failed to add bashrc to user $user."; exit 1; }
-  rm -f "$tmpfile"
+  rm -f $tmpfile
+  for file in $src_bashrc_root; do
+    local filepath="$shared_dir/config/shell/${file}.bashrc"
+    cat $filepath >> $tmpfile
+  done
+  container_add_file $container_name $tmpfile /root/ \
+  || { echo "Error: Failed to add file to container."; exit 3; }
+  rm -vf $tmpfile
+  echo "done."
 }
 
 #
-# Use the base image's sources.list to
-# install all packages required for SSL transport encryption
+# Install all packages required for SSL transport encryption
+# without invoking apt or apt-get
 #
 function enable_ssl_support() {
   set +e
 
+  # Get target release
   local release
   if [ "$debian_release" != "" ]; then
     release=$debian_release
@@ -53,6 +68,16 @@ function enable_ssl_support() {
   done
 
   set -e
+
+  # Removed insecure HTTP package repo
+  container_exec $container_name rm -vf /etc/apt/sources.list
+
+  # Add HTTPS package repository
+  container_add_file $container_name "$sources_list" /etc/apt/sources.list.d/ \
+  || { echo "Error: Failed to add \"$sources_list\" to container \"$container_name\"."; exit 20; }
+
+  # Update the package list
+  container_exec $container_name apt-get -q update
 }
 
 #
@@ -60,15 +85,6 @@ function enable_ssl_support() {
 # required for package verification
 #
 function enable_package_verification() {
-  # Removed insecure HTTP package repo
-  container_rm_file $container_name /etc/apt/sources.list
-
-  # Add HTTPS package repository
-  container_add_file $container_name "$sources_list" "/etc/apt/sources.list" \
-  || { echo "Error: Failed to add \"$sources_list\" to container \"$container_name\"."; exit 2; }
-
-  # Update the package cache
-  container_exec $container_name apt-get -q update
 
   # Clean up possible any problems potentially arisen from the manual installations in enable_ssl_support()
   container_exec $container_name apt-get -q -f -y install
