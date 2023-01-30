@@ -46,7 +46,6 @@ function configure_shell() {
 # without invoking apt or apt-get
 #
 function enable_ssl_support() {
-  set +e
 
   # Get target release
   local release
@@ -66,15 +65,22 @@ function enable_ssl_support() {
     local retval=$?
     [[ $retval == 0 ]] || { echo "Error: Installation failed (error $retval)."; exit $retval; }
   done
+}
 
-  set -e
+#
+# Add apt sources.list files to container
+#
+function add_sources_lists() {
 
-  # Removed insecure HTTP package repo
+  # Remove insecure HTTP package repo
   container_exec $container_name rm -vf /etc/apt/sources.list
 
   # Add HTTPS package repository
-  container_add_file $container_name "$sources_list" /etc/apt/sources.list.d/ \
-  || { echo "Error: Failed to add \"$sources_list\" to container \"$container_name\"."; exit 20; }
+  for file in $apt_sources_lists; do
+    local filepath=$shared_dir/config/apt/sources.list.d/${file}.list
+    container_add_file $container_name $filepath /etc/apt/sources.list.d/ \
+    || { echo "Error: Failed to add \"$filepath\" to container."; exit 20; }
+  done
 
   # Update the package list
   container_exec $container_name apt-get -q update
