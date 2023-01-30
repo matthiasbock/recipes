@@ -12,7 +12,8 @@ container_architecture="linux/amd64"
 # Build image using Dockerfile
 # dockerfile="$container_config_dir/Dockerfile"
 
-packages="time make gcc g++ clang llvm xvfb libgl1 vtk7 libvtk7-dev libvtk7-qt-dev python3-pip python3-vtk7"
+deb_packages="time make gcc g++ clang llvm xvfb libgl1 vtk7 libvtk7-dev libvtk7-qt-dev python3-pip python3-vtk7"
+pip_packages="vtk pyvista pyvirtualdisplay gmsh"
 
 # Push image to repos
 image_repositories="docker.io/matthiasbock/$image_name:$image_tag registry.bihealth.org:443/bockm/recipes/$image_name:$image_tag"
@@ -21,8 +22,8 @@ image_repositories="docker.io/matthiasbock/$image_name:$image_tag registry.bihea
 function container_setup() {
   # Install additional packages
   container_exec $container_name apt-get update -q
-  container_exec $container_name apt-get -qy install $packages
-  container_exec $container_name pip3 install vtk pyvista pyvirtualdisplay gmsh
+  container_exec $container_name apt-get -qy install $deb_packages
+  container_exec $container_name pip3 install $pip_packages
 
   # Expendables
   container_exec $container_name apt-get clean
