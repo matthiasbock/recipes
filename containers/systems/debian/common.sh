@@ -13,7 +13,7 @@ groups="runner sudo docker"
 # This pool is used before package verification using GPG is available.
 # Use a HTTPS package pool here to at least have transport encryption.
 bootstrap_packages="libncursesw6 dialog libssl1.1 openssl ca-certificates apt-transport-https"
-apt_sources_lists="$debian_release microsoft signal-messenger"
+apt_sources_lists="$debian_release apache-mynewt jitsi microsoft nvidia openproject signal-messenger vscodium wire-messenger"
 package_bundles="debian-essentials console-tools"
 
 # Commit the result as image
