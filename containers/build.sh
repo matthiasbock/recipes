@@ -29,8 +29,23 @@ skip_container_start=false
 
 # Include shared setup routines as well as container config script
 . "setup.sh" \
- || { echo "Error: Failed to load setup script. Aborting."; exit 1; }
+ || { echo "Error: Failed to load setup script. Aborting."; exit 4; }
 
+
+
+#
+# Build container from Dockerfile
+#
+if [ "$dockerfile" != "" ]; then
+  echo "Building image using Dockerfile: \"$dockerfile\"..."
+  dockerfile_dir="$(dirname "$dockerfile")"
+  cd "$dockerfile_dir" && $container_cli build -t $image_name:$image_tag . \
+  || { echo "Error: Failed to build image using Dockerfile."; echo 5; }
+
+  # We don't need to build another container
+  skip_container_creation=true
+  skip_container_start=true
+fi
 
 #
 # Create the container
@@ -56,7 +71,9 @@ if ! $skip_container_start; then
 fi
 
 # Run setup function from configuration script
-container_setup
+if [ "$(type -t container_setup)" == "function" ]; then
+  container_setup
+fi
 
 # Container created successfully
 $container_cli stop "$container_name" \
