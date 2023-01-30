@@ -35,6 +35,7 @@ function container_setup()
   # Clone coreboot source repo
   container_exec $container_name git clone -q --depth=1 --recurse-submodules $repo_uri $repo_dir \
   || { echo "Failed to clone primary repository. Aborting."; exit 1; }
+  container_exec $container_name chown -R $user.$user /home/$user || true
 
   # Clean up
   container_expendables_import "$bash_container_library/expendables/default.list"
