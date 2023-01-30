@@ -41,6 +41,6 @@ function container_setup()
   container_exec $container_name bash -c "cd '$repo_dir' && make $multi_threading iasl crossgcc"
 
   # Clean up
-  container_expendables_import "${bash_container_library}/expendables/default.list"
+  container_expendables_import "$bash_container_library/expendables/default.list"
   container_expendables_delete $container_name $container_expendables
 }

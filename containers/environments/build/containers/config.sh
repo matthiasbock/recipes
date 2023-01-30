@@ -20,10 +20,7 @@ function container_setup() {
   container_exec $container_name apt-get update -q
   container_exec $container_name apt-get -qy install $packages
 
-  # Expendables
-  container_exec $container_name apt-get clean
-  container_exec $container_name find /lost+found /run /tmp /root/.bash_history /home/*/.bash_history \
-    /usr/share/doc /usr/local/share/doc /usr/share/icons /usr/share/man /usr/share/vim/vim81/doc \
-   /var/cache/apt/archives /var/cache/fonts /var/cache/man /var/lib/apt/lists /var/lock \
-   /var/log /var/mail /var/run /var/spool /var/tmp -type f -exec rm -fv {} \; || true
+  # Delete expendable files
+  container_expendables_import "$bash_container_library/expendables/default.list"
+  container_expendables_delete $container_name $container_expendables
 }
