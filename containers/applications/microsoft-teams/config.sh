@@ -1,13 +1,13 @@
 
 # Derive from configured, stable Debian installation
 architecture="amd64"
-base_release="stable"
-base_image="docker.io/matthiasbock/debian-base:${base_release}-${architecture}"
+base_release="bullseye"
+base_image="docker.io/matthiasbock/debian:${base_release}-${architecture}"
 
 # Microsoft Teams version -> container tag
 image_name="microsoft-teams"
-image_tag="linux-$architecture-$(echo -n $(date +%Y-%m-%d))"
-container_name="${image_name}-${image_tag}"
+image_tag="$architecture-$(echo -n $(date +%Y-%m-%d))"
+container_name="${image_name}_${image_tag}"
 
 user="runner"
 
