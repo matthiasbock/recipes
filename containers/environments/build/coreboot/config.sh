@@ -7,7 +7,7 @@ debian_architecture="amd64"
 base_image="docker.io/matthiasbock/debian:$debian_release-$debian_architecture"
 
 container_name="${image_name}_${image_tag}"
-container_architecture="linux/$debian_architecture"
+container_architecture="$debian_architecture"
 
 user="runner"
 
