@@ -9,7 +9,7 @@ container_name="${image_name}-${image_tag}"
 
 user="runner"
 image_config="USER=${user} WORKDIR=/home/${user} CMD=/bin/bash"
-image_repositories="docker.io/matthiasbock/$image_name registry.bihealth.org:443/bockm/recipes/$image_name"
+image_repositories="docker.io/matthiasbock/$image_name:$image_tag registry.bihealth.org:443/bockm/recipes/$image_name:$image_tag"
 
 deb_url="https://zoom.us/client/latest/zoom_amd64.deb"
 

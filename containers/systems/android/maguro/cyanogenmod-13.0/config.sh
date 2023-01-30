@@ -18,7 +18,7 @@ release="cm13"
 image_tag="${codename}-${release}"
 container_name="${image_name}-${image_tag}"
 image_config="USER=root WORKDIR=/ CMD=['/qemu-arm-static','/system/bin/sh']"
-image_repositories="docker.io/matthiasbock/$image_name registry.bihealth.org:443/bockm/recipes/$image_name"
+image_repositories="docker.io/matthiasbock/$image_name:$image_tag registry.bihealth.org:443/bockm/recipes/$image_name:$image_tag"
 
 
 #

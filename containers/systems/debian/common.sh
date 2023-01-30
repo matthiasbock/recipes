@@ -18,7 +18,7 @@ package_bundles="debian-essentials console-tools"
 
 # Commit the result as image
 image_config="USER=$user WORKDIR=/home/$user CMD=/bin/bash"
-image_repositories="docker.io/matthiasbock/debian registry.bihealth.org:443/bockm/recipes/debian"
+image_repositories="docker.io/matthiasbock/$image_name:$image_tag registry.bihealth.org:443/bockm/recipes/$image_name:$image_tag"
 
 # Source the helper functions
 helper="$container_config_dir/helper.sh"

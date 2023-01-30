@@ -8,7 +8,7 @@ container_name="${image_name}-${image_tag}"
 qemu="qemu-arm-static"
 
 image_config="USER=root WORKDIR=/ CMD=['/$qemu','/bin/bash']"
-image_repositories="docker.io/matthiasbock/$image_name registry.bihealth.org:443/bockm/recipes/$image_name"
+image_repositories="docker.io/matthiasbock/$image_name:$image_tag registry.bihealth.org:443/bockm/recipes/$image_name:$image_tag"
 
 # Derive container from this precompiled image:
 #download_url="https://downloads.raspberrypi.org/raspios_lite_armhf/images/raspios_lite_armhf-2021-11-08/2021-10-30-raspios-bullseye-armhf-lite.zip"

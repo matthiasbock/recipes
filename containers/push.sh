@@ -33,18 +33,13 @@ if ! image_exists "$image_id"; then
   exit 5
 fi
 
-# Push this image under all configured tags
-image_tags="$image_tag $image_tags"
-echo "Image tags: $image_tags"
-echo "Image repositories: $image_repositories"
-for tag in $image_tags; do
-  # Push image to all configured repositories
-  for repository in $image_repositories; do
-    echo "Pushing image \"$image_id\" to \"$repository:$tag\"..."
-    $container_cli push "$image_id" "$repository:$tag"
-  done
+# Push image to all configured repositories
+echo "Pushing to: $image_repositories"
+for repository in $image_repositories; do
+  echo "Pushing image \"$image_id\" to \"$repository\"..."
+  $container_cli push "$image_id" "$repository"
 done
-echo "Pushing complete."
+echo "Push complete."
 
 
 # Return to original directory

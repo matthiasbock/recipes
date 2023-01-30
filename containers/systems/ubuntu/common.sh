@@ -10,7 +10,7 @@ user="runner"
 groups="runner sudo docker"
 
 image_config="USER=${user} WORKDIR=/home/${user} CMD=/bin/bash"
-image_repositories="docker.io/matthiasbock/$image_name registry.bihealth.org:443/bockm/recipes/$image_name"
+image_repositories="docker.io/matthiasbock/$image_name:$image_tag registry.bihealth.org:443/bockm/recipes/$image_name:$image_tag"
 
 
 function container_setup()
