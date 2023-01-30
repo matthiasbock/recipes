@@ -1,6 +1,5 @@
 
 buildenv_simulations:
-  image: docker.io/matthiasbock/debian:bullseye-amd64
   stage: build
   rules:
     - when: manual

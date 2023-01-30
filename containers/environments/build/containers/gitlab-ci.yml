@@ -4,7 +4,6 @@
 # to build the containers in this git repository
 #
 buildenv_containers:
-  image: docker.io/matthiasbock/debian:bullseye-amd64
   stage: build
   rules:
     - when: manual

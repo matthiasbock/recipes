@@ -1,6 +1,5 @@
 
 ubuntu_focal-amd64:
-  image: docker.io/matthiasbock/debian:bullseye-amd64
   stage: build
   rules:
     - when: manual

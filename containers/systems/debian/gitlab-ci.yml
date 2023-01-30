@@ -1,6 +1,5 @@
 
 debian_bullseye-amd64:
-  image: docker.io/matthiasbock/debian:bullseye-amd64
   stage: build
   rules:
     - when: manual
@@ -16,7 +15,6 @@ debian_bullseye-amd64:
 
 
 debian_buster-amd64:
-  image: docker.io/matthiasbock/debian:bullseye-amd64
   stage: build
   rules:
     - when: manual
