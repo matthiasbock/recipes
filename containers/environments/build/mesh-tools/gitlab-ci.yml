@@ -1,0 +1,17 @@
+
+#
+# A build environment for my mesh-tools
+#
+buildenv_mesh-tools:
+  stage: build
+  rules:
+    - when: manual
+  variables:
+    CONFIG: "environments/build/mesh-tools/config.sh"
+  script:
+    - echo "Building container..."
+    - ./containers/build.sh $CONFIG
+    - echo "Creating image from container..."
+    - ./containers/commit.sh $CONFIG
+    - echo "Publishing image to container registry..."
+    - ./containers/push.sh $CONFIG
