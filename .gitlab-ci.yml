@@ -1,4 +1,6 @@
 
+image: "registry.bihealth.org:443/bockm/recipes/buildenv:containers"
+
 stages:
   - setup
   - build
