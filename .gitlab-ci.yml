@@ -9,5 +9,6 @@ stages:
 include:
   - "containers/environments/build/containers/gitlab-ci.yml"
   - "containers/environments/build/simulations/gitlab-ci.yml"
+  - "containers/environments/test/python3/gitlab-ci.yml"
   - "containers/systems/debian/gitlab-ci.yml"
   - "containers/systems/ubuntu/gitlab-ci.yml"

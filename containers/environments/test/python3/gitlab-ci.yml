@@ -1,0 +1,17 @@
+
+#
+# A test environment for Python 3.x projects
+#
+testenv_python3:
+  stage: build
+  rules:
+    - when: manual
+  variables:
+    CONFIG: "environments/test/python3/config.sh"
+  script:
+    - echo "Building container..."
+    - ./containers/build.sh $CONFIG
+    - echo "Creating image from container..."
+    - ./containers/commit.sh $CONFIG
+    - echo "Publishing image to container registry..."
+    - ./containers/push.sh $CONFIG
