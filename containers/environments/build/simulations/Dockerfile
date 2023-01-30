@@ -3,6 +3,8 @@ FROM docker.io/matthiasbock/debian:bullseye-amd64
 
 RUN \
     export DEBIAN_FRONTEND=noninteractive && \
+    env && \
+    . /etc/profiles.d/proxy.sh && \
     sudo apt-get update -q && \
     sudo apt-get -qy install time make gcc g++ clang llvm xvfb && \
     sudo apt-get -qy install libgl1 vtk7 libvtk7-dev libvtk7-qt-dev python3-pip python3-vtk7 && \
