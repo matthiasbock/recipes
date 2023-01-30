@@ -22,17 +22,17 @@ function configure_shell() {
 
   echo -n "Configuring global shell profile..."
   for file in $src_profile; do
-    local filepath="$shared_dir/config/shell/${file}.bashrc"
+    local filepath="$shared_dir/config/shell/${file}.sh"
     container_add_file $container_name $filepath /etc/profile.d/ \
     || { echo "Error: Failed to add file to container."; exit 2; }
   done
   echo "done."
 
   echo -n "Creating .bashrc for root... "
-  tmpfile=".bashrc"
+  tmpfile=".bashrc.tmp"
   rm -f $tmpfile
   for file in $src_bashrc_root; do
-    local filepath="$shared_dir/config/shell/${file}.bashrc"
+    local filepath="$shared_dir/config/shell/${file}.sh"
     cat $filepath >> $tmpfile
   done
   container_add_file $container_name $tmpfile /root/ \
