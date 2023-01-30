@@ -7,3 +7,4 @@ stages:
   - publish
 
 include: "containers/systems/debian/gitlab-ci.yml"
+include: "containers/systems/ubuntu/gitlab-ci.yml"

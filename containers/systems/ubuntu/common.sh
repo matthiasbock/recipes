@@ -1,9 +1,14 @@
 
-image_name="ubuntu-base"
-image_tag="${release}-${architecture}"
-container_name="${image_name}-${image_tag}"
+image_name="ubuntu"
 
+# Derive container/image from this image
+image_tag="$ubuntu_release-$target_architecture"
+container_name="${image_name}_${image_tag}"
+
+# Container/image parameters
 user="runner"
+groups="runner sudo docker"
+
 image_config="USER=${user} WORKDIR=/home/${user} CMD=/bin/bash"
 image_repositories="docker.io/matthiasbock/$image_name registry.bihealth.org:443/bockm/recipes/$image_name"
 
