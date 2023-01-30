@@ -21,6 +21,9 @@ function container_setup() {
   container_exec $container_name apt-get update -q
   container_exec $container_name apt-get -qy install $packages $dependencies
 
+  # Configure ccache
+  # container_add_file $container_name $shared_dir/config/shell/ccache.sh /etc/profile.d/
+
   # Shrink to minimum size
   container_expendables_import "$bash_container_library/expendables/default.list"
   container_expendables_delete $container_name $container_expendables
