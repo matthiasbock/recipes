@@ -15,11 +15,10 @@ repo_uri="https://review.coreboot.org/coreboot.git"
 repo_dir="/home/$user/coreboot"
 
 build_dependencies="git make m4 bison flex bzip2 xz-utils curl ccache zlib1g-dev g++ ccache gnat libncurses-dev cmake python"
-multi_threading="-j8"
 
 image_config="USER=$user WORKDIR=$repo_dir CMD=/bin/bash"
 
-image_repositories="docker.io/matthiasbock/$image_name:$image_tag"
+image_repositories="docker.io/matthiasbock/$image_name:$image_tag registry.bihealth.org:443/bockm/recipes/$image_name:$image_tag"
 
 
 #
@@ -36,9 +35,6 @@ function container_setup()
   # Clone coreboot source repo
   container_exec $container_name git clone -q --depth=1 --recurse-submodules $repo_uri $repo_dir \
   || { echo "Failed to clone primary repository. Aborting."; exit 1; }
-
-  # Build toolchain
-  container_exec $container_name bash -c "cd '$repo_dir' && make $multi_threading iasl crossgcc"
 
   # Clean up
   container_expendables_import "$bash_container_library/expendables/default.list"

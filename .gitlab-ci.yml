@@ -14,5 +14,6 @@ include:
   - "containers/environments/build/mesh-tools/gitlab-ci.yml"
   - "containers/environments/build/simulations/gitlab-ci.yml"
   - "containers/environments/test/python3/gitlab-ci.yml"
+  - "containers/environments/work/coreboot/gitlab-ci.yml"
   - "containers/systems/debian/gitlab-ci.yml"
   - "containers/systems/ubuntu/gitlab-ci.yml"

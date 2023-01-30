@@ -1,0 +1,18 @@
+
+#
+# Environment for coreboot customization
+# with pre-compiled toolchain
+#
+workenv_coreboot:
+  stage: build
+  rules:
+    - when: manual
+  variables:
+    CONFIG: "environments/work/coreboot/config.sh"
+  script:
+    - echo "Building container..."
+    - ./containers/build.sh $CONFIG
+    - echo "Creating image from container..."
+    - ./containers/commit.sh $CONFIG
+    - echo "Publishing image to container registry..."
+    - ./containers/push.sh $CONFIG
