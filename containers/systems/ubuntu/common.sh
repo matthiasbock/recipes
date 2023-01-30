@@ -4,6 +4,7 @@ image_name="ubuntu"
 # Derive container/image from this image
 image_tag="$ubuntu_release-$target_architecture"
 container_name="${image_name}_${image_tag}"
+container_architecture="linux/$target_architecture"
 
 # Container/image parameters
 user="runner"

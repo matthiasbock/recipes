@@ -1,7 +1,11 @@
 
 image_name="raspberry-pi"
 image_tag="bullseye"
+
+target_architecture="arm32v7"
+
 container_name="${image_name}-${image_tag}"
+container_architecture="linux/$target_architecture"
 
 # Select qemu matching the image's architecture (32 or 64 bit)
 #qemu="qemu-aarch64-static"

@@ -10,13 +10,16 @@ rom_md5sum="00c135c65217357f97eb8d489de0fe20"
 rom_sha256sum="8014524ee401f4ff36d4d0cc74e49149d01c47ced5ea137c01cf32e25a05c374"
 
 #
-# Settings
+# Container/image configuration
 #
 image_name="android"
 codename="maguro"
 release="cm13"
 image_tag="${codename}-${release}"
-container_name="${image_name}-${image_tag}"
+
+container_name="${image_name}_${image_tag}"
+container_architecture="linux/arm32v7"
+
 image_config="USER=root WORKDIR=/ CMD=['/qemu-arm-static','/system/bin/sh']"
 image_repositories="docker.io/matthiasbock/$image_name:$image_tag registry.bihealth.org:443/bockm/recipes/$image_name:$image_tag"
 
