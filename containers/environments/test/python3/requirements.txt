@@ -1,0 +1,9 @@
+pytest
+pandas
+numpy
+scipy
+matplotlib
+argparse
+pywavelets
+argparse
+meshio
