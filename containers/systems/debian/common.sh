@@ -54,6 +54,9 @@ function container_setup() {
   add_sources_lists
   enable_package_verification
 
+  # Key installation is only possible, after gnupg has been installed, which in turn depends on a number of packages.
+  add_public_keys
+
   # Select fastest package repository
   #$container_cli exec -it -u root $container_name bash -c "apt-get -q update && apt-get -q install -y netselect-apt && netselect-apt -s"
   # TODO: netselect is not working from within the container

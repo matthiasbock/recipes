@@ -68,6 +68,30 @@ function enable_ssl_support() {
 }
 
 #
+# Add trusted public keys to the container
+#
+function add_public_keys() {
+  # List available keys
+  local keys_dir="$shared_dir/keys"
+  for keyfile in $(ls -1 $keys_dir); do
+    local filepath=$keys_dir/$keyfile
+    echo -n "Installing public key: \"$filepath\"... "
+
+    # Copy key to container
+    container_add_file $container_name $filepath /tmp \
+    || { echo "Error: Failed to add file to container."; exit 2; }
+
+    # Install key to keyring
+    container_exec $container_name apt-key add /tmp/$keyfile
+
+    echo "ok."
+  done
+
+  # Update the package list
+  container_exec $container_name apt-get -q update
+}
+
+#
 # Add apt sources.list files to container
 #
 function add_sources_lists() {
