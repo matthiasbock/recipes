@@ -9,11 +9,14 @@ deb https://developer.download.nvidia.com/compute/cuda/repos/debian10/x86_64/ /
 # Debian Bullseye
 deb https://developer.download.nvidia.com/compute/cuda/repos/debian11/x86_64/ /
 
+#
 # Ubuntu
-deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1204/x86_64/ /
-deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1304/x86_64/ /
+# (repos with invalid signatures commented out)
+#
+#deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1204/x86_64/ /
+#deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1304/x86_64/ /
 deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1404/x86_64/ /
-deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1504/x86_64/ /
+#deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1504/x86_64/ /
 deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/ /
 deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1704/x86_64/ /
 deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/ /
