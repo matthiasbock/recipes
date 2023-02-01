@@ -4,7 +4,10 @@ image_tag="python3"
 
 debian_release="bullseye"
 debian_architecture="amd64"
-base_image="docker.io/matthiasbock/debian:$debian_release-$debian_architecture"
+
+base_image="debian"
+#base_image="docker.io/matthiasbock/$base_image:$debian_release-$debian_architecture"
+base_image="registry.bihealth.org:443/bockm/recipes/$base_image:$debian_release-$debian_architecture"
 
 container_name="${image_name}_${image_tag}"
 container_architecture="$debian_architecture"
@@ -19,7 +22,8 @@ dependencies="$(cat "$container_config_dir/dependencies.txt")"
 requirements="$(cat "$container_config_dir/requirements.txt")"
 
 # Push image to repos
-image_repositories="docker.io/matthiasbock/$image_name:$image_tag registry.bihealth.org:443/bockm/recipes/$image_name:$image_tag"
+# docker.io/matthiasbock/$image_name:$image_tag
+image_repositories="registry.bihealth.org:443/bockm/recipes/$image_name:$image_tag"
 
 
 function container_setup() {

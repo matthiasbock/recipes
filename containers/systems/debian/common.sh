@@ -1,8 +1,5 @@
 
 image_name="debian"
-
-# Derive container/image from this image
-base_image="docker.io/debian:${debian_release}-slim"
 image_tag="${debian_release}-$target_architecture"
 container_name="${image_name}_${image_tag}"
 
@@ -18,7 +15,8 @@ package_bundles="debian-essentials console-tools"
 
 # Commit the result as image
 image_config="USER=$user WORKDIR=/home/$user CMD=/bin/bash"
-image_repositories="docker.io/matthiasbock/$image_name:$image_tag registry.bihealth.org:443/bockm/recipes/$image_name:$image_tag"
+# docker.io/matthiasbock/$image_name:$image_tag
+image_repositories="registry.bihealth.org:443/bockm/recipes/$image_name:$image_tag"
 
 # Source the helper functions
 helper="$container_config_dir/helper.sh"
