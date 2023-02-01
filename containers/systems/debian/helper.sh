@@ -28,15 +28,18 @@ function configure_shell() {
   done
   echo "done."
 
-  echo -n "Creating .bashrc for root... "
-  tmpfile=".bashrc.tmp"
+  echo -n "Creating .bashrc for root and $user ... "
+  tmpfile=".bashrc"
   rm -f $tmpfile
-  for file in $src_bashrc_root; do
-    local filepath="$shared_dir/config/shell/${file}.sh"
-    cat $filepath >> $tmpfile
-  done
+  # for file in $src_bashrc_root; do
+  #   local filepath="$shared_dir/config/shell/${file}.sh"
+  #   cat $filepath >> $tmpfile
+  # done
+  echo ". /etc/profile" > $tmpfile
   container_add_file $container_name $tmpfile /root/ \
   || { echo "Error: Failed to add file to container."; exit 3; }
+  container_add_file $container_name $tmpfile /home/$user/ \
+  || { echo "Error: Failed to add file to container."; exit 4; }
   rm -vf $tmpfile
   echo "done."
 }
