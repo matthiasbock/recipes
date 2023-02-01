@@ -16,10 +16,13 @@ container_architecture="$debian_architecture"
 packages="$(cat $shared_dir/package-bundles/python3.list)"
 
 # Additional often used packages, to be installed via apt-get
-dependencies="$(cat "$container_config_dir/dependencies.txt")"
+filename="$container_config_dir/dependencies.txt"
+dependencies="$(cat "$filename" || { echo "Error: File not found: \"$filename\""; exit 20; })"
 
 # Additional often used packages, to be installed via pip3
-requirements="$(cat "$container_config_dir/requirements.txt")"
+filename="$container_config_dir/requirements.txt"
+requirements="$(cat "$filename" || { echo "Error: File not found: \"$filename\""; exit 21; })"
+unset filename
 
 # Push image to repos
 # docker.io/matthiasbock/$image_name:$image_tag
@@ -29,8 +32,17 @@ image_repositories="registry.bihealth.org:443/bockm/recipes/$image_name:$image_t
 function container_setup() {
   # Install additional packages
   container_exec $container_name apt-get update -q
-  container_exec $container_name apt-get -qy install $packages $dependencies
-  container_exec $container_name pip3 install -q $requirements
+
+  packages="$packages $dependencies"
+  if [ "$packages" != "" ]; then
+    echo "Installing additional packages via apt: $packages"
+    container_exec $container_name apt-get -qy install $packages
+  fi
+
+  if [ "$requirements" != "" ]; then
+    echo "Installing packages via pip3: $requirements"
+    container_exec $container_name pip3 install -q $requirements
+  fi
 
   # Delete expendable files
   container_expendables_import "$bash_container_library/expendables/default.list"
