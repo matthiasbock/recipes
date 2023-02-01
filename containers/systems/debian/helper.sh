@@ -74,6 +74,10 @@ function enable_ssl_support() {
 # Add trusted public keys to the container
 #
 function add_public_keys() {
+  # Create target folder
+  local target_folder="/etc/apt/trusted.gpg.d/"
+  container_exec $container_name mkdir -p $target_folder
+
   # List available keys
   local keys_dir="$shared_dir/keys"
   for keyfile in $(ls -1 $keys_dir); do
@@ -81,14 +85,18 @@ function add_public_keys() {
     echo -n "Installing public key: \"$filepath\"... "
 
     # Copy key to container
-    container_add_file $container_name $filepath /tmp \
+    container_add_file $container_name $filepath $target_folder \
     || { echo "Error: Failed to add file to container."; exit 2; }
 
     # Install key to keyring
-    container_exec $container_name apt-key add /tmp/$keyfile
+    # container_exec $container_name apt-key add /tmp/$keyfile
 
     echo "ok."
   done
+
+  # Adjust permissions
+  container_exec $container_exec chmod -R o+w $target_folder/
+  container_exec $container_exec chmod -R ga-w $target_folder/
 
   # Update the package list
   container_exec $container_name apt-get -q update
