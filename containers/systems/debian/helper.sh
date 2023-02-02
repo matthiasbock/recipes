@@ -95,8 +95,8 @@ function add_public_keys() {
   done
 
   # Adjust permissions
-  container_exec $container_exec chmod -R o+w $target_folder/
-  container_exec $container_exec chmod -R ga-w $target_folder/
+  container_exec $container_name chmod -R o+w $target_folder/
+  container_exec $container_name chmod -R ga-w $target_folder/
 
   # Update the package list
   container_exec $container_name apt-get -q update
