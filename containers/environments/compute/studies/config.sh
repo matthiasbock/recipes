@@ -19,7 +19,8 @@ packages="$(cat $shared_dir/package-bundles/python3.list)"
 # dependencies="$(cat "$container_config_dir/dependencies.txt")"
 
 # Additional often used packages, to be installed via pip3
-requirements="$(cat "$container_config_dir/requirements.txt")"
+requirements_file="$container_config_dir/requirements.txt"
+requirements="$(cat "$requirements_file")"
 
 # Push image to repos
 image_repositories="registry.bihealth.org:443/bockm/recipes/$image_name:$image_tag"
@@ -27,7 +28,17 @@ image_repositories="registry.bihealth.org:443/bockm/recipes/$image_name:$image_t
 
 function container_setup() {
   # Install additional packages
-  container_exec $container_name pip3 install -q $pip_packages
+  echo -e "Installing packages from \"$requirements_file\" via pip3:\n$requirements"
+  if [ "$requirements" == "" ]; then
+    echo "Error: The list of requirements should not be empty."
+    exit 1
+  fi
+  for requirement in $requirements; do
+    echo -n "Installing $requirement ..."
+    container_exec $container_name pip3 install -q $requirement \
+    || { echo "Error: Installation failed."; exit 1; }
+    echo "ok."
+  done
 
   # Delete expendable files
   container_expendables_import "$bash_container_library/expendables/default.list"

@@ -35,13 +35,18 @@ function container_setup() {
 
   packages="$packages $dependencies"
   if [ "$packages" != "" ]; then
-    echo "Installing additional packages via apt: $packages"
+    echo -e "Installing additional packages via apt:\n$packages"
     container_exec $container_name apt-get -qy install $packages
   fi
 
   if [ "$requirements" != "" ]; then
-    echo "Installing packages via pip3: $requirements"
-    container_exec $container_name pip3 install -q $requirements
+    echo -e "Installing packages from \"$requirements_file\" via pip3:\n$requirements"
+    for requirement in $requirements; do
+      echo -n "Installing $requirement ..."
+      container_exec $container_name pip3 install -q $requirement \
+      || { echo "Error: Installation failed."; exit 1; }
+      echo "ok."
+    done
   fi
 
   # Delete expendable files
