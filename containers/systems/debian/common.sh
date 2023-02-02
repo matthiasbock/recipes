@@ -70,7 +70,7 @@ function container_setup() {
   install_package_bundles
 
   #
-  # Configure ccache
+  # Prepare for a possible installation of ccache
   #
   container_exec $container_name mkdir -p /home/$user/.ccache
   container_exec $container_name ln -s ../home/$user/.ccache /root/.ccache
