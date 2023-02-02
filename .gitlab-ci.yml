@@ -9,6 +9,9 @@ stages:
   - pack
   - publish
 
+variables:
+  BASH_CONTAINER_LIBRARY: "lib/container"
+
 include:
   - "containers/environments/build/containers/gitlab-ci.yml"
   - "containers/environments/build/coreboot/gitlab-ci.yml"
