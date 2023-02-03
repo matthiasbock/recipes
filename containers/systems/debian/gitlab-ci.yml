@@ -6,9 +6,6 @@ debian_bullseye-amd64:
       - containers/systems/debian/**/*
       - containers/*.sh
       - lib/**/*
-      - .gitmodules
-      - .gitlab-ci.yml
-      - "*.txt"
   variables:
     CONFIG: systems/debian/bullseye-amd64.sh
   script:
@@ -27,9 +24,6 @@ debian_buster-amd64:
       - containers/systems/debian/**/*
       - containers/*.sh
       - lib/**/*
-      - .gitmodules
-      - .gitlab-ci.yml
-      - "*.txt"
   variables:
     CONFIG: systems/debian/buster-amd64.sh
   script:

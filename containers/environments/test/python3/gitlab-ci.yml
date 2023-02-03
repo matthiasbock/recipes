@@ -4,10 +4,13 @@
 #
 testenv_python3:
   stage: build
-  rules:
-    - when: manual
+  only:
+    changes:
+      - containers/environments/test/python3/**/*
+      - containers/*.sh
+      - lib/**/*
   variables:
-    CONFIG: "environments/test/python3/config.sh"
+    CONFIG: environments/test/python3/config.sh
   script:
     - echo "Building container..."
     - ./containers/build.sh $CONFIG

@@ -1,10 +1,13 @@
 
 compute_studies:
   stage: build
-  rules:
-    - when: manual
+  only:
+    changes:
+      - containers/environments/compute/studies/**/*
+      - containers/*.sh
+      - lib/**/*
   variables:
-    CONFIG: "environments/compute/studies/config.sh"
+    CONFIG: environments/compute/studies/config.sh
   script:
     - echo "Building container..."
     - ./containers/build.sh $CONFIG
