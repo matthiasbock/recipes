@@ -11,6 +11,8 @@ testenv_python3:
       - lib/**/*
   variables:
     CONFIG: environments/test/python3/config.sh
+    BASE_IMAGE: registry.bihealth.org:443/bockm/recipes/debian:bullseye-amd64
+    IMAGE_REPOSITORY: registry.bihealth.org:443/bockm/recipes/testenv:python3
   script:
     - echo "Building container..."
     - ./containers/build.sh $CONFIG

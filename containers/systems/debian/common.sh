@@ -40,7 +40,7 @@ function container_setup() {
   # Configure APT and install packages
   #
   echo "Configuring apt ..."
-  container_add_file $container_name "$assets_dir/debian/apt/apt.conf" /etc/apt/apt.conf
+  container_add_file $container_name "$assets_dir/debian/apt/apt.conf" /etc/apt/apt.conf || exit $?
 
   # Workaround for installation problems (e.g. with openjdk-11-jdk)
   $container_cli exec -t $container_name mkdir -p /usr/share/man/man1/
