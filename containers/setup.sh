@@ -2,7 +2,7 @@
 # Specify where to find common resources
 project_root="$(realpath "$script_dir/../")"
 echo "Project root: $project_root"
-shared_dir="$project_root/shared"
+shared_dir="$project_root/lib"
 echo "Shared files directory: $shared_dir"
 
 # The configuration for the container is provided in the form of a bash script.
@@ -50,7 +50,7 @@ echo "Including container configuration from \"$container_config\"..."
  || { echo "Error: Failed to include container configuration from \"$container_config\"."; exit 1; }
 
 # Include container management routines for bash
-bash_container_library="$shared_dir/bash-container-library"
+bash_container_library="$shared_dir/container"
 echo "Including bash container library from \"$bash_container_library\"..."
 bash_container_library_include="$bash_container_library/include.sh"
 . "$bash_container_library_include" \
