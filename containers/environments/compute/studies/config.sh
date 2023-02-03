@@ -19,6 +19,6 @@ function container_setup() {
   container_install_requirements_txt $container_name "$container_config_dir/requirements.txt" || exit $?
 
   # Delete expendable files
-  container_expendables_import "$bash_container_library/expendables/default.list"
+  container_expendables_import "$assets_dir/expendables/default.list"
   container_expendables_delete $container_name $container_expendables
 }

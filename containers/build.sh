@@ -32,7 +32,6 @@ skip_container_start=false
  || { echo "Error: Failed to load setup script. Aborting."; exit 4; }
 
 
-
 #
 # Build container from Dockerfile
 #
@@ -55,29 +54,35 @@ if ! $skip_container_creation; then
   	echo "Warning: A container named \"$container_name\" exists and will be deleted. Press Ctrl-C within 5s to abort..."
     sleep 5
   	container_remove "$container_name" \
-     || { echo "Error: Failed to remove existing container \"$container_name\"."; exit 1; }
+     || { echo "Error: Failed to remove existing container \"$container_name\"."; exit 6; }
   fi
   create_container "$container_name" $container_constructor \
-   || { echo "Error: Failed to create container \"$container_name\"."; exit 1; }
+   || { echo "Error: Failed to create container \"$container_name\"."; exit 7; }
 fi
 
 #
 # Work on the newly created container
 #
 if ! $skip_container_start; then
-  echo "Starting container ..."
+  echo -n "Starting container... "
   container_start "$container_name" \
-   || { echo "Error: Failed to start container \"$container_name\"."; exit 1; }
+   || { echo "Error: Failed to start container \"$container_name\"."; exit 8; }
+  echo "ok."
 fi
 
 # Run setup function from configuration script
 if [ "$(type -t container_setup)" == "function" ]; then
-  container_setup
+  echo -n "Begin container configuration... "
+  container_setup \
+   || { echo "Error: Container configuration failed (exit code $?)."; exit 9; }
+  echo "Container configuration complete."
 fi
 
 # Container created successfully
+echo -n "Stopping... "
 $container_cli stop "$container_name" \
- || { echo "Error: Failed to stop container."; exit 1; }
+ || { echo "Error: Failed to stop container."; exit 10; }
+echo "ok."
 #container_size=$(container_get_size $container_name)
 #echo "Container size is $container_size."
 echo "Container $container_name created successfully."
