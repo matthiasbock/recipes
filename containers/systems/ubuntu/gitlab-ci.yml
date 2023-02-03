@@ -1,8 +1,9 @@
 
 ubuntu_focal-amd64:
   stage: build
-  rules:
-    - when: manual
+  only:
+    changes:
+      - containers/systems/ubuntu/*
   variables:
     CONFIG: "systems/ubuntu/focal-amd64.sh"
   script:
