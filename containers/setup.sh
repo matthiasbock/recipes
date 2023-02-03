@@ -5,7 +5,11 @@ echo "Project root: $project_root"
 lib_dir="$project_root/lib"
 
 # Include container management routines for bash
-bash_container_library="$lib_dir/container"
+bash_container_library="$BASH_CONTAINER_LIBRARY"
+if [ "$bash_container_library" == "" ]; then
+  # Fallback path, in case no path or an illegal one was provided
+  bash_container_library="$lib_dir/container"
+fi
 echo "Including bash container library from \"$bash_container_library\"..."
 bash_container_library_include="$bash_container_library/include.sh"
 . "$bash_container_library_include" \
