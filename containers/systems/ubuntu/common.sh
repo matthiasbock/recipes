@@ -11,8 +11,9 @@ user="runner"
 groups="runner sudo docker"
 
 image_config="USER=${user} WORKDIR=/home/${user} CMD=/bin/bash"
-# docker.io/matthiasbock/$image_name:$image_tag
-image_repositories="registry.bihealth.org:443/bockm/recipes/$image_name:$image_tag"
+
+# Push resulting image to these repos:
+image_repositories="$IMAGE_REPOSITORY $IMAGE_REPOSITORIES"
 
 
 function container_setup()

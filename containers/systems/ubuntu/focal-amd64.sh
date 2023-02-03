@@ -1,5 +1,5 @@
 
-base_image="docker.io/ubuntu:20.04"
+base_image="$BASE_IMAGE"
 ubuntu_release="focal"
 target_architecture="amd64"
 container_architecture="$target_architecture"

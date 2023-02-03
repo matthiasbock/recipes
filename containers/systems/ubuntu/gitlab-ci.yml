@@ -5,7 +5,9 @@ ubuntu_focal-amd64:
     changes:
       - containers/systems/ubuntu/*
   variables:
-    CONFIG: "systems/ubuntu/focal-amd64.sh"
+    CONFIG: systems/ubuntu/focal-amd64.sh
+    BASE_IMAGE: docker.io/ubuntu:20.04
+    IMAGE_REPOSITORY: registry.bihealth.org:443/bockm/recipes/ubuntu:focal
   script:
     - echo "Building container..."
     - ./containers/build.sh $CONFIG
