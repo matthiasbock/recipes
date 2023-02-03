@@ -1,10 +1,16 @@
 
 debian_bullseye-amd64:
   stage: build
-  rules:
-    - when: manual
+  only:
+    changes:
+      - containers/systems/debian/**/*
+      - containers/*.sh
+      - lib/**/*
+      - .gitmodules
+      - .gitlab-ci.yml
+      - "*.txt"
   variables:
-    CONFIG: "systems/debian/bullseye-amd64.sh"
+    CONFIG: systems/debian/bullseye-amd64.sh
   script:
     - echo "Building container..."
     - ./containers/build.sh $CONFIG
@@ -16,10 +22,16 @@ debian_bullseye-amd64:
 
 debian_buster-amd64:
   stage: build
-  rules:
-    - when: manual
+  only:
+    changes:
+      - containers/systems/debian/**/*
+      - containers/*.sh
+      - lib/**/*
+      - .gitmodules
+      - .gitlab-ci.yml
+      - "*.txt"
   variables:
-    CONFIG: "systems/debian/buster-amd64.sh"
+    CONFIG: systems/debian/buster-amd64.sh
   script:
     - echo "Building container..."
     - ./containers/build.sh $CONFIG
