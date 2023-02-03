@@ -50,7 +50,7 @@ function constructor()
 #		--net $net \
 #		--network-alias $container_name \
 }
-create_container $container_name constructor || exit 1
+container_create $container_name constructor || exit 1
 
 
 # Start the container

@@ -41,7 +41,7 @@ function constructor()
 		-w "$sources_dir" \
 		"$base_image"
 }
-create_container "$container_name" constructor
+container_create "$container_name" constructor
 
 # Rename host
 container_start "$apt_cache_container"

@@ -42,7 +42,7 @@ function constructor()
 #		-p 3142:3142 \
 }
 
-create_container "$container_name" constructor
+container_create "$container_name" constructor
 
 $cli cp deb-backup.sh "$container_name:/var/cache/apt-cacher-ng/"
 

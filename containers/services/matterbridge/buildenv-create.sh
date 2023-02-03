@@ -37,7 +37,7 @@ if ! container_exists "$container_name"; then
 			-w "$sources_dir" \
 			"$base_image"
 	}
-	create_container "$container_name" constructor
+	container_create "$container_name" constructor
 
 	source include.sh
 fi
