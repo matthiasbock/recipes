@@ -3,18 +3,9 @@
 project_root="$(realpath "$script_dir/../")"
 echo "Project root: $project_root"
 lib_dir="$project_root/lib"
+bash_container_library="$(realpath "$lib_dir/container")"
 
-# Include container management routines for bash
-if [ "$BASH_CONTAINER_LIBRARY" == "" ]; then
-  # Default path, if no path is specified
-  bash_container_library="$lib_dir/container"
-else
-  bash_container_library="$BASH_CONTAINER_LIBRARY"
-  if [ ! -d "$bash_container_library" ]; then
-    bash_container_library="../$BASH_CONTAINER_LIBRARY"
-  fi
-fi
-bash_container_library="$(realpath -m "$bash_container_library")"
+# Source bash-container-library
 echo "Including bash container library from \"$bash_container_library\"..."
 bash_container_library_include="$bash_container_library/include.sh"
 . "$bash_container_library_include" \
