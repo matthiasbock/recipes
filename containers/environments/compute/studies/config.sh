@@ -16,6 +16,7 @@ image_repositories="registry.bihealth.org:443/bockm/recipes/$image_name:$image_t
 function container_setup() {
   # Install packages
   container_exec $container_name apt-get update -q || true
+  container_install_dependencies_txt $container_name "$container_config_dir/dependencies.txt" || exit $?
   container_install_requirements_txt $container_name "$container_config_dir/requirements.txt" || exit $?
 
   # Delete expendable files
