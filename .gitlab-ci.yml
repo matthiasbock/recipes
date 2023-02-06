@@ -7,6 +7,9 @@ stages:
 
 variables:
   BASH_CONTAINER_LIBRARY: "lib/container"
+  GIT_SUBMODULE_STRATEGY: recursive
+  GIT_SUBMODULE_PATHS: lib/container
+  GIT_DEPTH: 2
 
 include:
   - "containers/environments/build/containers/gitlab-ci.yml"
