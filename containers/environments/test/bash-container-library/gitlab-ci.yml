@@ -7,8 +7,6 @@ testenv_bash-container-library:
   only:
     changes:
       - containers/environments/test/bash-container-library/**/*
-      - containers/*.sh
-      - lib/**/*
   variables:
     CONFIG: environments/test/bash-container-library/config.sh
     BASE_IMAGE: registry.bihealth.org:443/bockm/recipes/debian:bullseye-amd64

@@ -4,8 +4,6 @@ compute_studies:
   only:
     changes:
       - containers/environments/compute/studies/**/*
-      - containers/*.sh
-      - lib/**/*
   variables:
     CONFIG: environments/compute/studies/config.sh
     BASE_IMAGE: registry.bihealth.org:443/bockm/recipes/testenv:python3

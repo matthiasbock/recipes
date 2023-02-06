@@ -7,8 +7,6 @@ testenv_python3:
   only:
     changes:
       - containers/environments/test/python3/**/*
-      - containers/*.sh
-      - lib/**/*
   variables:
     CONFIG: environments/test/python3/config.sh
     BASE_IMAGE: registry.bihealth.org:443/bockm/recipes/debian:bullseye-amd64
