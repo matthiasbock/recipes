@@ -22,6 +22,9 @@ function container_setup() {
   container_install_dependencies_txt $container_name "$container_config_dir/dependencies.txt" || exit $?
   container_install_requirements_txt $container_name "$container_config_dir/requirements.txt" || exit $?
 
+  # Create symlink to pytest
+  container_exec $container_name ln -s /usr/bin/pytest-3 /usr/bin/pytest || return true
+
   # Delete expendable files
   container_expendables_import "$assets_dir/expendables/default.list"
   container_expendables_delete $container_name $container_expendables
