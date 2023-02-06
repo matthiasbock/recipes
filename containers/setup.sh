@@ -10,6 +10,9 @@ if [ "$bash_container_library" == "" ]; then
   # Fallback path, in case no path or an illegal one was provided
   bash_container_library="$lib_dir/container"
 fi
+if [ ! -d "$bash_container_library" ]; then
+  bash_container_library="$(realpath -m "$bash_container_library")"
+fi
 echo "Including bash container library from \"$bash_container_library\"..."
 bash_container_library_include="$bash_container_library/include.sh"
 . "$bash_container_library_include" \
