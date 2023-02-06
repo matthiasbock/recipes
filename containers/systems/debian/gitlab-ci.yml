@@ -1,12 +1,14 @@
 
 debian_bullseye-amd64:
   stage: build
-  only:
-    changes:
+  rules:
+    - changes:
       - containers/systems/debian/bullseye-amd64.sh
       - containers/systems/debian/common.sh
       - containers/systems/debian/helper.sh
       - containers/systems/debian/gitlab-ci.yml
+    - when: manual
+  allow_failure: true
   variables:
     CONFIG: systems/debian/bullseye-amd64.sh
   script:
@@ -20,12 +22,14 @@ debian_bullseye-amd64:
 
 debian_buster-amd64:
   stage: build
-  only:
-    changes:
+  rules:
+    - changes:
       - containers/systems/debian/buster-amd64.sh
       - containers/systems/debian/common.sh
       - containers/systems/debian/helper.sh
       - containers/systems/debian/gitlab-ci.yml
+    - when: manual
+  allow_failure: true
   variables:
     CONFIG: systems/debian/buster-amd64.sh
   script:

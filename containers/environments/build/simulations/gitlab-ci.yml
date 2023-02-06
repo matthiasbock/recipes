@@ -2,7 +2,10 @@
 buildenv_simulations:
   stage: build
   rules:
+    - changes:
+      - containers/environments/build/simulations/**/*
     - when: manual
+  allow_failure: true
   variables:
     CONFIG: "environments/build/simulations/config.sh"
   script:

@@ -1,9 +1,11 @@
 
 ubuntu_focal-amd64:
   stage: build
-  only:
-    changes:
+  rules:
+    - changes:
       - containers/systems/ubuntu/*
+    - when: manual
+  allow_failure: true
   variables:
     CONFIG: systems/ubuntu/focal-amd64.sh
     BASE_IMAGE: docker.io/ubuntu:20.04

@@ -5,7 +5,10 @@
 buildenv_mesh-tools:
   stage: build
   rules:
+    - changes:
+      - containers/environments/build/mesh-tools/**/*
     - when: manual
+  allow_failure: true
   variables:
     CONFIG: "environments/build/mesh-tools/config.sh"
   script:

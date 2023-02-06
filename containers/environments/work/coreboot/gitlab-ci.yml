@@ -6,7 +6,10 @@
 workenv_coreboot:
   stage: build
   rules:
+    - changes:
+      - containers/environments/work/coreboot/**/*
     - when: manual
+  allow_failure: true
   variables:
     CONFIG: "environments/work/coreboot/config.sh"
   script:

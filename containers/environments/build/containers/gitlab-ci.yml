@@ -6,7 +6,10 @@
 buildenv_containers:
   stage: build
   rules:
+    - changes:
+      - containers/environments/build/containers/**/*
     - when: manual
+  allow_failure: true
   variables:
     CONFIG: "environments/build/containers/config.sh"
   script:

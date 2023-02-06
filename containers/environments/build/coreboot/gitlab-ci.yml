@@ -5,7 +5,10 @@
 buildenv_coreboot:
   stage: build
   rules:
+    - changes:
+      - containers/environments/build/coreboot/**/*
     - when: manual
+  allow_failure: true
   variables:
     CONFIG: "environments/build/coreboot/config.sh"
   script:
