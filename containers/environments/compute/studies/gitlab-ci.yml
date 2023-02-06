@@ -8,6 +8,8 @@ compute_studies:
       - lib/**/*
   variables:
     CONFIG: environments/compute/studies/config.sh
+    BASE_IMAGE: registry.bihealth.org:443/bockm/recipes/testenv:python3
+    IMAGE_REPOSITORY: registry.bihealth.org:443/bockm/recipes/compute:studies
   script:
     - echo "Building container..."
     - ./containers/build.sh $CONFIG
