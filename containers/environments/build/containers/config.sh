@@ -23,6 +23,6 @@ function container_setup() {
   container_install_dependencies_txt $container_name "$project_root/dependencies.txt" || exit $?
 
   # Delete expendable files
-  container_expendables_import "$bash_container_library/expendables/default.list"
+  container_expendables_import "$bash_container_library/assets/expendables/default.list" || exit $?
   container_expendables_delete $container_name $container_expendables
 }

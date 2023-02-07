@@ -33,6 +33,9 @@ function container_setup()
   echo "Configuring apt ..."
   container_add_file $container_name "$assets_dir/debian/apt/apt.conf" /etc/apt/apt.conf || exit $?
 
+  # TODO: Select a fast mirror
+  #sudo netselect -s 1 -t 40 $(wget -qO - mirrors.ubuntu.com/mirrors.txt)
+
   # Workaround for installation problems (e.g. with openjdk-11-jdk)
   $container_cli exec -t $container_name mkdir -p /usr/share/man/man1/
 
@@ -58,6 +61,6 @@ function container_setup()
   verify_ownerships
 
   # Clean up
-  container_expendables_import "${bash_container_library}/expendables/default.list"
-  container_expendables_delete $container_name $container_expendables
+  container_expendables_import "$bash_container_library/assets/expendables/default.list" || exit $?
+  container_expendables_delete $container_name $container_expendables &> /dev/null
 }
