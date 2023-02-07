@@ -8,7 +8,6 @@ debian_bullseye-amd64:
       - containers/systems/debian/helper.sh
       - containers/systems/debian/gitlab-ci.yml
     - when: manual
-  allow_failure: true
   variables:
     CONFIG: systems/debian/bullseye-amd64.sh
   script:
@@ -29,7 +28,6 @@ debian_buster-amd64:
       - containers/systems/debian/helper.sh
       - containers/systems/debian/gitlab-ci.yml
     - when: manual
-  allow_failure: true
   variables:
     CONFIG: systems/debian/buster-amd64.sh
   script:

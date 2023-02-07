@@ -4,8 +4,6 @@ image_tag="coreboot"
 
 debian_release="bullseye"
 debian_architecture="amd64"
-# base_image="docker.io/matthiasbock/debian:$debian_release-$debian_architecture"
-base_image="registry.bihealth.org:443/bockm/recipes/buildenv:coreboot"
 
 container_name="${image_name}_${image_tag}"
 container_architecture="$debian_architecture"
@@ -13,7 +11,12 @@ container_architecture="$debian_architecture"
 user="runner"
 repo_dir="/home/$user/coreboot"
 image_config="USER=$user WORKDIR=$repo_dir CMD=/bin/bash"
-image_repositories="docker.io/matthiasbock/$image_name:$image_tag registry.bihealth.org:443/bockm/recipes/$image_name:$image_tag"
+
+# Derive container from this image:
+base_image="$BASE_IMAGE"
+
+# Push resulting image to these repos:
+image_repositories="$IMAGE_REPOSITORY $IMAGE_REPOSITORIES"
 
 
 #

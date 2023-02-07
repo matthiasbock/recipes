@@ -1,17 +1,19 @@
 
 #
-# An executor container that can be used
-# to build the containers in this git repository
+# The gitlab-runner executor container that is used
+# to build the containers defined within this project
 #
 buildenv_containers:
   stage: build
   rules:
+    - when: manual
     - changes:
       - containers/environments/build/containers/**/*
-    - when: manual
-  allow_failure: true
+  needs: ["debian_bullseye-amd64"]
   variables:
     CONFIG: "environments/build/containers/config.sh"
+    BASE_IMAGE: "registry.bihealth.org:443/bockm/recipes/debian:bullseye-amd64"
+    IMAGE_REPOSITORY: "registry.bihealth.org:443/bockm/recipes/buildenv:containers"
   script:
     - echo "Building container..."
     - ./containers/build.sh $CONFIG

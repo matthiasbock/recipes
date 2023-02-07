@@ -1,0 +1,17 @@
+git
+openssh-client
+time
+make
+gcc
+g++
+clang
+llvm
+ccache
+xvfb
+libgl1
+vtk7
+libvtk7-dev
+libvtk7-qt-dev
+python3
+python3-pip
+python3-vtk7

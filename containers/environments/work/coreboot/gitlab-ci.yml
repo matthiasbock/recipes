@@ -9,9 +9,11 @@ workenv_coreboot:
     - changes:
       - containers/environments/work/coreboot/**/*
     - when: manual
-  allow_failure: true
+  needs: ["buildenv_coreboot"]
   variables:
     CONFIG: "environments/work/coreboot/config.sh"
+    BASE_IMAGE: "registry.bihealth.org:443/bockm/recipes/buildenv:coreboot"
+    IMAGE_REPOSITORY: "registry.bihealth.org:443/bockm/recipes/workenv:coreboot"
   script:
     - echo "Building container..."
     - ./containers/build.sh $CONFIG
