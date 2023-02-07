@@ -1,0 +1,16 @@
+git
+openssh-client
+curl
+make
+m4
+cmake
+bison
+flex
+bzip2
+zlib1g-dev
+libncurses-dev
+g++
+ccache
+gnat
+xz-utils
+python

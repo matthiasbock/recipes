@@ -9,17 +9,14 @@ base_image="docker.io/matthiasbock/debian:$debian_release-$debian_architecture"
 container_name="${image_name}_${image_tag}"
 container_architecture="$debian_architecture"
 
-# Build dependencies
-dependencies="$(cat "$container_config_dir/dependencies.txt")"
-
 # Push image to repos
 image_repositories="registry.bihealth.org:443/bockm/recipes/$image_name:$image_tag"
 
 
 function container_setup() {
   # Install additional packages
-  container_exec $container_name apt-get update -q
-  container_exec $container_name apt-get -qy install $packages $dependencies
+  container_exec $container_name apt-get update -q || true
+  container_install_dependencies_txt $container_name "$container_config_dir/dependencies.txt" || exit $?
 
   # Configure ccache
   # container_add_file $container_name $shared_dir/config/shell/ccache.sh /etc/profile.d/
