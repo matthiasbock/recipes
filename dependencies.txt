@@ -1,10 +1,11 @@
+git
+openssh-client
+make
 bash
 sudo
 coreutils
 uidmap
 wget
-git
 jq
-openssh-client
 podman
 slirp4netns
