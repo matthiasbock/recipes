@@ -56,7 +56,7 @@ if ! $skip_container_creation; then
   	container_remove "$container_name" \
      || { echo "Error: Failed to remove existing container \"$container_name\"."; exit 6; }
   fi
-  container_create "$container_name" $container_constructor \
+  container_create "$container_name" "$base_image" "$container_architecture" "$container_constructor" \
    || { echo "Error: Failed to create container \"$container_name\"."; exit 7; }
 fi
 
