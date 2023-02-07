@@ -1,16 +1,19 @@
 
-image_name="ubuntu"
-
-# Derive container/image from this image
-image_tag="$ubuntu_release-$target_architecture"
-container_name="${image_name}_${image_tag}"
-container_architecture="linux/$target_architecture"
+target_architecture="$ARCHITECTURE"
+container_architecture="$ARCHITECTURE"
 
 # Container/image parameters
+image_name="ubuntu"
+image_tag="$RELEASE-$ARCHITECTURE"
+container_name="${image_name}_${image_tag}"
+
 user="runner"
 groups="runner sudo docker"
 
 image_config="USER=${user} WORKDIR=/home/${user} CMD=/bin/bash"
+
+# Derive container from this image:
+base_image="$BASE_IMAGE"
 
 # Push resulting image to these repos:
 image_repositories="$IMAGE_REPOSITORY $IMAGE_REPOSITORIES"

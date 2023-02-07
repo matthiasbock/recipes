@@ -3,13 +3,14 @@ ubuntu_focal-amd64:
   stage: build
   rules:
     - changes:
-      - containers/systems/ubuntu/*
+      - containers/systems/ubuntu/**/*
     - when: manual
-  allow_failure: true
   variables:
-    CONFIG: systems/ubuntu/focal-amd64.sh
-    BASE_IMAGE: docker.io/ubuntu:20.04
-    IMAGE_REPOSITORY: registry.bihealth.org:443/bockm/recipes/ubuntu:focal
+    CONFIG: "systems/ubuntu/config.sh"
+    BASE_IMAGE: "docker.io/ubuntu:20.04"
+    RELEASE: "focal"
+    ARCHITECTURE: "amd64"
+    IMAGE_REPOSITORY: "registry.bihealth.org:443/bockm/recipes/ubuntu:focal"
   script:
     - echo "Building container..."
     - ./containers/build.sh $CONFIG
