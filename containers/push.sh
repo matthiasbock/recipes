@@ -28,7 +28,7 @@ cd "$script_dir" \
 
 # Check if the image exists
 image_id="$image_name:$image_tag"
-if ! image_exists "$image_id"; then
+if ! image_is_available "$image_id"; then
   echo "Error: Image not found: \"$image_id\""
   exit 5
 fi
@@ -36,8 +36,7 @@ fi
 # Push image to all configured repositories
 echo "Pushing to: $image_repositories"
 for repository in $image_repositories; do
-  echo "Pushing image \"$image_id\" to \"$repository\"..."
-  $container_cli push "$image_id" "$repository"
+  image_push "$image_id" "$repository"
 done
 echo "Push complete."
 

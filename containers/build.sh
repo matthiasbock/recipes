@@ -80,7 +80,7 @@ fi
 
 # Container created successfully
 echo -n "Stopping... "
-$container_cli stop "$container_name" \
+container_stop "$container_name" \
  || { echo "Error: Failed to stop container."; exit 10; }
 echo "ok."
 #container_size=$(container_get_size $container_name)

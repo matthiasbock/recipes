@@ -33,7 +33,7 @@ create_volume ccache
 #
 function constructor()
 {
-#	if ! image_exists "$base_image"; then
+#	if ! image_is_available "$base_image"; then
 #	fi
 	$cli create \
 		-it \
