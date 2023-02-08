@@ -2,6 +2,8 @@
 # Makefile to allow for simpler CI build jobs
 #
 
+SHELL=/bin/bash
+
 include containers/make.mk
 
 
