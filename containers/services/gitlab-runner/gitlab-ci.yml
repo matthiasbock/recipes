@@ -1,0 +1,19 @@
+
+#
+# A GitLab CI jobs runner coordinator with augmentations
+#
+gitlab-runner:
+  stage: build
+  rules:
+    - changes:
+      - containers/services/gitlab-runner/**/*
+    - when: manual
+  needs: ["debian_bullseye-amd64"]
+  variables:
+    CONFIG: "environments/services/gitlab-runner/config.sh"
+    BASE_IMAGE: "docker.io/gitlab/gitlab-runner:ubuntu"
+    MERGE_IMAGE: "registry.bihealth.org:443/bockm/recipes/debian:bullseye-amd64"
+    IMAGE_REPOSITORY: "registry.bihealth.org:443/bockm/recipes/services:gitlab-runner"
+  script:
+    - . /etc/profile
+    - make container_image push
