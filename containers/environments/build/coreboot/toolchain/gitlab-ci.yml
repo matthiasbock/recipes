@@ -10,13 +10,10 @@ buildenv_coreboot-toolchain:
     - when: manual
   needs: ["buildenv_coreboot"]
   variables:
-    CONFIG: "environments/work/coreboot/config.sh"
+    CONFIG: "environments/build/coreboot/toolchain/config.sh"
     BASE_IMAGE: "registry.bihealth.org:443/bockm/recipes/buildenv:coreboot"
-    IMAGE_REPOSITORY: "registry.bihealth.org:443/bockm/recipes/workenv:coreboot"
+    PACKAGE_REPOSITORY: "https://git.bihealth.org/bockm/recipes/-/packages/debian"
   script:
-    - echo "Building container..."
-    - ./containers/build.sh $CONFIG
-    - echo "Creating image from container..."
-    - ./containers/commit.sh $CONFIG
-    - echo "Publishing image to container registry..."
-    - ./containers/push.sh $CONFIG
+    - echo "TODO: Build coreboot toolchain"
+    - echo "TODO: Pack one or more Debian packages"
+    - echo "TODO: Publish packages to package repository"
