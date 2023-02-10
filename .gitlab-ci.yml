@@ -12,13 +12,13 @@ variables:
 
 include:
   - "containers/environments/build/containers/gitlab-ci.yml"
+  - "containers/environments/build/coreboot/toolchain/gitlab-ci.yml"
   - "containers/environments/build/coreboot/gitlab-ci.yml"
   - "containers/environments/build/mesh-tools/gitlab-ci.yml"
   - "containers/environments/build/simulations/gitlab-ci.yml"
-  - "containers/environments/compute/studies/gitlab-ci.yml"
   - "containers/environments/test/bash-container-library/gitlab-ci.yml"
   - "containers/environments/test/python3/gitlab-ci.yml"
-  - "containers/environments/work/coreboot/gitlab-ci.yml"
+  - "containers/environments/run/studies/gitlab-ci.yml"
   - "containers/services/gitlab-runner/gitlab-ci.yml"
   - "containers/systems/debian/gitlab-ci.yml"
   - "containers/systems/ubuntu/gitlab-ci.yml"

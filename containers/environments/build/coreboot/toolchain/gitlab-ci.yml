@@ -1,13 +1,12 @@
 
 #
-# Environment for coreboot customization
-# with pre-compiled toolchain
+# Compile the toolchain required for building coreboot
 #
-workenv_coreboot:
+buildenv_coreboot-toolchain:
   stage: build
   rules:
     - changes:
-      - containers/environments/work/coreboot/**/*
+      - containers/environments/build/coreboot/toolchain/*
     - when: manual
   needs: ["buildenv_coreboot"]
   variables:
