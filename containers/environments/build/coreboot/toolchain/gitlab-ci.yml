@@ -12,8 +12,7 @@ buildenv_coreboot-toolchain:
   variables:
     CONFIG: "environments/build/coreboot/toolchain/config.sh"
     BASE_IMAGE: "registry.bihealth.org:443/bockm/recipes/buildenv:coreboot"
-    PACKAGE_REPOSITORY: "https://git.bihealth.org/bockm/recipes/-/packages/debian"
   script:
-    - echo "TODO: Build coreboot toolchain"
-    - echo "TODO: Pack one or more Debian packages"
-    - echo "TODO: Publish packages to package repository"
+    - echo "TODO Build coreboot toolchain"
+    - echo "TODO Pack one or more Debian packages"
+    - echo "TODO Publish packages to package repository"
