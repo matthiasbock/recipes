@@ -3,12 +3,10 @@
 # Build environment for coreboot
 #
 buildenv_coreboot:
-  stage: build
   rules:
     - changes:
       - containers/environments/build/coreboot/*
     - when: manual
-  needs: ["debian_bullseye-amd64"]
   variables:
     CONFIG: "environments/build/coreboot/config.sh"
     BASE_IMAGE: "registry.bihealth.org:443/bockm/recipes/debian:bullseye-amd64"

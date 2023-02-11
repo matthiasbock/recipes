@@ -3,12 +3,10 @@
 # Compile the toolchain required for building coreboot
 #
 buildenv_coreboot-toolchain:
-  stage: build
   rules:
     - changes:
       - containers/environments/build/coreboot/toolchain/*
     - when: manual
-  needs: ["buildenv_coreboot"]
   variables:
     CONFIG: "environments/build/coreboot/toolchain/config.sh"
     BASE_IMAGE: "registry.bihealth.org:443/bockm/recipes/buildenv:coreboot"

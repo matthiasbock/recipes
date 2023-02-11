@@ -1,6 +1,5 @@
 
 ubuntu_focal-amd64:
-  stage: build
   rules:
     - changes:
       - containers/systems/ubuntu/**/*

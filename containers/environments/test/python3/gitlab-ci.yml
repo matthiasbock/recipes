@@ -3,12 +3,10 @@
 # A test environment for Python 3.x projects
 #
 testenv_python3:
-  stage: build
   rules:
     - changes:
       - containers/environments/test/python3/**/*
     - when: manual
-  needs: ["debian_bullseye-amd64"]
   variables:
     CONFIG: environments/test/python3/config.sh
     BASE_IMAGE: registry.bihealth.org:443/bockm/recipes/debian:bullseye-amd64

@@ -1,11 +1,9 @@
 
 compute_studies:
-  stage: build
   rules:
     - changes:
       - containers/environments/compute/studies/**/*
     - when: manual
-  needs: ["testenv_python3"]
   variables:
     CONFIG: "environments/compute/studies/config.sh"
     BASE_IMAGE: "registry.bihealth.org:443/bockm/recipes/testenv:python3"

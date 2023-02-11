@@ -3,12 +3,10 @@
 # A GitLab CI jobs runner coordinator with augmentations
 #
 gitlab-runner:
-  stage: build
   rules:
     - changes:
       - containers/services/gitlab-runner/**/*
     - when: manual
-  needs: ["debian_bullseye-amd64"]
   variables:
     CONFIG: "environments/services/gitlab-runner/config.sh"
     BASE_IMAGE: "docker.io/gitlab/gitlab-runner:ubuntu"
