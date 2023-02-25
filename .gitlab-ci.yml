@@ -1,10 +1,23 @@
+#
+# Main CI/CD config file for GitLab runner
+#
 
+#
+# By default run recipes in the container build environemnt
+# (which itself is also built by a recipe in this repostory)
+#
 image: "registry.bihealth.org:443/bockm/recipes/buildenv:containers"
 
+#
+# Fetch the container library
+#
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
   GIT_DEPTH: 1
 
+#
+# The list of active build recipes
+#
 include:
   - "containers/environments/build/cad/gitlab-ci.yml"
   - "containers/environments/build/containers/gitlab-ci.yml"
