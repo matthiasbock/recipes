@@ -10,7 +10,4 @@ buildenv_cad:
   variables:
     CONFIG: "environments/build/cad/config.sh"
   script:
-    - make container
-    - make container_image
-    - make push_image
-  
+    - make container container_image push_image

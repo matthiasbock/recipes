@@ -10,6 +10,4 @@ testenv_python3:
   variables:
     CONFIG: environments/test/python3/config.sh
   script:
-    - make container
-    - make container_image
-    - make push_image
+    - make container container_image push_image
