@@ -3,10 +3,10 @@ image: "registry.bihealth.org:443/bockm/recipes/buildenv:containers"
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
-  GIT_SUBMODULE_PATHS: lib/container
-  GIT_DEPTH: 2
+  GIT_DEPTH: 1
 
 include:
+  - "containers/environments/build/cad/gitlab-ci.yml"
   - "containers/environments/build/containers/gitlab-ci.yml"
   - "containers/environments/build/coreboot/toolchain/gitlab-ci.yml"
   - "containers/environments/build/coreboot/gitlab-ci.yml"

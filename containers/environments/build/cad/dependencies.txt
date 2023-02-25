@@ -1,0 +1,10 @@
+git
+make
+openscad
+slic3r
+prusa-slicer
+tar
+bzip2
+gzip
+xz-utils
+p7z-full

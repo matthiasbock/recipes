@@ -1,0 +1,16 @@
+
+#
+# Build environment for CAD projects
+#
+buildenv_cad:
+  rules:
+    - changes:
+      - containers/environments/build/cad/*
+    - when: manual
+  variables:
+    CONFIG: "environments/build/cad/config.sh"
+  script:
+    - make container
+    - make container_image
+    - make push_image
+  
