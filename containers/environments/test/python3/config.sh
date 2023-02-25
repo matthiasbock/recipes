@@ -9,17 +9,26 @@ container_name="${image_name}_${image_tag}"
 container_architecture="$debian_architecture"
 
 # Derive container from this image:
-base_image="$BASE_IMAGE"
+base_image="registry.bihealth.org:443/bockm/recipes/debian:bullseye-amd64"
 
 # Push resulting image to these repos:
-image_repositories="$IMAGE_REPOSITORY $IMAGE_REPOSITORIES"
+image_repositories="registry.bihealth.org:443/bockm/recipes/testenv:python3"
 
 
+#
+# Customize the container as needed
+#
 function container_setup() {
-  # Install additional packages
+  # Update package lists
   container_exec $container_name apt-get update -q || true
-  container_debian_install_package_bundles $container_name python3 || exit $?
+
+  # Install package bundles
+  container_install_bundles_txt $container_name "$container_config_dir/bundles.txt" || exit $?
+
+  # Install dependencies
   container_install_dependencies_txt $container_name "$container_config_dir/dependencies.txt" || exit $?
+
+  # Install Python requirements
   container_install_requirements_txt $container_name "$container_config_dir/requirements.txt" || exit $?
 
   # Create symlink to pytest
