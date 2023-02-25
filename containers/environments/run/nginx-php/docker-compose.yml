@@ -1,0 +1,18 @@
+version: "2"
+
+services:
+  nginx:
+    build: ./nginx/
+    ports:
+      - 80:80
+    depends_on:
+      - php
+    volumes_from:
+      - php
+
+  php:
+    image: php:7.0-fpm
+    expose:
+      - 9000
+    volumes:
+      - ./html:/var/www/html
