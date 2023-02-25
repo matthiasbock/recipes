@@ -71,12 +71,14 @@ if ! $skip_container_start; then
 fi
 
 # Run setup function from configuration script
-if [ "$(type -t container_setup)" == "function" ]; then
-  echo -n "Begin container configuration... "
-  container_setup \
-   || { echo "Error: Container configuration failed (exit code $?)."; exit 9; }
-  echo "Container configuration complete."
+echo -n "Begin container configuration... "
+if [ "$(type -t container_setup)" != "function" ]; then
+  # If no setup function is defined, use the default one from the library
+  . "$bash_container_library/src/setup.sh"
 fi
+container_setup \
+ || { echo "Error: Container configuration failed (exit code $?)."; exit 9; }
+echo "Container configuration complete."
 
 # Container created successfully
 echo -n "Stopping... "
