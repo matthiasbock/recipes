@@ -13,9 +13,4 @@ buildenv_containers:
     BASE_IMAGE: "registry.bihealth.org:443/bockm/recipes/debian:bullseye-amd64"
     IMAGE_REPOSITORY: "registry.bihealth.org:443/bockm/recipes/buildenv:containers"
   script:
-    - echo "Building container..."
-    - ./containers/build.sh $CONFIG
-    - echo "Creating image from container..."
-    - ./containers/commit.sh $CONFIG
-    - echo "Publishing image to container registry..."
-    - ./containers/push.sh $CONFIG
+    - make container container_image push_image
