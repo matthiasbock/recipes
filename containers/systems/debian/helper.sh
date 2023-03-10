@@ -17,7 +17,7 @@ function add_user() {
 # Configure the shell
 #
 function configure_shell() {
-  src_profile="path color git bash-completion debconf proxy apt-update-install python3-pip-install ccache ssh-keygen shortcuts"
+  src_profile="path color git bash-completion debconf proxy gitlab-runner-cache apt-update-install python3-pip-install ccache ssh-host-keygen ssh-keygen shortcuts"
   src_bashrc_root="ssh-host-keygen apt-update"
 
   echo -n "Configuring global shell profile..."
