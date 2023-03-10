@@ -1,4 +1,27 @@
 
+# Temporary
+.*.swp
+*.bak
+*.bck
+.goutputstream*
+.~lock*
+
+# GitLab runner cache
+.cache/
+
+# Python virtual environment
+venv/
+
+# Visual Studio Codium
+.vscode
+
+# Eclipse
+.project
+.cproject
+.settings/
+.metadata/
+
+# Generated
 *.out
 *.o
 *.a
@@ -8,13 +31,6 @@
 *.map
 *.log
 
+# Tokens and stuff: Do not share
 secrets*
-secrets.*
 SECRETS*
-SECRETS.*
-
-.*.swp
-*.bak
-*.bck
-.goutputstream*
-.~lock*
