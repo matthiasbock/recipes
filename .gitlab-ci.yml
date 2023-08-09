@@ -8,12 +8,22 @@
 #
 image: "registry.bihealth.org:443/bockm/recipes/buildenv:containers"
 
+
 #
-# Fetch the container library
+# Caching
 #
+default:
+  cache:
+    paths:
+      - .cache/apt
+      - .cache/pip
+
 variables:
+  APT_CACHE_DIR: "$CI_PROJECT_DIR/.cache/apt"
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   GIT_SUBMODULE_STRATEGY: recursive
   GIT_DEPTH: 1
+
 
 #
 # The list of active build recipes
