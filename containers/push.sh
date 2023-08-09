@@ -5,6 +5,8 @@
 # specified via environment variables
 #
 
+echo  "---------------------------- recipes/containers/push.sh ----------------------------"
+
 # Path to container configuration/setup script
 container_config="$1"
 
@@ -25,6 +27,9 @@ cd "$script_dir" \
 . "setup.sh" \
  || { echo "Error: Failed to load setup script. Aborting."; exit 4; }
 
+
+echo "Availabe images are:"
+$container_cli images
 
 # Check if the image exists
 image_id="$image_name:$image_tag"

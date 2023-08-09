@@ -3,6 +3,8 @@
 # Commit an existing container as image
 #
 
+echo  "---------------------------- recipes/containers/commit.sh ----------------------------"
+
 # Path to container configuration/setup script
 container_config="$1"
 
@@ -30,6 +32,9 @@ if [ "$(type -t pre_commit_hook)" == "function" ]; then
   pre_commit_hook \
    || { echo "Error: Pre-commit hook failed."; exit 1; }
 fi
+
+echo "Availabe containers are:"
+$container_cli container ls -a
 
 # Commit container as image
 echo "Committing container to image..."

@@ -4,6 +4,8 @@
 # parameters specified in the given file.
 #
 
+echo  "---------------------------- recipes/containers/build.sh ----------------------------"
+
 # Path to container configuration/setup script
 container_config="$1"
 
@@ -89,6 +91,8 @@ echo "ok."
 #echo "Container size is $container_size."
 echo "Container $container_name created successfully."
 
+echo "Availabe containers are now:"
+$container_cli container ls -a
 
 # Return to original directory
 cd "$initial_dir"

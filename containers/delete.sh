@@ -3,6 +3,8 @@
 # Delete the container specified in the given container configuration file
 #
 
+echo  "---------------------------- recipes/containers/delete.sh ----------------------------"
+
 # Path to container configuration/setup script
 container_config="$1"
 
