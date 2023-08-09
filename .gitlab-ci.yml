@@ -37,6 +37,7 @@ include:
   - "containers/environments/build/simulations/gitlab-ci.yml"
   - "containers/environments/test/bash-container-library/gitlab-ci.yml"
   - "containers/environments/test/python3/gitlab-ci.yml"
+  - "containers/environments/test/python-ml/gitlab-ci.yml"
   - "containers/environments/test/python-ecg/gitlab-ci.yml"
   - "containers/environments/run/nodejs/gitlab-ci.yml"
   - "containers/environments/run/studies/gitlab-ci.yml"

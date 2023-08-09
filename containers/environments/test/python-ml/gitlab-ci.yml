@@ -1,0 +1,10 @@
+
+testenv_python-ml:
+  rules:
+    - changes:
+      - containers/environments/test/python-ml/**/*
+    - when: manual
+  variables:
+    CONFIG: environments/test/python-ml/config.sh
+  script:
+    - make container container_image push_image
