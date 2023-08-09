@@ -1,0 +1,10 @@
+
+testenv_python-svg:
+  rules:
+    - changes:
+      - containers/environments/test/python-svg/**/*
+    - when: manual
+  variables:
+    CONFIG: environments/test/python-svg/config.sh
+  script:
+    - make container container_image push_image
