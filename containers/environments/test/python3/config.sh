@@ -12,7 +12,7 @@ container_architecture="$debian_architecture"
 base_image="registry.bihealth.org:443/bockm/recipes/debian:bullseye-amd64"
 
 # Push resulting image to these repos:
-image_repositories="registry.bihealth.org:443/bockm/recipes/testenv:python3"
+image_repositories="registry.bihealth.org:443/bockm/recipes/${image_name}:${image_tag}"
 
 
 #
