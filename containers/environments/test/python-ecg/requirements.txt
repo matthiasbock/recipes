@@ -16,8 +16,8 @@ numpy>=1.19
 pandas>=1.0
 scikit-learn>=1.2
 torch>=1.7
-lightning
-torcheval
+# lightning
+# torcheval
 tqdm>=4.65
 matplotlib>=3.3
 
@@ -55,4 +55,4 @@ setuptools_git_versioning<2.0
 # Documentation
 Sphinx>=3.4
 sphinx-jinja2-compat>=0.2
-sphinx-rtd-theme>=1.2
+# sphinx-rtd-theme>=1.2

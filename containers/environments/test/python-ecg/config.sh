@@ -9,7 +9,7 @@ container_name="${image_name}_${image_tag}"
 container_architecture="$debian_architecture"
 
 # Derive container from this image:
-base_image="registry.bihealth.org:443/bockm/recipes/testenv:python3"
+base_image="registry.bihealth.org:443/bockm/recipes/testenv:python-ml"
 
 # Push resulting image to these repos:
 image_repositories="registry.bihealth.org:443/bockm/recipes/testenv:python-ecg"
