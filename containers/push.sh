@@ -33,8 +33,10 @@ $container_cli images
 
 # Check if the image exists
 image_id="$image_name:$image_tag"
-if ! image_is_available "$image_id"; then
-  echo "Error: Image not found: \"$image_id\""
+retval=$(image_is_available "$image_id")
+if ! $retval; then
+  echo "Error: Image not found: \"$image_id\" (return value: $retval)"
+  echo "Image names: $(get_image_names)"
   exit 5
 fi
 
