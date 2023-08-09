@@ -1,9 +1,16 @@
-pytest
-pandas
-numpy
-scipy
-matplotlib
-argparse
-pywavelets
-argparse
-meshio
+
+# Testing
+pytest>=6.0.0
+# make package: Failed to build UNKNOWN: ERROR: Could not build wheels for UNKNOWN which use PEP 517 and cannot be installed directly
+pip>=23.0
+
+# Packaging
+build>=0.10.0
+setuptools>=42.0
+wheel>0.34
+setuptools_git_versioning<2
+
+# Documentation
+Sphinx>=3.4.0
+sphinx-jinja2-compat>=0.2.0
+# sphinx-rtd-theme>=1.2.0

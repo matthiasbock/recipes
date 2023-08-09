@@ -1,7 +1,4 @@
 
-#
-# A test environment for Python 3.x projects
-#
 testenv_python3:
   rules:
     - changes:

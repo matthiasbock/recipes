@@ -22,9 +22,6 @@ function container_setup() {
   # Update package lists
   container_exec $container_name apt-get update -q || true
 
-  # Install package bundles
-  container_install_bundles_txt $container_name "$container_config_dir/bundles.txt" || exit $?
-
   # Install dependencies
   container_install_dependencies_txt $container_name "$container_config_dir/dependencies.txt" || exit $?
 
