@@ -11,15 +11,14 @@ image: "registry.bihealth.org:443/bockm/recipes/buildenv:containers"
 
 #
 # Caching
+# https://docs.gitlab.com/ee/ci/caching/
 #
 default:
   cache:
     paths:
-      - .cache/apt
-      - .cache/pip
+      - .cache
 
 variables:
-  APT_CACHE_DIR: "$CI_PROJECT_DIR/.cache/apt"
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   GIT_SUBMODULE_STRATEGY: recursive
   GIT_DEPTH: 1
@@ -37,6 +36,7 @@ include:
   - "containers/environments/build/simulations/gitlab-ci.yml"
   - "containers/environments/test/bash-container-library/gitlab-ci.yml"
   - "containers/environments/test/python3/gitlab-ci.yml"
+  - "containers/environments/test/python-svg/gitlab-ci.yml"
   - "containers/environments/test/python-ml/gitlab-ci.yml"
   - "containers/environments/test/python-ecg/gitlab-ci.yml"
   - "containers/environments/run/nodejs/gitlab-ci.yml"
