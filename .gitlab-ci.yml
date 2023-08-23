@@ -39,6 +39,7 @@ include:
   - "containers/environments/test/python-svg/gitlab-ci.yml"
   - "containers/environments/test/python-ml/gitlab-ci.yml"
   - "containers/environments/test/python-ecg/gitlab-ci.yml"
+  - "containers/environments/test/predicardio-tables/gitlab-ci.yml"
   - "containers/environments/run/nodejs/gitlab-ci.yml"
   - "containers/environments/run/studies/gitlab-ci.yml"
   - "containers/services/gitlab-runner/gitlab-ci.yml"
