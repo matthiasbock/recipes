@@ -1,0 +1,10 @@
+
+testenv_predicardio-tables:
+  rules:
+    - changes:
+      - containers/environments/test/predicardio-tables/**/*
+    - when: manual
+  variables:
+    CONFIG: environments/test/predicardio-tables/config.sh
+  script:
+    - make container container_image push_image

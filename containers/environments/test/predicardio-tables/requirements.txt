@@ -1,0 +1,67 @@
+
+#
+# python-svg
+#
+
+# Functional dependencies
+pypdf4
+
+
+#
+# python-ml
+#
+
+# Import dependencies
+numpy>=1.19
+pandas>=1.0
+scikit-learn>=1.2
+torch>=1.7
+# lightning
+# torcheval
+tqdm>=4.65
+matplotlib>=3.3
+
+# UserWarnings
+# pandas/core/computation/expressions.py:20: UserWarning: Pandas requires version '2.7.3' or newer of 'numexpr' (version '2.7.2' currently installed)
+numexpr>=2.7.3
+# pandas/core/arrays/masked.py:64: UserWarning: Pandas requires version '1.3.2' or newer of 'bottleneck' (version '1.2.1' currently installed)
+bottleneck>=1.3.2
+
+
+#
+# python-ecg
+#
+
+# Functional dependencies
+argparse
+pywavelets
+wfdb>=4.1
+
+# Testing
+pytest>=6.0
+# make package: Failed to build UNKNOWN: ERROR: Could not build wheels for UNKNOWN which use PEP 517 and cannot be installed directly
+pip>=23.0
+
+# Packaging
+build>=0.10
+setuptools>=42.0
+wheel>0.34
+setuptools_git_versioning<2.0
+
+# Documentation
+Sphinx>=3.4
+sphinx-jinja2-compat>=0.2
+# sphinx-rtd-theme>=1.2
+
+#
+# predicardio-tables
+#
+scipy>=1.11
+scikit-learn>=1.2
+# lightning
+# torcheval
+# tabulate
+
+# Jupyter/ipython kernel management
+ipykernel>=6.25
+jupyter-client>=8.3
