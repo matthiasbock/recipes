@@ -5,7 +5,6 @@ debian_sid-amd64:
         - containers/systems/debian/sid-amd64.sh
         - containers/systems/debian/common.sh
         - containers/systems/debian/helper.sh
-        - containers/systems/debian/gitlab-ci.yml
       when: always
     - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_SCHEDULE == "debian"
       when: always
@@ -21,13 +20,54 @@ debian_sid-amd64:
     - ./containers/push.sh $CONFIG
 
 
+debian_trixie-amd64:
+  rules:
+    - changes:
+        - containers/systems/debian/trixie-amd64.sh
+        - containers/systems/debian/common.sh
+        - containers/systems/debian/helper.sh
+      when: always
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_SCHEDULE == "debian"
+      when: always
+    - when: manual
+  variables:
+    CONFIG: systems/debian/trixie-amd64.sh
+  script:
+    - echo "Building container..."
+    - ./containers/build.sh $CONFIG
+    - echo "Creating image from container..."
+    - ./containers/commit.sh $CONFIG
+    - echo "Publishing image to container registry..."
+    - ./containers/push.sh $CONFIG
+
+
+debian_bookworm-amd64:
+  rules:
+    - changes:
+        - containers/systems/debian/bookworm-amd64.sh
+        - containers/systems/debian/common.sh
+        - containers/systems/debian/helper.sh
+      when: always
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_SCHEDULE == "debian"
+      when: always
+    - when: manual
+  variables:
+    CONFIG: systems/debian/bookworm-amd64.sh
+  script:
+    - echo "Building container..."
+    - ./containers/build.sh $CONFIG
+    - echo "Creating image from container..."
+    - ./containers/commit.sh $CONFIG
+    - echo "Publishing image to container registry..."
+    - ./containers/push.sh $CONFIG
+
+
 debian_bullseye-amd64:
   rules:
     - changes:
         - containers/systems/debian/bullseye-amd64.sh
         - containers/systems/debian/common.sh
         - containers/systems/debian/helper.sh
-        - containers/systems/debian/gitlab-ci.yml
       when: always
     - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_SCHEDULE == "debian"
       when: always
@@ -49,7 +89,6 @@ debian_buster-amd64:
         - containers/systems/debian/buster-amd64.sh
         - containers/systems/debian/common.sh
         - containers/systems/debian/helper.sh
-        - containers/systems/debian/gitlab-ci.yml
       when: always
     - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_SCHEDULE == "debian"
       when: always
