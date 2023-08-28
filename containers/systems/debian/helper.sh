@@ -22,7 +22,7 @@ function configure_shell() {
 
   echo -n "Configuring global shell profile..."
   for file in $src_profile; do
-    local filepath="$assets_dir/etc/profile.d/${file}.sh"
+    local filepath="$assets_dir/profile.d/${file}.sh"
     container_add_file $container_name $filepath /etc/profile.d/ \
     || { echo "Error: Failed to add file to container."; exit 2; }
   done
@@ -32,7 +32,7 @@ function configure_shell() {
   tmpfile=".bashrc"
   rm -f $tmpfile
   # for file in $src_bashrc_root; do
-  #   local filepath="$assets_dir/etc/profile.d/${file}.sh"
+  #   local filepath="$assets_dir/profile.d/${file}.sh"
   #   cat $filepath >> $tmpfile
   # done
   echo ". /etc/profile" > $tmpfile
@@ -80,7 +80,7 @@ function add_public_keys() {
 
   # List available keys
   if ! is_set keys_dir; then
-    local keys_dir="$assets_dir/keys"
+    local keys_dir="$assets_dir/apt/keys"
   fi
   for keyfile in $(ls -1 $keys_dir); do
     local filepath=$keys_dir/$keyfile
@@ -114,7 +114,7 @@ function add_sources_lists() {
 
   # Add HTTPS package repository
   for file in $apt_sources_lists; do
-    local filepath="$assets_dir/debian/apt/sources.list.d/$file.list"
+    local filepath="$assets_dir/apt/sources.list.d/$file.list"
     container_add_file $container_name "$filepath" /etc/apt/sources.list.d/ \
     || { echo "Error: Failed to add \"$filepath\" to container."; exit 20; }
   done
@@ -147,7 +147,7 @@ function enable_package_verification() {
 function install_package_bundles() {
   local bundles=""
   for bundle in $package_bundles; do
-    bundles="$bundles $assets_dir/debian/package-bundles/$bundle.list"
+    bundles="$bundles $assets_dir/apt/package-bundles/$bundle.list"
   done
   container_debian_install_package_bundles $container_name $bundles
   local retval=$?
@@ -161,7 +161,7 @@ function grant_sudo_priviledges() {
   echo "Granting sudo priviledges to $user ..."
 
   # Copy sudoers config from shared directory to container
-  srcfile="$assets_dir/etc/sudoers.d/runner"
+  srcfile="$assets_dir/sudoers.d/runner"
   dstpath="/etc/sudoers.d"
   dstfile="$dstpath/runner"
   container_add_file $container_name "$srcfile" "$dstfile" \

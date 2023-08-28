@@ -40,10 +40,12 @@ function container_setup() {
   # Configure APT and install packages
   #
   echo "Configuring apt ..."
-  container_add_file $container_name "$assets_dir/debian/apt/apt.conf" /etc/apt/apt.conf || exit $?
+  container_exec     $container_name mkdir -p /etc/apt/apt.conf.d/ || exit $?
+  container_add_file $container_name $assets_dir/apt/apt.conf.d/suggestions.conf /etc/apt/apt.conf.d/ || exit $?
+  container_add_file $container_name $assets_dir/apt/apt.conf.d/proxy.conf /etc/apt/apt.conf.d/ || exit $?
 
   # Workaround for installation problems (e.g. with openjdk-11-jdk)
-  $container_cli exec -t $container_name mkdir -p /usr/share/man/man1/
+  container_exec     $container_name mkdir -p /usr/share/man/man1/
 
   # Install packages required for SSL transport encryption
   enable_ssl_support
@@ -74,7 +76,7 @@ function container_setup() {
   #
   container_exec $container_name mkdir -p /home/$user/.ccache
   container_exec $container_name ln -s ../home/$user/.ccache /root/.ccache
-  container_exec $container_name chown $user.$user /home/$user/.ccache
+  container_exec $container_name chown $user:$user /home/$user/.ccache
 
   # runner may use sudo without password
   grant_sudo_priviledges

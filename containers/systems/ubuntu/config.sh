@@ -31,7 +31,9 @@ function container_setup()
   # Configure APT and install packages
   #
   echo "Configuring apt ..."
-  container_add_file $container_name "$assets_dir/debian/apt/apt.conf" /etc/apt/apt.conf || exit $?
+  container_exec     $container_name mkdir -p /etc/apt/apt.conf.d/ || exit $?
+  container_add_file $container_name $assets_dir/apt/apt.conf.d/suggestions.conf /etc/apt/apt.conf.d/ || exit $?
+  container_add_file $container_name $assets_dir/apt/apt.conf.d/proxy.conf /etc/apt/apt.conf.d/ || exit $?
 
   # TODO: Select a fast mirror
   #sudo netselect -s 1 -t 40 $(wget -qO - mirrors.ubuntu.com/mirrors.txt)
