@@ -1,3 +1,12 @@
+
 [submodule "lib/container"]
 	path = lib/container
 	url = https://git.bihealth.org/bockm/bash-container-library.git
+
+[submodule "lib/assets/apt"]
+	path = lib/assets/apt
+	url = https://git.bihealth.org/predicardio/backups/apt.git
+
+[submodule "lib/assets/profile.d"]
+	path = lib/assets/profile.d
+	url = https://git.bihealth.org/predicardio/backups/profile.d.git

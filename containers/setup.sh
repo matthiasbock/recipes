@@ -4,6 +4,7 @@ project_root="$(realpath "$script_dir/../")"
 echo "Project root: $project_root"
 lib_dir="$project_root/lib"
 bash_container_library="$(realpath "$lib_dir/container")"
+assets_dir="$lib_dir/assets"
 
 # Source bash-container-library
 echo "Including bash container library from \"$bash_container_library\"..."
