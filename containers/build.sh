@@ -73,7 +73,7 @@ if ! $skip_container_start; then
 fi
 
 # Run setup function from configuration script
-echo -n "Begin container configuration... "
+echo "Begin container configuration... "
 if [ "$(type -t container_setup)" != "function" ]; then
   # If no setup function is defined, use the default one from the library
   . "$bash_container_library/src/setup.sh"

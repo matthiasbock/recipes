@@ -18,7 +18,9 @@ default:
       - .cache
 
 variables:
-  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  CACHE_DIR: "$CI_PROJECT_DIR/.cache"
+  APT_CACHE_DIR: "$CACHE_DIR/apt"
+  PIP_CACHE_DIR: "$CACHE_DIR/pip"
   GIT_SUBMODULE_STRATEGY: recursive
   GIT_DEPTH: 1
 
