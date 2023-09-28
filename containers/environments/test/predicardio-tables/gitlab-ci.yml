@@ -3,6 +3,7 @@ testenv_predicardio-tables:
   rules:
     - changes:
       - containers/environments/test/predicardio-tables/**/*
+      when: always
     - when: manual
   variables:
     CONFIG: environments/test/predicardio-tables/config.sh

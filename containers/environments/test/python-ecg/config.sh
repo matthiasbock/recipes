@@ -2,7 +2,6 @@
 image_name="testenv"
 image_tag="python-ecg"
 
-debian_release="bullseye"
 debian_architecture="amd64"
 
 container_name="${image_name}_${image_tag}"
@@ -12,7 +11,7 @@ container_architecture="$debian_architecture"
 base_image="registry.bihealth.org:443/bockm/recipes/testenv:python-ml"
 
 # Push resulting image to these repos:
-image_repositories="registry.bihealth.org:443/bockm/recipes/${image_name}:${image_tag}"
+image_repositories="registry.bihealth.org:443/bockm/recipes/$image_name:$image_tag"
 
 
 #

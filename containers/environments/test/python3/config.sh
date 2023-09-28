@@ -2,17 +2,17 @@
 image_name="testenv"
 image_tag="python3"
 
-debian_release="bullseye"
+debian_release="bookworm"
 debian_architecture="amd64"
 
 container_name="${image_name}_${image_tag}"
 container_architecture="$debian_architecture"
 
 # Derive container from this image:
-base_image="registry.bihealth.org:443/bockm/recipes/debian:bullseye-amd64"
+base_image="registry.bihealth.org:443/bockm/recipes/debian:$debian_release-$debian_architecture"
 
 # Push resulting image to these repos:
-image_repositories="registry.bihealth.org:443/bockm/recipes/${image_name}:${image_tag}"
+image_repositories="registry.bihealth.org:443/bockm/recipes/$image_name:$image_tag"
 
 
 #

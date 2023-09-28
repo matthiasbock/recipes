@@ -8,7 +8,6 @@
 #
 image: "registry.bihealth.org:443/bockm/recipes/buildenv:containers"
 
-
 #
 # Caching
 # https://docs.gitlab.com/ee/ci/caching/

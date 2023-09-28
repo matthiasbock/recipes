@@ -2,7 +2,8 @@
 testenv_python-ml:
   rules:
     - changes:
-      - containers/environments/test/python-ml/**/*
+        - containers/environments/test/python-ml/**/*
+      when: always
     - when: manual
   variables:
     CONFIG: environments/test/python-ml/config.sh

@@ -2,7 +2,8 @@
 testenv_python3:
   rules:
     - changes:
-      - containers/environments/test/python3/**/*
+        - containers/environments/test/python3/**/*
+      when: always
     - when: manual
   variables:
     CONFIG: environments/test/python3/config.sh

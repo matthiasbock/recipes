@@ -2,7 +2,8 @@
 testenv_python-ecg:
   rules:
     - changes:
-      - containers/environments/test/python-ecg/**/*
+        - containers/environments/test/python-ecg/**/*
+      when: always
     - when: manual
   variables:
     CONFIG: environments/test/python-ecg/config.sh
