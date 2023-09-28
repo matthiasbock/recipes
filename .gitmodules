@@ -5,8 +5,8 @@
 
 [submodule "lib/assets/apt"]
 	path = lib/assets/apt
-	url = https://git.bihealth.org/predicardio/backups/apt.git
+	url = https://git.bihealth.org/matthiasbock/backups/apt.git
 
 [submodule "lib/assets/profile.d"]
 	path = lib/assets/profile.d
-	url = https://git.bihealth.org/predicardio/backups/profile.d.git
+	url = https://git.bihealth.org/matthiasbock/backups/profile.d.git
