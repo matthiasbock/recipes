@@ -38,6 +38,6 @@ function container_setup()
   container_exec $container_name chown -R $user:$user /home/$user || true
 
   # Clean up
-  container_expendables_import "$bash_container_library/assets/expendables/default.list"
+  container_expendables_import "$lib_container/assets/expendables/default.list"
   container_expendables_delete $container_name $container_expendables
 }

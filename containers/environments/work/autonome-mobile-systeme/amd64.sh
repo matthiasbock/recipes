@@ -31,6 +31,6 @@ function container_setup()
 
   # Clean up
   container_exec $container_name apt-get -q remove -y $(cat "${container_config_dir}/build.list")
-  container_expendables_import "${bash_container_library}/expendables/default.list"
+  container_expendables_import "$lib_container/expendables/default.list"
   container_expendables_delete $container_name $container_expendables
 }

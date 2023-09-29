@@ -18,7 +18,7 @@ image_repositories="$IMAGE_REPOSITORY $IMAGE_REPOSITORIES"
 function container_setup() {
   # Install additional packages
   container_exec $container_name apt-get update -q || true
-  container_install_dependencies_txt $container_name "$bash_container_library/test-dependencies.txt" || exit $?
+  container_install_dependencies_txt $container_name "$lib_container/test-dependencies.txt" || exit $?
 
   # Delete expendable files
   container_expendables_import "$assets_dir/expendables/default.list"

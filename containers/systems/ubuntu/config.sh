@@ -63,6 +63,6 @@ function container_setup()
   verify_ownerships
 
   # Clean up
-  container_expendables_import "$bash_container_library/assets/expendables/default.list" || exit $?
+  container_expendables_import "$lib_container/assets/expendables/default.list" || exit $?
   container_expendables_delete $container_name $container_expendables &> /dev/null
 }

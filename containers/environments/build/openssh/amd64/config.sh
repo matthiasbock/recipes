@@ -34,6 +34,6 @@ function container_setup()
    || { echo "Failed to install build dependencies. Aborting."; exit 1; }
 
   # Clean up
-  container_expendables_import "${bash_container_library}/expendables/default.list"
+  container_expendables_import "$lib_container/expendables/default.list"
   container_expendables_delete $container_name $container_expendables
 }

@@ -3,14 +3,14 @@
 project_root="$(realpath "$script_dir/../")"
 echo "Project root: $project_root"
 lib_dir="$project_root/lib"
-bash_container_library="$(realpath "$lib_dir/bash")"
+lib_container="$(realpath "$lib_dir/bash")"
 assets_dir="$lib_dir/assets"
 
 # Source bash-container-library
-echo "Including bash container library from \"$bash_container_library\"..."
-bash_container_library_include="$bash_container_library/include.sh"
-. "$bash_container_library_include" \
-|| { echo "Error: Failed to include \"$bash_container_library_include\"."; exit 11; }
+echo "Including bash container library from \"$lib_container\"..."
+lib_container_include="$lib_container/include.sh"
+. "$lib_container_include" \
+|| { echo "Error: Failed to include \"$lib_container_include\"."; exit 11; }
 
 # shared_dir="$project_root/lib/"
 shared_dir="$assets_dir"

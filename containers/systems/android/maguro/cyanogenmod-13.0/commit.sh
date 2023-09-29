@@ -7,8 +7,8 @@ shared_dir=$(realpath "../../../../../shared")
 . config.sh
 
 # Include container management routines for bash
-bash_container_library="$shared_dir/bash-container-library"
-. "$bash_container_library/include.sh" \
+lib_container="$shared_dir/bash-container-library"
+. "$lib_container/include.sh" \
  || { echo "Error: Failed to load bash container library."; exit 1; }
 
 # Commit folder as image

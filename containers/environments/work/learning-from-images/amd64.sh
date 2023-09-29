@@ -26,6 +26,6 @@ function container_setup()
   container_exec $container_name sudo -u $user wget --progress=dot:giga https://repo.anaconda.com/archive/Anaconda3-2021.05-Linux-x86_64.sh -O /home/$user/Anaconda3-2021.05-Linux-x86_64.sh
 
   # Clean up
-  container_expendables_import "${bash_container_library}/expendables/default.list"
+  container_expendables_import "$lib_container/expendables/default.list"
   container_expendables_delete $container_name $container_expendables
 }

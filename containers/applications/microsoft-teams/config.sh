@@ -48,6 +48,6 @@ function container_setup()
   touch "/home/$user/.config/Microsoft/Microsoft Teams/hooks.json"
 
   # Clean up
-  container_expendables_import "${bash_container_library}/expendables/default.list"
+  container_expendables_import "$lib_container/expendables/default.list"
   container_expendables_delete $container_name $container_expendables
 }

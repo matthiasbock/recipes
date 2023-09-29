@@ -43,7 +43,7 @@ function container_setup()
    || { echo "Failed to configure git. Aborting."; container_setup_failed; exit 1; }
 
   # Clean up
-  container_expendables_import "${bash_container_library}/expendables/default.list" \
+  container_expendables_import "$lib_container/expendables/default.list" \
    || { echo "Failed to load list of expendable files and folders. Aborting."; container_setup_failed; exit 1; }
   container_expendables_delete $container_name \
    || { echo "Failed to tidy-up container. Aborting."; container_setup_failed; exit 1; }

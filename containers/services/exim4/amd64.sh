@@ -19,6 +19,6 @@ function container_setup()
   container_exec $container_name apt-get -q install -y exim4-daemon-heavy
 
   # Clean up
-  container_expendables_import "${bash_container_library}/expendables/default.list"
+  container_expendables_import "$lib_container/expendables/default.list"
   container_expendables_delete $container_name $container_expendables
 }
