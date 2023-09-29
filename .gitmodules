@@ -1,6 +1,6 @@
 
-[submodule "lib/container"]
-	path = lib/container
+[submodule "lib/bash"]
+	path = lib/bash
 	url = ssh://git@git.bihealth.org:2022/bockm/bash-container-library.git
 
 [submodule "lib/assets/apt"]

@@ -3,7 +3,7 @@
 project_root="$(realpath "$script_dir/../")"
 echo "Project root: $project_root"
 lib_dir="$project_root/lib"
-bash_container_library="$(realpath "$lib_dir/container")"
+bash_container_library="$(realpath "$lib_dir/bash")"
 assets_dir="$lib_dir/assets"
 
 # Source bash-container-library
