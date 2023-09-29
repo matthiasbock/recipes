@@ -54,7 +54,7 @@ function container_setup()
   #
   container_exec $container_name mkdir -p /home/$user/.ccache
   container_exec $container_name ln -s ../home/$user/.ccache /root/.ccache
-  container_exec $container_name chown $user.$user /home/$user/.ccache
+  container_exec $container_name chown $user:$user /home/$user/.ccache
 
   # runner may use sudo without password
   grant_sudo_priviledges

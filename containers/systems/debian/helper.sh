@@ -178,15 +178,15 @@ function grant_sudo_priviledges() {
 function verify_ownerships() {
   # Everything in the user's home folder belongs to the user
   local home="/home/$user/"
-  container_exec $container_name chown -R $user.$user "$home" \
+  container_exec $container_name chown -R $user:$user "$home" \
   || { echo "Error: Failed to adjust ownership of \"$home\"."; exit 2; }
 
   # Everything in root's home folder belongs to root
-  container_exec $container_name chown -R root.root /root \
+  container_exec $container_name chown -R root:root /root \
   || { echo "Error: Failed to adjust ownership of \"/root\"."; exit 3; }
 
   # All configuration belongs to root
-  container_exec $container_name chown -R root.root /etc \
+  container_exec $container_name chown -R root:root /etc \
   || { echo "Error: Failed to adjust ownership of \"/etc\"."; exit 4; }
 
   # Configuration should only be writeable by root

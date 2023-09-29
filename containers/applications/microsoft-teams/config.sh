@@ -25,7 +25,7 @@ function container_setup()
   dstfile="$dstpath/microsoft.list"
   container_add_file $container_name "$srcfile" "$dstfile" \
    || { echo "Error: Failed to copy sources.list to container. Aborting."; exit 1; }
-  container_exec $container_name chown root.root "$dstfile" \
+  container_exec $container_name chown root:root "$dstfile" \
    || { echo "Error: Failed to change ownership of $dstfile. Aborting."; exit 1; }
   container_exec $container_name chmod 644 "$dstfile" \
    || { echo "Error: Failed to change permissions of $dstfile. Aborting."; exit 1; }

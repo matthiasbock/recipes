@@ -24,7 +24,7 @@ function container_setup()
    || { echo "Failed to add compilation script. Aborting."; exit 1; }
   container_exec $container_name chmod 755 /home/${user}/run.sh \
    || { echo "Failed to change file mode. Aborting."; exit 1; }
-  container_exec $container_name chown -R ${user}.${user} /home/${user} \
+  container_exec $container_name chown -R $user:$user /home/${user} \
    || { echo "Failed to change file ownership. Aborting."; exit 1; }
 
   # apt build-dep
