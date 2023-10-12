@@ -39,7 +39,7 @@ $container_cli container ls -a
 # Commit container as image
 echo "Committing container to image..."
 image_create_from_container $container_name "$image_name:$image_tag" "$image_config" \
- || { echo "Error: Image creation failed."; exit 5; }
+ || { echo "Error: Failed to commit."; exit 5; }
 echo "Image creation complete."
 
 
