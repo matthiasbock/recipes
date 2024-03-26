@@ -10,3 +10,7 @@
 [submodule "lib/assets/profile.d"]
 	path = lib/assets/profile.d
 	url = ssh://git@git-ext.charite.de:2022/matthiasbock/backups/profile.d.git
+
+[submodule "lib/assets/widevine"]
+	path = lib/assets/widevine
+	url = git@github.com:proprietary/chromium-widevine.git
