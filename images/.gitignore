@@ -3,6 +3,7 @@
 *.jigdo
 *.jigdo.unpacked
 *.template
+*.iso.list
 jigdo-file-cache.db
 
 # Downloads
@@ -20,4 +21,3 @@ jigdo-file-cache.db
 *.img
 *.dd
 *.raw
-
