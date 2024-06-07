@@ -1,0 +1,23 @@
+
+# Jigdo
+*.jigdo
+*.jigdo.unpacked
+*.template
+jigdo-file-cache.db
+
+# Downloads
+*.tar
+*.tar.*
+*.zip
+*.7z
+*.bz2
+*.gz
+*.gzip
+
+# Generated images
+*.bin
+*.iso
+*.img
+*.dd
+*.raw
+
