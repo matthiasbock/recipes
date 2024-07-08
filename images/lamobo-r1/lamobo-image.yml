@@ -19,14 +19,23 @@
 
     # Precompiled image
     URL_UBOOT: "https://dl.sd-card-images.johang.se/boots/2024-06-01/boot-lamobo_r1.bin.gz"
+    # Out of date:
     # URL_DEBIAN: "https://dl.sd-card-images.johang.se/debians/2024-06-03/debian-bookworm-armhf-zue4ye.bin.gz"
-    URL_DEBIAN_BASE: "https://dl.sd-card-images.johang.se/debians/"
-    URL_LAMOBO_INFO: "https://sd-card-images.johang.se/boards/lamobo_r1.html"
+
+    # URL_LAMOBO_INFO: "https://sd-card-images.johang.se/boards/lamobo_r1.html"
+    URL_DEBIAN_INDEX: "https://cdn.sd-card-images.johang.se/index-debians-armhf.js"
+    DEBIAN_INDEX:  debian-image-index.json
+    DEBIAN_DISTRO: bookworm
+    DEBIAN_ARCH:   armhf
+    DEBIAN_DTBS:   sun7i-a20-lamobo-r1
+
+    URL_DEBIAN_BASE: "https://dl.sd-card-images.johang.se"
 
     # Official Debian DVD
     DVD_VERSION: bookworm
     URL_JIGDO: "https://cdimage.debian.org/debian-cd/current/armhf/jigdo-dvd/debian-12.5.0-armhf-DVD-1.jigdo"
     URL_JIGDO_TEMPLATE: "https://cdimage.debian.org/debian-cd/current/armhf/jigdo-dvd/debian-12.5.0-armhf-DVD-1.template"
+    # DVD_IMAGE: debian.iso
 
     DIR_DVD: "{{ MOUNTPOINT_IMAGE }}/var/lib/apt/dvd"
     SOURCES_LIST: "{{ MOUNTPOINT_IMAGE }}/etc/apt/sources.list.d/dvd.list"
@@ -48,23 +57,32 @@
           - cryptsetup
           - btrfs-progs
           - docker.io
-          - wget
-          - html-xml-utils
+          - jq
         state: present
       become: yes
       become_user: root
 
-    - name: Retrieve current Debian image URL
-      shell: |
-        wget -qO- "{{ URL_LAMOBO_INFO }}" | \
-        hxnormalize -x | \
-        hxselect -c 'a[href*="{{ URL_DEBIAN_BASE }}"]::attr(href)' | \
-        tail -n1
-      register: debian_url_result
+    - name: Download Debian image index
+      shell: >
+        curl -s -o - "{{ URL_DEBIAN_INDEX }}" |
+        tail -n+2 |
+        head -n-1 |
+        jq
+        > "{{ DEBIAN_INDEX }}"
+      args:
+        creates: "{{ DEBIAN_INDEX }}"
+
+    # Parsing JSON, sorting suitable entries by date, selecting latest image using head
+    - name: Extract latest Debian image info for lamobo-r1
+      shell: >
+        jq -r '.[] | select(.os == "debian") | select(.dist == "{{ DEBIAN_DISTRO }}") |  select(.arch == "{{ DEBIAN_ARCH }}") | select(.dtbs[] | contains("{{ DEBIAN_DTBS }}")) | "\(.build) \(.path) \(.password)"' "{{ DEBIAN_INDEX }}" |
+        sort -r |
+        head -n1
+      register: debian_image_info
 
     - name: Set Debian image URL
       set_fact:
-        URL_DEBIAN: "{{ debian_url_result.stdout }}"
+        URL_DEBIAN: "{{ URL_DEBIAN_BASE }}{{ debian_image_info.stdout.split(' ')[1] }}"
 
     - name: Download pre-compiled images
       get_url:
@@ -75,6 +93,24 @@
       loop:
         - "{{ URL_UBOOT }}"
         - "{{ URL_DEBIAN }}"
+
+    # - name: calculate hash for existing file
+    #   stat:
+    #     path: /usr/bin/yq
+    #     checksum_algorithm: sha256
+    #   register: resultStat
+
+    # - name: (re)download file
+    #   become: true
+    #   get_url:
+    #     url: https://github.com/mikefarah/yq/releases/download/v4.34.1/yq_linux_amd64
+    #     #url: https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+    #     dest: /usr/bin/yq
+    #     checksum: "{{ '' if not resultStat.stat.exists else 'sha256:' + resultStat.stat.checksum }}"
+    #     #force: true
+    #     owner: root
+    #     group: root
+    #     mode: '0755'
 
     - name: Create SD card image
       shell: zcat {{ URL_UBOOT | basename }} {{ URL_DEBIAN | basename }} > {{ IMAGE }}

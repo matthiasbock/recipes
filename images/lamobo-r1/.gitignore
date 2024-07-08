@@ -8,3 +8,4 @@ ansible.cfg
 *.gz
 *.jigdo
 *.template
+*-index.json

@@ -1,8 +1,9 @@
 
+include lamobo-image.mk
+
+
 .PHONY: all
-all: image
+all: lamobo-image
 
-.PHONY: image
-image:
-	ansible-playbook -v lamobo-image.yml
-
+.PHONY: clean
+clean: clean-lamobo-image
