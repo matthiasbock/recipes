@@ -1,0 +1,10 @@
+
+ansible.cfg
+
+# Downloads / Generated
+*.bin
+*.img
+*.iso
+*.gz
+*.jigdo
+*.template
