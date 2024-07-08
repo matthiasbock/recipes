@@ -3,32 +3,69 @@
   hosts: localhost
   vars:
     # Properties of the image to create
-    IMG: "lamobo_r1.img"
-    IMG_SIZE: "{{ 32 * 1000 * 1000 * 1000 }}"  # 32GB in bytes
-    IMG_SECTOR_SIZE: 512
+    IMAGE: "lamobo_r1.img"
+    IMAGE_SIZE: "{{ 32 * 1000 * 1000 * 1000 }}"  # 32GB in bytes
+    SECTOR_SIZE: 512
 
     # Mount points
-    MNT: "/mnt"
-    MNT_DVD: "/media/cdrom"
+    MOUNTPOINT_IMAGE: "/mnt"
+    MOUNTPOINT_DVD: "/media/cdrom"
 
     # Include local package cache
     APT_CACHE: "/var/cache/apt"
 
+    # Apparently dl.sd-card-images.johang.se requires a user-agent
     USER_AGENT: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
 
     # Precompiled image
     URL_UBOOT: "https://dl.sd-card-images.johang.se/boots/2024-06-01/boot-lamobo_r1.bin.gz"
-    URL_DEBIAN: "https://dl.sd-card-images.johang.se/debians/2024-06-03/debian-bookworm-armhf-zue4ye.bin.gz"
+    # URL_DEBIAN: "https://dl.sd-card-images.johang.se/debians/2024-06-03/debian-bookworm-armhf-zue4ye.bin.gz"
+    URL_DEBIAN_BASE: "https://dl.sd-card-images.johang.se/debians/"
+    URL_LAMOBO_INFO: "https://sd-card-images.johang.se/boards/lamobo_r1.html"
 
     # Official Debian DVD
     DVD_VERSION: bookworm
     URL_JIGDO: "https://cdimage.debian.org/debian-cd/current/armhf/jigdo-dvd/debian-12.5.0-armhf-DVD-1.jigdo"
     URL_JIGDO_TEMPLATE: "https://cdimage.debian.org/debian-cd/current/armhf/jigdo-dvd/debian-12.5.0-armhf-DVD-1.template"
 
-    DIR_DVD: "{{ MNT }}/var/lib/apt/dvd"
-    SOURCES_LIST: "{{ MNT }}/etc/apt/sources.list.d/dvd.list"
+    DIR_DVD: "{{ MOUNTPOINT_IMAGE }}/var/lib/apt/dvd"
+    SOURCES_LIST: "{{ MOUNTPOINT_IMAGE }}/etc/apt/sources.list.d/dvd.list"
+
+    # LUKS_KEYFILE: ./luks.key
+    LUKS_PASSWORD: "your_secure_password_here"
+
+    DOCKER_IMAGE: "debian:bookworm"
 
   tasks:
+    - name: Install required packages
+      apt:
+        name:
+          - xz-utils
+          - unzip
+          - gzip
+          - curl
+          - jigdo-file
+          - cryptsetup
+          - btrfs-progs
+          - docker.io
+          - wget
+          - html-xml-utils
+        state: present
+      become: yes
+      become_user: root
+
+    - name: Retrieve current Debian image URL
+      shell: |
+        wget -qO- "{{ URL_LAMOBO_INFO }}" | \
+        hxnormalize -x | \
+        hxselect -c 'a[href*="{{ URL_DEBIAN_BASE }}"]::attr(href)' | \
+        tail -n1
+      register: debian_url_result
+
+    - name: Set Debian image URL
+      set_fact:
+        URL_DEBIAN: "{{ debian_url_result.stdout }}"
+
     - name: Download pre-compiled images
       get_url:
         url: "{{ item }}"
@@ -40,9 +77,9 @@
         - "{{ URL_DEBIAN }}"
 
     - name: Create SD card image
-      shell: zcat {{ URL_UBOOT | basename }} {{ URL_DEBIAN | basename }} > {{ IMG }}
+      shell: zcat {{ URL_UBOOT | basename }} {{ URL_DEBIAN | basename }} > {{ IMAGE }}
       args:
-        creates: "{{ IMG }}"
+        creates: "{{ IMAGE }}"
 
     - name: Download Jigdo files
       get_url:
@@ -59,45 +96,53 @@
       args:
         creates: "{{ URL_JIGDO | basename }}"
 
-    - name: Compose DVD image using jigdo
-      command: >
-        jigdo-lite --scan {{ MNT_DVD }} --scan {{ APT_CACHE }} {{ URL_JIGDO | basename }}
-      args:
-        creates: "debian-12.5.0-armhf-DVD-1.iso"
-
     - name: Get DVD image filename
       shell: grep ^Filename {{ URL_JIGDO | basename }} | cut -d'=' -f2
       register: dvd_filename
 
     - name: Set DVD image path
       set_fact:
-        IMG_DVD: "{{ playbook_dir }}/{{ dvd_filename.stdout }}"
+        DVD_IMAGE: "{{ dvd_filename.stdout }}"
+
+    - name: Compose DVD image using jigdo
+      command: >
+        jigdo-lite
+        --scan "{{ MOUNTPOINT_DVD }}"
+        --scan "{{ APT_CACHE }}"
+        "{{ URL_JIGDO | basename }}"
+      args:
+        creates: "{{ DVD_IMAGE }}"
 
     - name: Enlarge SD card image
       block:
-        - name: Calculate new image size
+        - name: Create SD card image
           set_fact:
-            IMG_NUM_SECTORS: "{{ IMG_SIZE // IMG_SECTOR_SIZE }}"
-            IMG_LAST_SECTOR: "{{ (IMG_SIZE // IMG_SECTOR_SIZE) - 1 }}"
+            IMG_NUM_SECTORS: "{{ IMAGE_SIZE // SECTOR_SIZE }}"
+            IMG_LAST_SECTOR: "{{ (IMAGE_SIZE // SECTOR_SIZE) - 1 }}"
 
         - name: Expand image file
           command: >
-            dd if=/dev/null of={{ IMG }} bs={{ IMG_SECTOR_SIZE }}
-            seek={{ IMG_LAST_SECTOR }} count=1 conv=sparse
+            dd
+            if=/dev/null
+            of="{{ IMAGE }}"
+            bs={{ SECTOR_SIZE }}
+            seek={{ IMG_LAST_SECTOR }}
+            count=1
+            conv=sparse
           args:
-            creates: "{{ IMG }}"
+            creates: "{{ IMAGE }}"
 
         # TODO: Add task to resize partition using sfdisk
 
     - name: Mount SD card image
       mount:
-        src: "{{ IMG }}"
-        path: "{{ MNT }}"
+        src: "{{ IMAGE }}"
+        path: "{{ MOUNTPOINT_IMAGE }}"
         fstype: auto
         state: mounted
 
     - name: Set up loop device
-      command: losetup --find --show {{ IMG }}
+      command: losetup --find --show {{ IMAGE }}
       register: loop_device
 
     - name: Update partition table
@@ -105,21 +150,21 @@
 
     - name: Mount DVD image
       mount:
-        src: "{{ IMG_DVD }}"
-        path: "{{ MNT_DVD }}"
+        src: "{{ DVD_IMAGE }}"
+        path: "{{ MOUNTPOINT_DVD }}"
         fstype: iso9660
         opts: ro,loop
         state: mounted
 
     - name: Copy DVD contents
       copy:
-        src: "{{ MNT_DVD }}/"
+        src: "{{ MOUNTPOINT_DVD }}/"
         dest: "{{ DIR_DVD }}/"
         remote_src: yes
 
     - name: Unmount DVD image
       mount:
-        path: "{{ MNT_DVD }}"
+        path: "{{ MOUNTPOINT_DVD }}"
         state: unmounted
 
     - name: Configure apt source for DVD
@@ -131,13 +176,13 @@
     - name: Copy qemu-arm-static
       copy:
         src: /usr/bin/qemu-arm-static
-        dest: "{{ MNT }}/usr/bin/qemu-arm-static"
+        dest: "{{ MOUNTPOINT_IMAGE }}/usr/bin/qemu-arm-static"
         mode: '0755'
 
     - name: Configure system in container
       command: >
         systemd-nspawn
-        -D {{ MNT }}
+        -D {{ MOUNTPOINT_IMAGE }}
         /usr/bin/qemu-arm-static
         /bin/bash -c
         "apt update &&
@@ -147,7 +192,7 @@
 
     - name: Unmount SD card image
       mount:
-        path: "{{ MNT }}"
+        path: "{{ MOUNTPOINT_IMAGE }}"
         state: unmounted
 
     - name: Remove loop device
