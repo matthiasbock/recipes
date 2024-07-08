@@ -1,0 +1,17 @@
+---
+- name: Extract DVD1 Jigdo URL
+  hosts: localhost
+  tasks:
+    - name: Fetch Apache2 index page
+      uri:
+        url: https://cdimage.debian.org/debian-cd/current/armhf/jigdo-dvd/
+        return_content: yes
+      register: webpage
+
+    - name: Extract DVD1 Jigdo URL
+      set_fact:
+        jigdo_url: "{{ webpage.content | extract_url }}"
+
+    - name: Print the DVD1 Jigdo URL
+      debug:
+        msg: "DVD1 Jigdo URL: {{ jigdo_url }}"

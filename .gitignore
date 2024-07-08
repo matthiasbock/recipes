@@ -10,7 +10,8 @@
 .cache/
 
 # Python virtual environment
-venv/
+venv
+.venv
 
 # Visual Studio Codium
 .vscode
@@ -34,3 +35,8 @@ venv/
 # Tokens and stuff: Do not share
 secrets*
 SECRETS*
+
+# Temporary
+__pycache__
+*.pyc
+
