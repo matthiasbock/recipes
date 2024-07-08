@@ -1,0 +1,15 @@
+
+<VirtualHost *:80>
+    ServerName {{ SERVER_NAME }}
+
+    ProxyRequests Off
+    ProxyPreserveHost On
+
+    <Location {{ PROXY_LOCATION }}>
+        ProxyPass http://{{ PROXY_IP }}:{{ PROXY_PORT }}/
+        ProxyPassReverse http://{{ PROXY_IP }}:{{ PROXY_PORT }}/
+    </Location>
+
+    ErrorLog ${APACHE_LOG_DIR}/{{ SERVER_NAME }}.log
+    CustomLog ${APACHE_LOG_DIR}/{{ SERVER_NAME }}.log combined
+</VirtualHost>

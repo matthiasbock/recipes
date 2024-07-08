@@ -1,0 +1,13 @@
+---
+# Uninstall an app from the Android device
+
+- name: Uninstall app from the Android device
+  command: adb -s {{ ADB_DEVICE_IP }} uninstall {{ PACKAGE_NAME }}
+  register: uninstall_output
+  changed_when: "'Success' in uninstall_output.stdout"
+  tags: uninstall
+
+- name: Display uninstallation result
+  debug:
+    msg: "{{ uninstall_output.stdout }}"
+  tags: uninstall

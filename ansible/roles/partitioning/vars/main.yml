@@ -1,0 +1,13 @@
+#
+# Uncomment and set these variables if you want to use specific UUIDs
+#
+# disk_uuid: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+# efi_partition_uuid: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+# boot_partition_uuid: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+# luks_partition_uuid: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+#
+# Uncomment and set these variables if you want to use a specific LUKS key or password
+#
+# luks_key_file: /path/to/your/keyfile
+# luks_password: your_luks_password

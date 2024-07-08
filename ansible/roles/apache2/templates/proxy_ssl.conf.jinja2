@@ -1,0 +1,24 @@
+
+<VirtualHost *:80>
+    ServerName {{ SERVER_NAME }}
+    Redirect permanent / https://{{ SERVER_NAME }}/
+</VirtualHost>
+
+<VirtualHost *:443>
+    ServerName {{ SERVER_NAME }}
+
+    SSLEngine on
+    SSLCertificateFile {{ SSL_CERT_FILE }}
+    SSLCertificateKeyFile {{ SSL_CERT_KEY_FILE }}
+
+    ProxyRequests Off
+    ProxyPreserveHost On
+
+    <Location {{ PROXY_LOCATION }}>
+        ProxyPass http://{{ PROXY_IP }}:{{ PROXY_PORT }}/
+        ProxyPassReverse http://{{ PROXY_IP }}:{{ PROXY_PORT }}/
+    </Location>
+
+    ErrorLog ${APACHE_LOG_DIR}/{{ SERVER_NAME }}.log
+    CustomLog ${APACHE_LOG_DIR}/{{ SERVER_NAME }}.log combined
+</VirtualHost>

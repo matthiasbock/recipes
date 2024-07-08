@@ -1,0 +1,12 @@
+---
+# Query installed apps on the Android device
+
+- name: List installed apps on the Android device
+  command: adb -s {{ ADB_DEVICE_IP }} shell pm list packages
+  register: installed_apps_output
+  tags: query
+
+- name: Display installed apps
+  debug:
+    msg: "{{ installed_apps_output.stdout_lines }}"
+  tags: query

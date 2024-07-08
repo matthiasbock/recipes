@@ -1,0 +1,98 @@
+
+- name: Ensure required packages are installed
+  apt:
+    name:
+      - parted
+      - cryptsetup
+      - btrfs-progs
+
+      - grub-efi-amd64
+    state: present
+    update_cache: yes
+
+- name: Partition disk
+  community.general.parted:
+    device: "/dev/disk/by-id/{{ DISK_ID }}"
+    label: gpt
+    number: "{{ item.number }}"
+    state: present
+    part_start: "{{ item.start }}"
+    part_end: "{{ item.end }}"
+  loop:
+    - { number: 1, start: '0%', end: '500MB' }  # EFI partition
+    - { number: 2, start: '500MB', end: '1000MB' }  # Boot partition
+    - { number: 3, start: '1000MB', end: '100%' }  # LUKS partition
+
+- name: Format EFI partition
+  filesystem:
+    fstype: vfat
+    dev: "/dev/disk/by-id/{{ DISK_ID }}-part1"
+
+- name: Format Boot partition
+  filesystem:
+    fstype: ext4
+    dev: "/dev/disk/by-id/{{ DISK_ID }}-part2"
+
+- name: Generate random LUKS key (none provided)
+  shell: dd if=/dev/urandom of="{{ GENERATED_KEY_FILE }}" bs=512 count=4
+  args:
+    creates: "{{ GENERATED_KEY_FILE }}"
+  when: LUKS_KEY_FILE is not defined and LUKS_PASSWORD is not defined
+
+- name: Set up LUKS encryption
+  community.crypto.luks_device:
+    device: "/dev/disk/by-id/{{ DISK_ID }}-part3"
+    state: present
+    keyfile: "{{ LUKS_KEY_FILE | default('{{ GENERATED_KEY_FILE }}') }}"
+    passphrase: "{{ LUKS_PASSWORD | default(omit) }}"
+
+- name: Create BTRFS filesystem on LUKS partition
+  filesystem:
+    fstype: btrfs
+    dev: "{{ DEV_CRYPTROOT }}"
+    opts: -f
+
+- name: Mount BTRFS root
+  mount:
+    path: /mnt
+    src: "{{ DEV_CRYPTROOT }}"
+    fstype: btrfs
+    opts: compress=zlib:6,autodefrag
+    state: mounted
+
+- name: Create BTRFS subvolumes
+  command: btrfs subvolume create /mnt/@{{ item }}
+  loop:
+    - rootfs
+    - home
+    - swap
+
+- name: Unmount BTRFS root
+  mount:
+    path: /mnt
+    state: unmounted
+
+- name: Mount BTRFS subvolumes
+  mount:
+    path: "{{ item.path }}"
+    src: "{{ DEV_CRYPTROOT }}"
+    fstype: btrfs
+    opts: "subvol=@{{ item.subvol }},compress=zlib:6,autodefrag"
+    state: mounted
+  loop:
+    - { path: '{{ MOUNTPOINT_ROOT }}', subvol: 'rootfs' }
+    - { path: '{{ MOUNTPOINT_HOME }}', subvol: 'home' }
+    - { path: '{{ MOUNTPOINT_SWAP }}', subvol: 'swap' }
+
+- name: Initialize swap
+
+# btrfs filesystem mkswapfile --size 2G swapfile
+# swapon swapfile
+
+- name: Mount swap
+  mount:
+    path: "{{ MOUNTPOINT_SWAP }}"
+    src: "{{ DEV_CRYPTROOT }}"
+    fstype: btrfs
+    opts: "subvol=@swap,autodefrag"
+    state: mounted

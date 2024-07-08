@@ -1,0 +1,111 @@
+---
+- name: Set up PXE Boot and NFS Server
+  hosts: localhost
+  become: yes
+  vars:
+    container_name: pxe_nfs_server
+    dhcp_range_start: 192.168.1.100
+    dhcp_range_end: 192.168.1.200
+    gateway: 192.168.1.1
+    dns_server: 8.8.8.8
+    nfs_share_path: /srv/nfs/pxeroot
+    pxe_kernel: vmlinuz
+    pxe_initrd: initrd.img
+
+  tasks:
+    - name: Install required packages
+      apt:
+        name:
+          - docker.io
+          - firewalld
+        state: present
+
+    - name: Create NFS share directory
+      file:
+        path: "{{ nfs_share_path }}"
+        state: directory
+        mode: '0755'
+
+    - name: Copy PXE boot files to NFS share
+      copy:
+        src: "{{ item }}"
+        dest: "{{ nfs_share_path }}"
+      loop:
+        - "{{ pxe_kernel }}"
+        - "{{ pxe_initrd }}"
+
+    - name: Create Dockerfile
+      copy:
+        content: |
+          FROM debian:bullseye-slim
+          RUN apt-get update && apt-get install -y dnsmasq nfs-kernel-server
+          COPY dnsmasq.conf /etc/dnsmasq.conf
+          COPY exports /etc/exports
+          EXPOSE 67/udp 53/udp 53/tcp 2049/tcp
+          CMD service nfs-kernel-server start && dnsmasq --no-daemon
+        dest: /tmp/Dockerfile
+
+    - name: Create dnsmasq.conf
+      template:
+        src: dnsmasq.conf.j2
+        dest: /tmp/dnsmasq.conf
+
+    - name: Create exports file
+      copy:
+        content: "{{ nfs_share_path }} *(ro,no_root_squash,no_subtree_check)"
+        dest: /tmp/exports
+
+    - name: Build Docker image
+      docker_image:
+        name: pxe_nfs_server
+        build:
+          path: /tmp
+        source: build
+
+    - name: Start Docker container
+      docker_container:
+        name: "{{ container_name }}"
+        image: pxe_nfs_server
+        state: started
+        restart_policy: always
+        network_mode: host
+        volumes:
+          - "{{ nfs_share_path }}:{{ nfs_share_path }}"
+
+    - name: Open required ports in firewalld
+      firewalld:
+        port: "{{ item }}"
+        permanent: yes
+        state: enabled
+      loop:
+        - 67/udp
+        - 53/udp
+        - 53/tcp
+        - 2049/tcp
+      notify: Reload firewalld
+
+    - name: Save firewalld rules
+      command: firewall-cmd --runtime-to-permanent
+
+  handlers:
+    - name: Reload firewalld
+      systemd:
+        name: firewalld
+        state: reloaded
+
+    - name: Stop Docker container
+      docker_container:
+        name: "{{ container_name }}"
+        state: stopped
+
+    - name: Close ports in firewalld
+      firewalld:
+        port: "{{ item }}"
+        permanent: yes
+        state: disabled
+      loop:
+        - 67/udp
+        - 53/udp
+        - 53/tcp
+        - 2049/tcp
+      notify: Reload firewalld

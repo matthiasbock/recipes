@@ -1,0 +1,9 @@
+---
+SERVICE_NAME: nftables-failsafe
+DIR_SERVICES: /etc/systemd/system
+
+NFTABLES_CONF_PATH: /etc/nftables.conf
+
+TIMER_INTERVAL: 5min
+GRACE_PERIOD: 30
+INTERFACES: eth0

@@ -1,0 +1,9 @@
+
+DEBIAN_REPOSITORY: http://deb.debian.org/debian
+DEBIAN_VERSION: bullseye
+DEBIAN_ARCH: amd64
+
+DEBIAN_PACKAGES:
+  - vim
+  - tmux
+  - htop

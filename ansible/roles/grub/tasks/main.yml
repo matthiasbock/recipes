@@ -1,0 +1,14 @@
+
+- name: Install GRUB packages
+  apt:
+    name:
+      - grub-efi-amd64
+    state: present
+    update_cache: yes
+
+- name: Install GRUB
+  command:
+    - grub-install \
+      --boot-directory="{{ MOUNTPOINT_BOOT | default('/dev/disk/by-id/{{ DISK_ID }}-part1') }}" \
+      --efi-directory="{{ MOUNTPOINT_EFI | default('/dev/disk/by-id/{{ DISK_ID }}-part2')}}" \
+      /dev/disk/by-id/{{ DISK_ID }}

@@ -1,0 +1,258 @@
+---
+# This Ansible playbook sets up Miniflux in a Docker container,
+# ensuring it listens on localhost and runs on its own network.
+# It uses SQLite for the database and includes a custom script
+# for fetching full articles from RSS feed links.
+
+- name: Setup Miniflux RSS Server
+  hosts: localhost
+  vars:
+    MINIFLUX_VERSION: "2.0.31"  # Use the current stable version of Miniflux
+    MINIFLUX_IMAGE: "miniflux/miniflux:{{ MINIFLUX_VERSION }}"
+
+    SCRIPT_PATH: "/usr/local/bin/fetch_full_article.py"
+    DIR_DATABASE: "/srv/miniflux/database"
+
+    CONTAINER_NETWORK: "miniflux_network"
+    CONTAINER_SUBNET: "172.18.0.0/16"
+    CONTAINER_NAME: "miniflux"
+    CONTAINER_PORT: "8080"
+
+    HOST_NAME: "127.0.0.1"
+    HOST_PORT: "8080"
+
+    SSL_CERT_FILE: "/etc/ssl/certs/miniflux.crt"
+    SSL_CERT_KEY_FILE: "/etc/ssl/private/miniflux.key"
+
+    APACHE_CONF_DIR: "/etc/apache2/sites-available"
+    APACHE_CONF_FILE: "{{ APACHE_CONF_DIR }}/miniflux.conf"
+
+    DIR_SERVICES: "/etc/systemd/system"
+    MINIFLUX_SERVICE_FILE: "{{ DIR_SERVICES }}/miniflux.service"
+    SYSTEMD_SERVICE_NAME: "miniflux.service"
+
+
+  pre_tasks:
+    - name: Install required packages
+      apt:
+        name:
+          - docker.io
+          - apache2
+          - libapache2-mod-proxy-html
+          - firewalld
+        state: present
+      tags: install
+
+    - name: Enable Apache2 proxy_http module
+      apache2_module:
+        name: proxy_http
+        state: present
+      tags: install
+
+
+  tasks:
+    - name: Create Docker network
+      docker_network:
+        name: "{{ CONTAINER_NETWORK_NAME }}"
+        subnet: "{{ CONTAINER_SUBNET }}"
+      tags: install
+
+
+    - name: Run Miniflux container
+      community.docker.docker_container:
+        name: "{{ CONTAINER_NAME }}"
+        image: "{{ MINIFLUX_IMAGE }}"
+        env:
+          - DATABASE_URL=sqlite:///database/miniflux.db
+        published_ports:
+          - "{{ HOST_NAME }}:{{ HOST_PORT }}:{{ CONTAINER_PORT }}"
+        networks:
+          - name: "{{ CONTAINER_NETWORK }}"
+        volumes:
+          - /etc/localtime:/etc/localtime:ro
+          - /etc/timezone:/etc/timezone:ro
+          - "{{ DIR_DATABASE }}:/database"
+        state: started
+      tags: start
+
+
+    # - name: Install dependencies for the script
+    #   package:
+    #     name:
+    #       - python3
+    #       - python3-pip
+    #   tags:
+    #     - setup
+    #     - dependencies
+
+    # - name: Install Python packages
+    #   pip:
+    #     name:
+    #       - requests
+    #       - beautifulsoup4
+    #   tags:
+    #     - setup
+    #     - dependencies
+
+    # - name: Create script to fetch full article
+    #   copy:
+    #     content: |
+    #       #!env python3
+    #       import requests
+    #       from bs4 import BeautifulSoup
+
+    #       def fetch_full_article(url: str) -> str:
+    #           """Fetch the full article text from the given URL."""
+    #           response = requests.get(url)
+    #           response.raise_for_status()
+
+    #           soup = BeautifulSoup(response.content, 'html.parser')
+
+    #           # Assuming the main article content is within an HTML tag with class 'article-body'
+    #           article_body = soup.find(class_='article-body')
+    #           if article_body:
+    #               return article_body.get_text(separator='\n')
+    #           return ''
+
+    #       if __name__ == '__main__':
+    #           import sys
+    #           url = sys.argv[1]
+    #           print(fetch_full_article(url))
+    #     dest: "{{ SCRIPT_PATH }}"
+    #     mode: '0755'
+    #   tags:
+    #     - setup
+    #     - script
+
+
+    - name: Generate Apache2 configuration
+      copy:
+        content: |
+          <VirtualHost *:443>
+              ServerName {{ SERVER_NAME }}
+
+              SSLEngine on
+              SSLCertificateFile {{ SSL_CERT_FILE }}
+              SSLCertificateKeyFile {{ SSL_CERT_KEY_FILE }}
+
+              ProxyPass / http://{{ HOST_NAME }}:8080/
+              ProxyPassReverse / http://{{ HOST_NAME }}:8080/
+          </VirtualHost>
+        dest: "{{ APACHE_CONF_FILE }}"
+      tags: install
+
+
+    - name: Enable Apache2 site configuration
+      command: a2ensite miniflux.conf
+      notify: Reload Apache
+      tags: start
+
+
+    - name: Disable Apache2 site configuration
+      command: a2dissite miniflux.conf
+      notify: Reload Apache
+      tags: stop
+
+
+    - name: Allow port 443 through firewall
+      firewalld:
+        port: {{ HOST_PORT }}/tcp
+        permanent: true
+        state: enabled
+        immediate: yes
+      tags: start
+
+
+    - name: Disallow port 443 through firewall
+      firewalld:
+        port: 443/tcp
+        permanent: true
+        state: disabled
+        immediate: yes
+      tags: stop
+
+
+    - name: Create Miniflux systemd service
+      copy:
+        content: |
+          [Unit]
+          Description=Miniflux RSS feed server
+
+          [Service]
+          ExecStart=/usr/bin/docker start -a miniflux
+          ExecStop=/usr/bin/docker stop -t 2 miniflux
+          Restart=always
+
+          [Install]
+          WantedBy=multi-user.target
+        dest: "{{ MINIFLUX_SERVICE_FILE }}"
+      notify: Systemd daemon-reload
+      tags: install
+
+    - name: Create systemd service file
+      copy:
+        content: |
+          [Unit]
+          Description=Miniflux RSS Server
+          After=docker.service
+          Requires=docker.service
+
+          [Service]
+          Restart=always
+          ExecStart=/usr/bin/docker start -a {{ DOCKER_CONTAINER_NAME }}
+          ExecStop=/usr/bin/docker stop -t 2 {{ DOCKER_CONTAINER_NAME }}
+
+          [Install]
+          WantedBy=multi-user.target
+        dest: "{{ DIR_SERVICES }}/{{ SYSTEMD_SERVICE_NAME }}"
+        mode: '0644'
+      notify: systemd daemon-reload
+      tags:
+        - setup
+        - systemd
+
+    - name: Enable and start Miniflux service
+      systemd:
+        name: miniflux
+        enabled: yes
+        state: started
+      tags: start
+
+    - name: Disable and stop Miniflux service
+      systemd:
+        name: miniflux
+        enabled: no
+        state: stopped
+      tags: stop
+
+
+  post_tasks:
+    - name: Remove Miniflux service file
+      file:
+        path: "{{ MINIFLUX_SERVICE_FILE }}"
+        state: absent
+      tags: uninstall
+
+    - name: Remove Apache2 site configuration
+      file:
+        path: "{{ APACHE_CONF_FILE }}"
+        state: absent
+      tags: uninstall
+
+    - name: Remove Docker network
+      community.docker.docker_network:
+        name: "{{ CONTAINER_NETWORK }}"
+        state: absent
+      tags: uninstall
+
+
+  handlers:
+    - name: Reload Apache
+      service:
+        name: apache2
+        state: reloaded
+
+    - name: Systemd daemon-reload
+      command: systemctl daemon-reload
+      when: "'{{ MINIFLUX_SERVICE_FILE }}' in ansible_facts.services"
+      listen: Systemd daemon-reload

@@ -1,0 +1,13 @@
+---
+# Install an APK on the Android device
+
+- name: Install APK on the Android device
+  command: adb -s {{ ADB_DEVICE_IP }} install -r {{ APK_PATH }}
+  register: install_output
+  changed_when: "'Success' in install_output.stdout"
+  tags: install
+
+- name: Display installation result
+  debug:
+    msg: "{{ install_output.stdout }}"
+  tags: install

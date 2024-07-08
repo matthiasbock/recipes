@@ -1,0 +1,4 @@
+---
+ADB_DEVICE_IP: "192.168.1.100"  # Default IP address of the Android device
+APK_PATH: "/path/to/your/app.apk"  # Path to the APK file to be installed
+PACKAGE_NAME: "com.example.app"  # Package name of the app to be uninstalled

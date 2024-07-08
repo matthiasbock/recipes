@@ -1,0 +1,24 @@
+
+<VirtualHost *:80>
+    ServerName {{ SERVER_NAME }}
+    Redirect permanent / https://{{ SERVER_NAME }}/
+</VirtualHost>
+
+<VirtualHost *:443>
+    ServerName {{ SERVER_NAME }}
+
+    SSLEngine on
+    SSLCertificateFile {{ SSL_CERT_FILE }}
+    SSLCertificateKeyFile {{ SSL_CERT_KEY_FILE }}
+
+    DocumentRoot {{ DOCUMENT_ROOT }}
+
+    <Directory {{ DOCUMENT_ROOT }}>
+        Options -Indexes -FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/{{ SITE_NAME }}.log
+    CustomLog ${APACHE_LOG_DIR}/{{ SITE_NAME }}.log combined
+</VirtualHost>

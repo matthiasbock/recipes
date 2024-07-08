@@ -1,0 +1,93 @@
+---
+- name: Install Apache2
+  apt:
+    name: apache2
+    state: present
+  tags:
+    - install_site
+    - install_site_ssl
+    - install_proxy
+    - install_proxy_ssl
+    - start
+
+
+- name: Enable Apache2 modules
+  apache2_module:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - ssl
+  tags:
+    - install_site_ssl
+    - install_proxy_ssl
+
+
+- name: Enable Apache2 modules
+  apache2_module:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - install_proxy
+    - proxy_http
+  tags:
+    - install_proxy
+    - install_proxy_ssl
+
+
+- name: Get script path
+  ansible.builtin.set_fact:
+    APACHE_SITE_CONF: "{{ DIR_APACHE_CONF }}/sites-available/{{ SERVER_NAME }}.conf"
+  tags: always
+
+- name: Create Apache2 configuration
+  template:
+    src: site.conf.jinja2
+    dest: "{{ APACHE_SITE_CONF }}"
+  notify: Reload Apache2
+  tags: install_site
+
+- name: Create Apache2 configuration
+  template:
+    src: site_ssl.conf.jinja2
+    dest: "{{ APACHE_SITE_CONF }}"
+  notify: Reload Apache2
+  tags: install_site_ssl
+
+- name: Create Apache2 configuration
+  template:
+    src: proxy.conf.jinja2
+    dest: "{{ APACHE_SITE_CONF }}"
+  notify: Reload Apache2
+  tags: install_proxy
+
+- name: Create Apache2 configuration
+  template:
+    src: proxy_ssl.conf.jinja2
+    dest: "{{ APACHE_SITE_CONF }}"
+  notify: Reload Apache2
+  tags: install_proxy_ssl
+
+
+- name: Start Apache2
+  service:
+    name: apache2
+    state: started
+  tags: start
+
+- name: "Enable Apache2 site: {{ SERVER_NAME }}"
+  command: a2ensite "{{ SERVER_NAME }}.conf"
+  notify: Reload Apache2
+  tags: start
+
+
+- name: "Disable Apache2 site: {{ SERVER_NAME }}"
+  command: a2dissite "{{ SERVER_NAME }}.conf"
+  notify: Reload Apache2
+  tags: stop, uninstall
+
+- name: Remove site configuration
+  file:
+    path: "{{ APACHE_SITE_CONF }}"
+    state: absent
+  tags: uninstall
+

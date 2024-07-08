@@ -1,0 +1,8 @@
+
+- name: Install LUKS packages
+  apt:
+    name:
+      - cryptsetup
+    state: present
+    update_cache: yes
+

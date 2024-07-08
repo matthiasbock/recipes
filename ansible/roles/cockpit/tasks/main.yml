@@ -1,0 +1,143 @@
+---
+#
+# Ansible Playbook to manage a Cockpit container
+#
+# This playbook contains tasks to:
+# - Install and start the Cockpit container and network (using the tag `install`).
+# - Stop the Cockpit container (using the tag `stop`).
+# - Uninstall the Cockpit container and network (using the tag `uninstall`).
+#
+# Variables:
+# - COCKPIT_IMAGE: The Docker image for Cockpit.
+# - COCKPIT_CONTAINER_NAME: The name of the Cockpit container.
+# - COCKPIT_NETWORK_NAME: The name of the Docker network.
+# - COCKPIT_NETWORK_SUBNET: The subnet for the Docker network.
+# - COCKPIT_IP: The static IP for the Cockpit container.
+#
+- name: Manage Cockpit container and network
+  hosts:
+    - vps100
+    - hackepeter
+  vars:
+
+
+  tasks:
+    - name: Create Cockpit network
+      docker_network:
+        name: "{{ COCKPIT_NETWORK_NAME }}"
+        ipam_options:
+          subnet: "{{ COCKPIT_NETWORK_SUBNET }}"
+      tags:
+        - install
+        - start
+
+    - name: Create Cockpit container
+      docker_container:
+        name: "{{ COCKPIT_CONTAINER_NAME }}"
+        image: "{{ COCKPIT_IMAGE }}"
+        state: started
+        networks:
+          - name: "{{ COCKPIT_NETWORK_NAME }}"
+            ipv4_address: "{{ COCKPIT_CONTAINER_IP }}"
+        published_ports:
+          - "{{ APACHE_IP }}:{{ COCKPIT_CONTAINER_PORT }}:{{ COCKPIT_PORT }}"
+      tags:
+        - install
+        - start
+
+    - name: Enable Cockpit via firewalld
+      firewalld:
+        source: "{{ APACHE_IP }}"
+        port: "{{ COCKPIT_CONTAINER_PORT }}/tcp"
+        state: enabled
+        immediate: yes
+        permanent: true
+      tags:
+        - start
+
+    - name: Install Apache2 configuration file
+      template:
+        content: |
+          <VirtualHost *:80>
+              ServerName {{ SERVER_NAME }}
+              Redirect permanent / https://{{ SERVER_NAME }}/
+          </VirtualHost>
+
+          <VirtualHost *:443>
+              ServerName {{ SERVER_NAME }}
+
+              SSLEngine on
+              SSLCertificateFile {{ SSL_CERT_FILE }}
+              SSLCertificateKeyFile {{ SSL_CERT_KEY_FILE }}
+
+              ProxyRequests Off
+              ProxyPreserveHost On
+
+              <Location /cockpit/>
+                  ProxyPass http://{{ COCKPIT_CONTAINER_IP }}:{{ COCKPIT_CONTAINER_PORT }}/
+                  ProxyPassReverse http://{{ COCKPIT_CONTAINER_IP }}:{{ COCKPIT_CONTAINER_PORT }}/
+              </Location>
+
+              ErrorLog ${APACHE_LOG_DIR}/{{ ERROR_LOG }}
+              CustomLog ${APACHE_LOG_DIR}/{{ ACCESS_LOG }} combined
+          </VirtualHost>
+
+        dest: "{{ APACHE_CONF_PATH }}"
+      tags:
+        - install
+        - start
+
+    - name: Enable Apache2 configuration
+      apache2_module:
+        state: present
+        name: cockpit
+      notify:
+        - Reload Apache2
+      tags:
+        - start
+
+    - name: Disable Cockpit via firewalld
+      firewalld:
+        source: "{{ APACHE_IP }}"
+        port: "{{ COCKPIT_CONTAINER_PORT }}/tcp"
+        state: disabled
+        immediate: yes
+        permanent: true
+      tags:
+        - stop
+        - uninstall
+
+    - name: Stop Cockpit container
+      docker_container:
+        name: "{{ COCKPIT_CONTAINER_NAME }}"
+        state: stopped
+      tags:
+        - stop
+        - uninstall
+
+    - name: Remove Cockpit container
+      docker_container:
+        name: "{{ COCKPIT_CONTAINER_NAME }}"
+        state: absent
+      tags:
+        - uninstall
+
+    - name: Remove Cockpit network
+      docker_network:
+        name: "{{ COCKPIT_NETWORK_NAME }}"
+        state: absent
+      tags:
+        - uninstall
+
+    - name: Remove Apache2 configuration file
+      file:
+        path: "{{ APACHE_CONF_PATH }}"
+        state: absent
+      tags: uninstall
+
+  handlers:
+    - name: Reload Apache2
+      service:
+        name: apache2
+        state: reloaded
+

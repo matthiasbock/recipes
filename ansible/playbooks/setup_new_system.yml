@@ -1,0 +1,15 @@
+---
+- hosts: new_systems
+  roles:
+    - role: partitioning
+      vars:
+        disk_device: /dev/sdb
+
+    - role: debian-installation
+      tags:
+        - bootstrap
+        -
+      vars:
+        additional_packages:
+          - git
+          - nginx

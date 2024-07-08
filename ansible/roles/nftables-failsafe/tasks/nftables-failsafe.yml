@@ -1,0 +1,126 @@
+---
+- name: Get script path
+  ansible.builtin.set_fact:
+    SCRIPT_PATH: "{{ DIR_SERVICES }}/{{ SERVICE_NAME }}.sh"
+  tags: always
+
+- name: Get service file path
+  ansible.builtin.set_fact:
+    SERVICE_PATH: "{{ DIR_SERVICES }}/{{ SERVICE_NAME }}.service"
+  tags: always
+
+- name: Get timer name
+  ansible.builtin.set_fact:
+    TIMER_NAME: "{{ SERVICE_NAME }}.timer"
+  tags: always
+
+- name: Get timer service file path
+  ansible.builtin.set_fact:
+    TIMER_PATH: "{{ DIR_SERVICES }}/{{ TIMER_NAME }}"
+  tags: always
+
+- name: Install script
+  ansible.builtin.template:
+    src: "nftables-failsafe.sh"
+    dest: "{{ SCRIPT_PATH }}"
+    mode: '0755'
+  tags: deploy, install
+
+- name: Install oneshot service
+  ansible.builtin.copy:
+    dest: "{{ SERVICE_PATH }}"
+    content: |
+      [Unit]
+      Description=Makes sure the firewall is configured
+      Wants=network-online.target
+      After=network-online.target
+
+      [Service]
+      Type=oneshot
+      ExecStart=/bin/bash -c 'sleep {{ GRACE_PERIOD }}; {{ SCRIPT_PATH }} %i'
+      RemainAfterExit=yes
+
+      [Install]
+      WantedBy=multi-user.target
+
+    mode: '0644'
+  tags: deploy, install
+
+- name: Install timer service
+  ansible.builtin.copy:
+    dest: "{{ TIMER_PATH }}"
+    content: |
+      [Unit]
+      Description=Periodic check for nftables rules
+
+      [Timer]
+      OnUnitActiveSec={{ TIMER_INTERVAL }}
+      Unit={{ SERVICE_NAME }}
+
+      [Install]
+      WantedBy=timers.target
+
+    mode: '0644'
+  notify:
+    - Reload systemd services
+  tags: deploy, install
+
+- name: Enable timer service
+  ansible.builtin.service:
+    name: "{{ TIMER_NAME }}"
+    enabled: yes
+  tags: deploy, enable
+
+- name: Start timer service
+  ansible.builtin.service:
+    name: "{{ TIMER_NAME }}"
+    state: started
+  tags: deploy, start
+
+- name: Enable oneshot service
+  ansible.builtin.service:
+    name: "{{ SERVICE_NAME }}"
+    enabled: yes
+  tags: deploy, enable
+
+- name: Start oneshot service
+  ansible.builtin.service:
+    name: "{{ SERVICE_NAME }}"
+    state: started
+  tags: deploy, start
+
+- name: Disable timer service
+  ansible.builtin.service:
+    name: "{{ TIMER_NAME }}"
+    enabled: no
+  tags: disable, uninstall
+
+- name: Stop timer service
+  ansible.builtin.service:
+    name: "{{ TIMER_NAME }}"
+    state: stopped
+  tags: stop, uninstall
+
+- name: Disable oneshot service
+  ansible.builtin.service:
+    name: "{{ SERVICE_NAME }}"
+    enabled: no
+  tags: disable, uninstall
+
+- name: Stop oneshot service
+  ansible.builtin.service:
+    name: "{{ SERVICE_NAME }}"
+    state: stopped
+  tags: stop, uninstall
+
+- name: Uninstall script and services
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ SCRIPT_PATH }}"
+    - "{{ SERVICE_PATH }}"
+    - "{{ TIMER_PATH }}"
+  notify:
+    - Reload systemd services
+  tags: uninstall

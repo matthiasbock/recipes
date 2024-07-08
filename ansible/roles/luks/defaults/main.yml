@@ -1,0 +1,6 @@
+
+KEY_FILE: ./luks.key
+
+LUKS_DEVICE: "/dev/disk/by-id/{{ DISK_ID }}-part3"
+
+MOUNTPOINT_LUKS: /dev/mapper/cryptroot
