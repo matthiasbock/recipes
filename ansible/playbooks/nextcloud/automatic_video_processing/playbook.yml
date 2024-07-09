@@ -1,30 +1,99 @@
 ---
 - name: Deploy Video Processing Solution
-  hosts: nextcloud_server
+  hosts:
+    - nextcloud_servers
   become: yes
   vars:
     NEXTCLOUD_DATA_DIR: /path/to/nextcloud/data
     IMAGE_NAME: video_processor:latest
+    BUILD_DIR: /tmp
+
     CONTAINER_NAME: video_processor
+    CONTAINER_USER: www-data
+    CONTAINER_GROUP: www-data
+
+    CONTAINER_CMD: /usr/local/bin/container_cmd.sh
+    PROCESS_VIDEO: /usr/local/bin/process_video.sh
 
   tasks:
     - name: Ensure Docker is installed
       apt:
         name: docker.io
         state: present
+      tags: install
 
-    - name: Build video processor Docker image
+    - name: Create build directory
+      file:
+        path: "{{ BUILD_DIR }}"
+        state: directory
+        mode: '0755'
+
+    - name: Copy Dockerfile to remote host
+      copy:
+        src: ./Dockerfile
+        dest: "{{ BUILD_DIR }}/Dockerfile"
+        mode: '0644'
+
+    - name: Copy container_cmd.sh to remote host
+      copy:
+        src: ./container_cmd.sh
+        dest: "{{ BUILD_DIR }}/process_video.sh"
+        mode: '0755'
+
+    - name: Copy process_video.sh to remote host
+      copy:
+        src: ./process_video.sh
+        dest: "{{ BUILD_DIR }}/process_video.sh"
+        mode: '0755'
+
+    - name: Build image
       docker_image:
         name: "{{ IMAGE_NAME }}"
         build:
-          path: /path/to/dockerfile/directory
+          path: "{{ BUILD_DIR }}"
         source: build
+      tags: install
 
-    - name: Run video processor container
+    - name: Remove temporary files
+      file:
+        path: "{{ BUILD_DIR }}/{{ item }}"
+        state: absent
+      loop:
+        - Dockerfile
+        - container_cmd.sh
+        - process_video.sh
+
+    - name: Create container
       docker_container:
         name: "{{ CONTAINER_NAME }}"
         image: "{{ IMAGE_NAME }}"
-        state: started
+        user: "{{ CONTAINER_USER }}:{{ CONTAINER_GROUP }}"
         restart_policy: always
         volumes:
           - "{{ NEXTCLOUD_DATA_DIR }}:/watch:rw"
+        state: stopped
+      tags: install
+
+    - name: Start container
+      docker_container:
+        name: "{{ CONTAINER_NAME }}"
+        state: started
+      tags: start
+
+    - name: Stop container
+      docker_container:
+        name: "{{ CONTAINER_NAME }}"
+        state: stopped
+      tags: stop, uninstall
+
+    - name: Remove container
+      docker_container:
+        name: "{{ CONTAINER_NAME }}"
+        state: absent
+      tags: uninstall
+
+    - name: Remove container image
+      docker_image:
+        name: "{{ IMAGE_NAME }}"
+        state: absent
+      tags: uninstall
