@@ -10,3 +10,25 @@
     - name: Show parsed files
       debug:
         var: results.files
+
+    - name: Check the result
+      assert:
+        that:
+          - results.changed == false
+          - results.num_files > 40
+
+    - name: Parse Apache2 index page
+      apache2_index_parser:
+        url: https://cdimage.debian.org/debian-cd/current/armhf/jigdo-dvd/
+        name_regex: .*\.jigdo
+      register: results
+
+    - name: Show parsed files
+      debug:
+        var: results.files
+
+    - name: Check the result
+      assert:
+        that:
+          - results.changed == false
+          - results.num_files < 40

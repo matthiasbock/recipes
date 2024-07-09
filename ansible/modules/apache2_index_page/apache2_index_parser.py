@@ -2,15 +2,32 @@
 import requests
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
+import re
+from typing import Optional
 
 from ansible.module_utils.basic import AnsibleModule
 
 
-def fetch_and_parse(page_url: str):
+def fetch_and_parse(
+        page_url: str,
+        name_regex: Optional[str] = None
+    ) -> tuple[str, list[str], list[str]]:
     """
     Fetches the page at the given URL and
     parses an Apache2 index table from it
     """
+    if not isinstance(page_url, str):
+        raise TypeError(f"URL argument must be string, got {type(url).__name__}")
+
+    if name_regex is None:
+        name_regex = r".*"
+    if not isinstance(name_regex, str):
+        raise TypeError(f"Pattern argument must be string, got {type(name_regex).__name__}")
+
+    # Compile regular expression pattern
+    regex = re.compile(name_regex)
+    print(f"Regular expression for name matching: {regex.pattern}")
+
     print(f"Fetching URL: {page_url}")
 
     response = requests.get(page_url)
@@ -86,6 +103,12 @@ def fetch_and_parse(page_url: str):
         if name in [".", "..", "Parent Directory"]:
             continue
 
+        # Apply name pattern
+        m = regex.match(name)
+        if (not m) or (len(m.group()) != len(name)):
+            print(f"Pattern mismatch, skipping: {name}")
+            continue
+
         # Identify directories
         is_dir = (icon_alt == "[DIR]")
 
@@ -112,24 +135,40 @@ def main():
     module = AnsibleModule(
         argument_spec = dict(
             url = dict(type="str", required=True),
+            name_regex = dict(type="str", required=False)
         )
     )
 
-    url = module.params["url"]
     try:
         html, files, directories = \
-            fetch_and_parse(url)
+            fetch_and_parse(
+                page_url = module.params["url"],
+                name_regex = module.params["name_regex"]
+            )
+
+        file_names = [f["name"] for f in files]
+        file_urls = [f["url"] for f in files]
+        directory_names = [d["name"] for d in directories]
+        directory_urls = [d["url"] for d in directories]
 
         module.exit_json(
                     changed=False,
+
                     html=html,
+
+                    entries=files + directories,
+                    num_entries=len(files) + len(directories),
+                    urls=directory_urls + file_urls,
+
                     files=files,
-                    filenames=[f["name"] for f in files],
-                    file_urls=[f["url"] for f in files],
                     num_files=len(files),
+                    file_names=file_names,
+                    file_urls=file_urls,
+
                     directories=directories,
                     num_directories=len(directories),
-                    urls=[f["url"] for f in files] + [d["url"] for d in directories]
+                    directory_names=directory_names,
+                    directory_urls=directory_urls,
                 )
     except Exception as e:
         module.fail_json(msg=str(e))

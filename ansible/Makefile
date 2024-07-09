@@ -59,12 +59,13 @@ $(DIR_VENV): requirements.txt
 
 
 .PHONY: test
-test: $(DIR_VENV) $(PLAYBOOK_TESTS)
+test: $(DIR_VENV)
 	source "$(DIR_VENV)/bin/activate" && \
 	pytest \
 		-vv \
 		filters \
 		modules
+	make $(PLAYBOOK_TESTS)
 
 
 .PHONY: $(PLAYBOOK_TESTS)
