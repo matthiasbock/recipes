@@ -8,7 +8,7 @@ COCKPIT=cockpit.yml
 #PLAYBOOKS=$(filter-out $(INVENTORY),$(wildcard *.yml))
 PLAYBOOKS=$(NFTABLES_FAILSAFE) $(COCKPIT)
 
-PLAYBOOK_TESTS=$(wildcard */*/*_test.yml)
+PLAYBOOK_TESTS=$(shell find modules filters roles playbooks -type f -name "*_test.yml")
 
 
 $(info $(PLAYBOOKS))
@@ -68,7 +68,6 @@ test: $(DIR_VENV) $(PLAYBOOK_TESTS)
 
 
 .PHONY: $(PLAYBOOK_TESTS)
-%_test.yml: %.py
+$(PLAYBOOK_TESTS):
 	ansible-playbook "$@"
-	@touch --no-create "$<"
 

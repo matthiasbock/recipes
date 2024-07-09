@@ -1,4 +1,7 @@
 
-pytest
-
 ansible
+requests
+beautifulsoup4
+
+pytest
+pytest-mock
