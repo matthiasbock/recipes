@@ -1,5 +1,7 @@
 
 import requests
+import asyncio
+import aiohttp
 from urllib.parse import urlparse, urljoin
 import email.utils
 from bs4 import BeautifulSoup
@@ -9,31 +11,30 @@ from typing import Optional
 from ansible.module_utils.basic import AnsibleModule
 
 
-def query_file_info(url: str) -> dict[str, str | int]:
+HTML = str
+HTTPHeaders = dict[str, str]
+FileInfo = dict[str, str | int]
+
+
+def parse_headers(headers: HTTPHeaders) -> FileInfo:
     """
-    Retrieves additional information about the specified file from the server
+    Parses additional information about a file
+    from HTTP response headers
     """
     result = {}
 
-    # Send a HEAD request to get headers without downloading the file
-    try:
-        response = requests.head(url, allow_redirects=True)
-        response.raise_for_status()
-    except:
-        return {}
-
     # Get file size
-    file_size = response.headers.get("Content-Length")
+    file_size = headers.get("Content-Length")
     if file_size:
         result["size"] = int(file_size)
 
     # Get file name
-    content_disposition = response.headers.get("Content-Disposition")
+    content_disposition = headers.get("Content-Disposition")
     if content_disposition:
         result["name"] = content_disposition.split("filename=")[-1].strip('"')
 
     # Get Last-Modified and convert to Unix timestamp
-    last_modified = response.headers.get('Last-Modified')
+    last_modified = headers.get('Last-Modified')
     last_modified_unix = None
     if last_modified:
         # Parse the date string
@@ -53,48 +54,59 @@ def query_file_info(url: str) -> dict[str, str | int]:
         "sha512": "Content-SHA512",
     }
     for name, header in checksums.items():
-        checksum = response.headers.get(header)
+        checksum = headers.get(header)
         if checksum:
             result[name] = checksum.strip('"')
 
     return result
 
 
-def fetch_and_parse(
-    page_url: str, name_regex: Optional[str] = None
-) -> tuple[str, list[str], list[str]]:
+def query_file_info(headers: HTTPHeaders) -> FileInfo:
     """
-    Fetches the page at the given URL and
-    parses an Apache2 index table from it
+    Synchronously attempts to retrieve additional information
+    about the specified file from the server
     """
-    if not isinstance(page_url, str):
-        raise TypeError(f"URL argument must be string, got {type(url).__name__}")
+    # Send a HEAD request to get headers without downloading the file
+    try:
+        response = requests.head(url, allow_redirects=True)
+        response.raise_for_status()
+    except:
+        return {}
 
-    if name_regex is None:
-        name_regex = r".*"
-    if not isinstance(name_regex, str):
-        raise TypeError(
-            f"Pattern argument must be string, got {type(name_regex).__name__}"
-        )
+    headers = response.headers
+    info = parse_headers(headers)
+    return info
 
-    # Compile regular expression pattern
-    regex = re.compile(name_regex)
-    print(f"Regular expression for name matching: {regex.pattern}")
 
-    print(f"Fetching URL: {page_url}")
+async def update_file_info(session, file: FileInfo) -> None:
+    """
+    Asynchronously attempts to update the given file info
+    with additional information from the server
+    """
+    # try:
+    url = file["url"]
+    async with session.head(url, allow_redirects=True) as response:
+        print(f"Response code: {response.status}")
+        if response.status != 200:
+            return {}
+    # except:
+    #     return {}
 
-    response = requests.get(page_url, allow_redirects=True)
+    headers = response.headers
+    info = parse_headers(response.headers)
+    file.update(info)
 
-    # Make sure we notice bad responses
-    response.raise_for_status()
 
-    content_type = response.headers["Content-Type"]
-    if "html" not in content_type:
-        raise ValueError(f"Expected content type HTML, got {content_type}")
-
-    html = response.content
-    # print(f"HTML: {html}")
-
+def parse_index_table(
+        page_url: str,
+        html: HTML,
+        name_regex: re.Pattern
+    ) -> tuple[list[FileInfo], list[FileInfo]]:
+    """
+    Parses a list of files and directories
+    from the given Apache2 index page,
+    given as HTML string
+    """
     soup = BeautifulSoup(html, "html.parser")
 
     # Find index table
@@ -157,7 +169,7 @@ def fetch_and_parse(
             continue
 
         # Apply name pattern
-        m = regex.match(name)
+        m = name_regex.match(name)
         if (not m) or (len(m.group()) != len(name)):
             print(f"Pattern mismatch, skipping: {name}")
             continue
@@ -179,9 +191,64 @@ def fetch_and_parse(
         if is_dir:
             dirs.append(entry)
         else:
-            additional_file_info = query_file_info(entry["url"])
-            entry.update(additional_file_info)
             files.append(entry)
+
+    return files, directories
+
+
+def fetch_and_parse(
+    page_url: str,
+    name_regex: Optional[str] = None
+) -> tuple[str, list[str], list[str]]:
+    """
+    Fetches the page at the given URL and
+    parses an Apache2 index table from it
+    """
+    if not isinstance(page_url, str):
+        raise TypeError(f"URL argument must be string, got {type(url).__name__}")
+
+    if name_regex is None:
+        name_regex = r".*"
+    if not isinstance(name_regex, str):
+        raise TypeError(
+            f"Pattern argument must be string, got {type(name_regex).__name__}"
+        )
+
+    # Compile regular expression pattern
+    regex = re.compile(name_regex)
+    print(f"Regular expression for name matching: {regex.pattern}")
+
+    print(f"Fetching URL: {page_url}")
+    response = requests.get(page_url, allow_redirects=True)
+
+    # Make sure we notice bad responses
+    response.raise_for_status()
+
+    content_type = response.headers["Content-Type"]
+    if "html" not in content_type:
+        raise ValueError(f"Expected content type HTML, got {content_type}")
+    html = response.content
+    # print(f"HTML: {html}")
+
+    # Parse page content
+    files, directories = parse_index_table(page_url, html, regex)
+
+    # files = files[:3]
+
+    # for entry in files:
+    #     additional_file_info = query_file_info(entry["url"])
+    #     entry.update(additional_file_info)
+
+    async def update_all_files():
+        async with aiohttp.ClientSession() as session:
+            tasks = [update_file_info(session, fileinfo) for fileinfo in files]
+            await asyncio.gather(*tasks)
+            #results =
+            # print(f"async intermediate results: {_results}")
+
+    asyncio.run(update_all_files())
+
+    # print(f"async results: {files}")
 
     return html, files, directories
 

@@ -123,6 +123,17 @@ def test_fetch_and_parse():
     assert len(directories) == 0
 
 
+def test_async():
+    from .apache2_index_parser import fetch_and_parse
+
+    url = "https://cdimage.debian.org/debian-cd/current/armhf/jigdo-dvd/"
+
+    html, files, directories = fetch_and_parse(url)
+
+    assert "last_modified_unix" in files[0].keys()
+    assert files[0]["last_modified_unix"] >= 1719694186
+
+
 class FilterModule(object):
     """
     This class is defined here in order to suppress ansible-playbook warning

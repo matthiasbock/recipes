@@ -1,6 +1,7 @@
 
 ansible
 requests
+aiohttp
 beautifulsoup4
 
 pytest
