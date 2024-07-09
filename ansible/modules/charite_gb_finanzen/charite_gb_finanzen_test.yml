@@ -1,0 +1,33 @@
+---
+- name: Test charite_gb_finanzen module
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Fetch Charité financial documents
+      charite_gb_finanzen:
+      register: result
+
+    - name: Display fetched documents
+      debug:
+        var: result.documents
+
+    - name: Assert that documents were fetched
+      assert:
+        that:
+          - result.documents is defined
+          - result.documents | length > 0
+        fail_msg: "No documents were fetched or the result is not as expected"
+        success_msg: "Documents were successfully fetched and parsed"
+
+    - name: Check document structure
+      assert:
+        that:
+          - item.url is defined
+          - item.name is defined
+          - item.url | length > 0
+          - item.name | length > 0
+        fail_msg: "Document structure is not as expected"
+        success_msg: "Document structure is correct"
+      loop: "{{ result.documents }}"
+      loop_control:
+        label: "{{ item.name }}"
