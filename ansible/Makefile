@@ -8,6 +8,8 @@ COCKPIT=cockpit.yml
 #PLAYBOOKS=$(filter-out $(INVENTORY),$(wildcard *.yml))
 PLAYBOOKS=$(NFTABLES_FAILSAFE) $(COCKPIT)
 
+PLAYBOOK_TESTS=$(wildcard */*/*_test.yml)
+
 
 $(info $(PLAYBOOKS))
 
@@ -57,10 +59,16 @@ $(DIR_VENV): requirements.txt
 
 
 .PHONY: test
-test: $(DIR_VENV)
+test: $(DIR_VENV) $(PLAYBOOK_TESTS)
 	source "$(DIR_VENV)/bin/activate" && \
 	pytest \
-		-v \
-		filters/jigdo/extract_url_test.py
-	ansible-playbook filters/jigdo/extract_url_test.yml
+		-vv \
+		filters \
+		modules
+
+
+.PHONY: $(PLAYBOOK_TESTS)
+%_test.yml: %.py
+	ansible-playbook "$@"
+	@touch --no-create "$<"
 

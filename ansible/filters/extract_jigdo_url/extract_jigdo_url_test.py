@@ -36,29 +36,29 @@ def test_extract_jigdo_url_valid(content, expected):
     """
     Test case for valid HTML content containing the DVD1 Jigdo link.
     """
-    from .extract_url import extract_url
+    from .extract_jigdo_url import extract_jigdo_url
 
-    assert extract_url(content) == expected
+    assert extract_jigdo_url(content) == expected
 
 
 def test_extract_jigdo_url_invalid():
     """
     Test case for HTML content without the DVD1 Jigdo link.
     """
-    from .extract_url import extract_url
+    from .extract_jigdo_url import extract_jigdo_url
 
     with pytest.raises(AnsibleFilterError):
-        extract_url(invalid_html_content)
+        extract_jigdo_url(invalid_html_content)
 
 
 def test_extract_jigdo_url_empty():
     """
     Test case for empty HTML content.
     """
-    from .extract_url import extract_url
+    from .extract_jigdo_url import extract_jigdo_url
 
     with pytest.raises(AnsibleFilterError):
-        extract_url(empty_html_content)
+        extract_jigdo_url(empty_html_content)
 
 
 class FilterModule(object):

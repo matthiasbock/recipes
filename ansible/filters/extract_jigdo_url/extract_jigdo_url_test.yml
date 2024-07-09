@@ -10,7 +10,7 @@
 
     - name: Extract DVD1 Jigdo URL
       set_fact:
-        jigdo_url: "{{ webpage.content | extract_url }}"
+        jigdo_url: "{{ webpage.content | extract_jigdo_url }}"
 
     - name: Print the DVD1 Jigdo URL
       debug:
