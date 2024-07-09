@@ -1,0 +1,30 @@
+---
+- name: Deploy Video Processing Solution
+  hosts: nextcloud_server
+  become: yes
+  vars:
+    NEXTCLOUD_DATA_DIR: /path/to/nextcloud/data
+    IMAGE_NAME: video_processor:latest
+    CONTAINER_NAME: video_processor
+
+  tasks:
+    - name: Ensure Docker is installed
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Build video processor Docker image
+      docker_image:
+        name: "{{ IMAGE_NAME }}"
+        build:
+          path: /path/to/dockerfile/directory
+        source: build
+
+    - name: Run video processor container
+      docker_container:
+        name: "{{ CONTAINER_NAME }}"
+        image: "{{ IMAGE_NAME }}"
+        state: started
+        restart_policy: always
+        volumes:
+          - "{{ NEXTCLOUD_DATA_DIR }}:/watch:rw"
