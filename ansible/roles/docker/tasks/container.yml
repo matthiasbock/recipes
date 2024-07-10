@@ -1,0 +1,24 @@
+---
+- name: Start Docker container
+  docker_container:
+    name: "{{ CONTAINER_NAME }}"
+    state: started
+  when:
+    # - CONTAINER_NAME is defined
+    - start_container | bool
+
+- name: Stop Docker container
+  docker_container:
+    name: "{{ CONTAINER_NAME }}"
+    state: stopped
+  when:
+    # - CONTAINER_NAME is defined
+    - stop_container | bool
+
+- name: Remove Docker container
+  docker_container:
+    name: "{{ CONTAINER_NAME }}"
+    state: absent
+  when:
+    # - CONTAINER_NAME is defined
+    - remove_container | bool

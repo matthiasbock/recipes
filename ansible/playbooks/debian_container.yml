@@ -21,4 +21,25 @@
       - version-control.list
 
   roles:
+    - role: docker
+      vars:
+        install: true
+        start: true
+        stop: false
+
+    # - role: docker_container
+    #   vars:
+    #     stop: true
+    #     remove: true
+
+    # - role: debian_image
+    #   vars:
+    #     build: true
+
     - role: debian_container
+      vars:
+        create: true
+        configure: true
+        publish: false
+        remove: false
+

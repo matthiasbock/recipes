@@ -1,4 +1,9 @@
 ---
+create: false
+configure: false
+publish: false
+remove: false
+
 # Initial image to derive from
 BASE_IMAGE: docker.io/debian:bookworm-slim
 
@@ -56,7 +61,7 @@ APT_KEY_FILES:
   - zoom.asc
 
 # Install additional packages in the container
-DIR_PACKAGE_BUNDLES: "{{ DIR_ASSETS }}/apt/package_bundles"
+DIR_PACKAGE_BUNDLES: "{{ DIR_ASSETS }}/apt/package-bundles"
 PACKAGE_BUNDLE_FILES:
   - debian-essentials.list
   - console-tools.list

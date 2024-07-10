@@ -1,0 +1,19 @@
+---
+- name: Ensure Docker is installed
+  package:
+    name: docker
+    state: present
+  when: install | bool
+
+- name: Ensure Docker is started
+  service:
+    name: docker
+    state: started
+  when: start | bool
+
+- name: Ensure Docker is stopped
+  service:
+    name: docker
+    state: stopped
+  when: stop | bool
+

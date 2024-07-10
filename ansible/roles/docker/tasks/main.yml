@@ -1,0 +1,6 @@
+---
+- include_tasks: daemon.yml
+
+- include_tasks: image.yml
+
+- include_tasks: container.yml

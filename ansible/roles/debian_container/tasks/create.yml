@@ -1,0 +1,53 @@
+---
+- name: Create build directory
+  file:
+    path: "{{ REMOTE_BUILD_DIR }}"
+    state: directory
+    mode: "0755"
+
+- name: Copy files to remote host
+  template:
+    src: "{{ item }}"
+    dest: "{{ REMOTE_BUILD_DIR }}/{{ item | basename }}"
+    mode: "0644"
+  loop:
+    - Dockerfile.j2
+    - "{{ INITIAL_SOURCES_LIST }}"
+
+- name: Get UID of remote user "{{ USER_NAME }}"
+  command: id -u "{{ USER_NAME }}"
+  register: get_uid
+  changed_when: false
+
+- name: Get GID of remote group "{{ GROUP_NAME }}"
+  command: id -g "{{ GROUP_NAME }}"
+  register: get_gid
+  changed_when: false
+
+- name: Update facts
+  set_fact:
+    USER_ID: "{{ get_uid.stdout }}"
+    GROUP_ID: "{{ get_gid.stdout }}"
+  changed_when: false
+
+# TODO:
+# - name: Enumerate initial packages
+#   set_fact:
+#     # Required for ansible tasks below: python3
+#     INITIAL_PACKAGES: "{{ lookup('file', INITIAL_PACKAGE_LIST).splitlines() }} python3"
+
+- name: Build initial image
+  docker_image:
+    name: "{{ INITIAL_IMAGE_NAME }}"
+    build:
+      path: "{{ REMOTE_BUILD_DIR }}"
+    source: build
+
+- name: Create Debian container
+  community.docker.docker_container:
+    name: "{{ CONTAINER_NAME }}"
+    hostname: "{{ CONTAINER_NAME }}"
+    image: "{{ INITIAL_IMAGE_NAME }}"
+    state: started
+    detach: yes
+    command: sleep infinity

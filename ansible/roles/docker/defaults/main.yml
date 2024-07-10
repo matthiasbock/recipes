@@ -1,0 +1,26 @@
+---
+# Daemon
+install: false
+start: false
+stop: false
+
+# Docker unix socket forwarding via SSH tunnel
+start_tunnel: false
+stop_tunnel: false
+
+DOCKER_SOCK_REMOTE: "/var/run/docker.sock"
+DOCKER_SOCK_LOCAL: "/tmp/debian_container.docker.sock"
+DOCKER_HOST: "unix://{{ DOCKER_SOCK_LOCAL }}"
+DOCKER_SOCK_TIMEOUT: 300
+
+# Images
+pull_image: false
+commit_image: false
+push_image: false
+remove_image: false
+
+# Containers
+create_container: false
+start_container: false
+stop_container: false
+remove_container: false

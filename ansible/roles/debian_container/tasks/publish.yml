@@ -1,0 +1,21 @@
+---
+- name: Commit image
+  community.docker.docker_image:
+    name: "{{ IMAGE_NAME }}"
+    source: container
+    container_source: "{{ CONTAINER_NAME }}"
+    user: "{{ USER_NAME | default('www-data') }}"
+    command: "{{ IMAGE_CMD }}"
+  when:
+    - CONTAINER_NAME is defined
+    - IMAGE_NAME is defined
+    - IMAGE_CMD is defined
+
+- name: Push image to Docker image repository
+  community.docker.docker_image:
+    name: "{{ IMAGE_NAME }}"
+    repository: "{{ IMAGE_REPO }}"
+    push: yes
+  when:
+    - IMAGE_NAME is defined
+    - IMAGE_REPO is defined
