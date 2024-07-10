@@ -24,12 +24,6 @@ INITIAL_IMAGE_NAME: debian:bookworm
 # From the initial image a container is instantiated
 CONTAINER_NAME: debian
 
-# Temporarily make the remote host's docker daemon locally accessible using ansible modules
-DOCKER_SOCK_REMOTE: "/var/run/docker.sock"
-DOCKER_SOCK_LOCAL: "/tmp/debian_container.docker.sock"
-DOCKER_HOST: "unix://{{ DOCKER_SOCK_LOCAL }}"
-DOCKER_SOCK_TIMEOUT: 300
-
 # A non-root user to create in the container
 USER_NAME: www-data
 USER_ID: 33

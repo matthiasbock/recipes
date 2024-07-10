@@ -4,8 +4,21 @@
   vars:
     BASE_IMAGE: docker.io/debian:bookworm-slim
 
-    CONTAINER_NAME: debian
+    SOURCES_LIST_FILES:
+      - bookworm.list
+      - bullseye.list
+      - vscodium.list
+      - jitsi.list
+      - signal-messenger.list
+      - wire-messenger.list
 
+    PACKAGE_BUNDLE_FILES:
+      - debian-essentials.list
+      - console-tools.list
+      - python3.list
+      - version-control.list
+
+    CONTAINER_NAME: debian
 
   roles:
     - role: docker
@@ -37,20 +50,6 @@
         ansible_docker_extra_args: "--host {{ DOCKER_HOST }}"
         ansible_host: "{{ CONTAINER_NAME }}"
         ansible_user: root
-
-        SOURCES_LIST_FILES:
-          - bookworm.list
-          - bullseye.list
-          - vscodium.list
-          - jitsi.list
-          - signal-messenger.list
-          - wire-messenger.list
-
-        PACKAGE_BUNDLE_FILES:
-          - debian-essentials.list
-          - console-tools.list
-          - python3.list
-          - version-control.list
 
         install: true
 

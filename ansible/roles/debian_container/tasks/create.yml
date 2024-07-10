@@ -44,7 +44,7 @@
     source: build
 
 - name: Create Debian container
-  community.docker.docker_container:
+  docker_container:
     name: "{{ CONTAINER_NAME }}"
     hostname: "{{ CONTAINER_NAME }}"
     image: "{{ INITIAL_IMAGE_NAME }}"

@@ -48,18 +48,21 @@
     src: "{{ DIR_SOURCES_LISTS }}/{{ item }}"
     dest: "/etc/apt/sources.list.d/{{ item }}"
   loop: "{{ SOURCES_LIST_FILES }}"
+  when: SOURCES_LIST_FILES is defined
 
 - name: Copy apt configuration files
   copy:
     src: "{{ DIR_APT_CONF }}/{{ item }}"
     dest: "/etc/apt/apt.conf.d/{{ item }}"
   loop: "{{ APT_CONF_FILES }}"
+  when: APT_CONF_FILES is defined
 
 - name: Copy GPG public keys
   copy:
     src: "{{ DIR_APT_KEYS }}/{{ item }}"
     dest: "/etc/apt/trusted.gpg.d/{{ item }}"
   loop: "{{ APT_KEY_FILES }}"
+  when: APT_KEY_FILES is defined
 
 - name: Install additional useful packages
   apt:
@@ -85,6 +88,7 @@
     state: present
     update_cache: yes
   loop: "{{ PACKAGE_BUNDLE_FILES }}"
+  when: PACKAGE_BUNDLE_FILES is defined
   ignore_errors: true
 
 - name: Clean up the container
@@ -93,5 +97,4 @@
       apt-get clean
       rm -rf /var/lib/apt/lists/*
       rm -fr /var/cache/apt/archives/*
-
 
