@@ -5,8 +5,8 @@ start: false
 stop: false
 
 # Docker unix socket forwarding via SSH tunnel
-start_tunnel: false
-stop_tunnel: false
+start_ssh_tunnel: false
+stop_ssh_tunnel: false
 
 DOCKER_SOCK_REMOTE: "/var/run/docker.sock"
 DOCKER_SOCK_LOCAL: "/tmp/debian_container.docker.sock"

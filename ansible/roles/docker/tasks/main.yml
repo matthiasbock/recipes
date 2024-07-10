@@ -4,3 +4,5 @@
 - include_tasks: image.yml
 
 - include_tasks: container.yml
+
+- include_tasks: ssh_tunnel.yml

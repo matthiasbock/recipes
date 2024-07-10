@@ -1,6 +1,6 @@
 ---
 create: false
-configure: false
+install: false
 publish: false
 remove: false
 

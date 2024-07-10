@@ -4,8 +4,8 @@
   when: create | bool
 
 - name: Configure Debian container
-  include_tasks: configure.yml
-  when: configure | bool
+  include_tasks: install.yml
+  when: install | bool
 
 - name: Publish Debian container
   include_tasks: publish.yml

@@ -6,40 +6,54 @@
 
     CONTAINER_NAME: debian
 
-    SOURCES_LIST_FILES:
-      - bookworm.list
-      - bullseye.list
-      - vscodium.list
-      - jitsi.list
-      - signal-messenger.list
-      - wire-messenger.list
-
-    PACKAGE_BUNDLE_FILES:
-      - debian-essentials.list
-      - console-tools.list
-      - python3.list
-      - version-control.list
 
   roles:
     - role: docker
       vars:
         install: true
         start: true
-        stop: false
 
-    # - role: docker_container
-    #   vars:
-    #     stop: true
-    #     remove: true
+    - role: docker
+      vars:
+        stop_container: true
+        remove_container: true
+        remove_image: true
 
-    # - role: debian_image
-    #   vars:
-    #     build: true
+    - role: docker
+      vars:
+        build_image: true
 
     - role: debian_container
       vars:
         create: true
-        configure: true
-        publish: false
-        remove: false
 
+    - role: docker
+      vars:
+        start_ssh_tunnel: true
+
+    - role: debian_container
+      vars:
+        ansible_connection: docker
+        ansible_docker_extra_args: "--host {{ DOCKER_HOST }}"
+        ansible_host: "{{ CONTAINER_NAME }}"
+        ansible_user: root
+
+        SOURCES_LIST_FILES:
+          - bookworm.list
+          - bullseye.list
+          - vscodium.list
+          - jitsi.list
+          - signal-messenger.list
+          - wire-messenger.list
+
+        PACKAGE_BUNDLE_FILES:
+          - debian-essentials.list
+          - console-tools.list
+          - python3.list
+          - version-control.list
+
+        install: true
+
+    - role: docker
+      vars:
+        stop_ssh_tunnel: true
