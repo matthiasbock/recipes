@@ -1,0 +1,50 @@
+Generate an Ansible role and an example playbook using the role.
+
+The goal is to create a Debian container,
+deriving from a configurable Debian base image,
+the default being debian:bookworm-slim from docker.io.
+Rather than using a Dockerfile,
+Ansible tasks and modules shall be used to set up a container,
+connect to it and operate on it.
+
+First create a user with a configurable name and UID,
+belonging to a group with configurable name and GID (task tag "user").
+The user's default name is www-data,
+the default group is www-data,
+the default shell is bash.
+No error shall occur, if user or group already exist.
+
+Then, set up apt package download from HTTPS instead of HTTP (task tag "package_verification").
+Install package signatures and enable signature verification.
+This presumably involves installation of list of packages,
+including ca-certificates, apt-transport-https and debian-keyring.
+The original sources.list and /etc/apt/sources.list.d are deleted.
+
+Variable DIR_SOURCES_LISTS is the path to a folder containing files,
+a subset of which is copied to the /etc/apt/sources.list.d folder
+and is henceforth used for package download.
+The subset of file names to use from the path
+is given as the argument to a loop of the respective task (task tag "sources_lists").
+
+Similarly, DIR_APT_CONF is the path to a folder containing files
+to ultimately be stored in the /etc/apt/apt.conf.d folder (task tag "apt_conf").
+
+Similarly, DIR_APT_KEYS is the path to a folder containing GPG public key files,
+which apt shall use for package signature verification (task tag "apt_keys").
+
+DIR_PACKAGE_BUNDLES is the path to text files containing lists of package names,
+one package name per line.
+Again, similar to the above, a list of package bundles can be specified via loop.
+The package bundles are combined into a list of packages,
+which are installed in the container (task tag "packages").
+
+Create an image named IMAGE_NAME from the container (task tag "image").
+
+The startup command, presumably CMD,
+is also taken from an Ansible variable.
+For security reasons,
+USER is the previously created non-root user.
+
+IMAGE_REPO is the URL of a GitLab repository with Docker image upload enabled (task tag "publish").
+
+All Ansible variables have uppercase names.

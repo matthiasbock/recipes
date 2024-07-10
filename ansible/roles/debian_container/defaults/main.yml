@@ -1,0 +1,23 @@
+---
+BASE_IMAGE: docker.io/debian:bookworm-slim
+CONTAINER_NAME: debian
+
+USER_NAME: www-data
+GROUP_NAME: www-data
+USER_SHELL: /bin/bash
+
+DIR_SOURCES_LISTS: /etc/apt/sources.list.d
+SOURCES_LISTS_FILES: []
+
+DIR_APT_CONF: /etc/apt/apt.conf.d
+APT_CONF_FILES: []
+
+DIR_APT_KEYS: /etc/apt/trusted.gpg.d
+APT_KEY_FILES: []
+
+DIR_PACKAGE_BUNDLES: /etc/apt/package_bundles
+PACKAGE_BUNDLE_FILES: []
+
+IMAGE_CMD: ["/bin/bash"]
+IMAGE_NAME: debian
+IMAGE_REPO: registry.gitlab.com/your-project/your-image
