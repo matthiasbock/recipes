@@ -15,47 +15,38 @@
         name: docker
         state: started
 
-    # - name: Remove container
-    #   docker_container:
-    #     name: "{{ CONTAINER_NAME }}"
-    #     state: absent
-
-    # - name: Remove image
-    #   docker_image:
-    #     name: "{{ IMAGE_NAME }}"
-    #     state: absent
-
     - name: Create build directory
       file:
-        path: "{{ BUILD_DIR }}"
+        path: "{{ REMOTE_BUILD_DIR }}"
         state: directory
         mode: '0755'
 
-    - name: Copy Dockerfile to remote host
+    - name: Copy files to remote host
       template:
         src: "{{ item }}"
-        dest: "{{ BUILD_DIR }}/{{ item | basename }}"
+        dest: "{{ REMOTE_BUILD_DIR }}/{{ item | basename }}"
         mode: '0644'
       loop:
         - Dockerfile.j2
         - "{{ INITIAL_SOURCES_LIST }}"
 
-    # - name: Get UID of user www-data
-    #   command: id -u www-data
-    #   register: www_data_uid
+    - name: Get UID of remote user "{{ USER_NAME }}"
+      command: id -u "{{ USER_NAME }}"
+      register: get_uid
+      changed_when: false
 
-    # - name: Set UID
-    #   set_fact:
-    #     USER_UID: "{{ www_data_uid.stdout }}"
+    - name: Get GID of remote group "{{ GROUP_NAME }}"
+      command: id -g "{{ GROUP_NAME }}"
+      register: get_gid
+      changed_when: false
 
-    # - name: Get GID of group www-data
-    #   command: id -g www-data
-    #   register: www_data_gid
+    - name: Update facts
+      set_fact:
+        USER_ID: "{{ get_uid.stdout }}"
+        GROUP_ID: "{{ get_gid.stdout }}"
+      changed_when: false
 
-    # - name: Set GID
-    #   set_fact:
-    #     USER_GID: "{{ www_data_gid.stdout }}"
-
+    # TODO:
     # - name: Enumerate initial packages
     #   set_fact:
     #     # Required for ansible tasks below: python3
@@ -63,51 +54,58 @@
 
     - name: Build initial image
       docker_image:
-        name: "{{ IMAGE_NAME }}"
+        name: "{{ INITIAL_IMAGE_NAME }}"
         build:
-          path: "{{ BUILD_DIR }}"
+          path: "{{ REMOTE_BUILD_DIR }}"
         source: build
 
     - name: Create Debian container
       community.docker.docker_container:
         name: "{{ CONTAINER_NAME }}"
         hostname: "{{ CONTAINER_NAME }}"
-        image: "{{ IMAGE_NAME }}"
+        image: "{{ INITIAL_IMAGE_NAME }}"
         state: started
         detach: yes
         command: sleep infinity
 
 
-- name: Start Docker socket forwarding via SSH tunnel
+- name: Docker socket forwarding via SSH tunnel
   delegate_to: localhost
   tags: configure
-  shell:
-    cmd: |
-      SOCK_MAPPING="{{ DOCKER_SOCK_LOCAL }}:{{ DOCKER_SOCK_REMOTE }}"
-      SSH_LOGIN="{{ ansible_user }}@{{ ansible_host }}"
-      CMD="ssh -fNL $SOCK_MAPPING -o ExitOnForwardFailure=yes $SSH_LOGIN"
-      # ConnectTimeout=3,TCPKeepAlive=yes,ServerAliveInterval=2,ServerAliveCountMax=3,ForwardX11=no
-      echo "SSH command: $CMD" >&2
+  block:
+    - set_fact:
+        DOCKER_SOCK_MAPPING: "{{ DOCKER_SOCK_LOCAL }}:{{ DOCKER_SOCK_REMOTE }}"
+        SSH_LOGIN: "{{ ansible_user }}@{{ ansible_host }}"
+      changed_when: false
 
-      # Stop any already running instances of this command
-      PID="$(echo "$(ps -eo pid,command | grep -E '[0-9]+\s+ssh ' | fgrep "$SSH_LOGIN" | fgrep "$SOCK_MAPPING" | sed -Ee 's/\s*([0-9]+).*$/\1/g')")"
-      echo "Already running: $PID" >&2
-      [[ "$PID" == "" ]] || kill $PID
+    - set_fact:
+        SSH_CMD: "ssh -fNL {{ DOCKER_SOCK_MAPPING }} -o ExitOnForwardFailure=yes {{ SSH_LOGIN }}"
+        # ConnectTimeout=3,TCPKeepAlive=yes,ServerAliveInterval=2,ServerAliveCountMax=3,ForwardX11=no
+      changed_when: false
 
-      # Remove any left-over socket
-      [[ -e "{{ DOCKER_SOCK_LOCAL }}" ]] && rm -vf "{{ DOCKER_SOCK_LOCAL }}" >&2
+    - name: Start Docker socket forwarding via SSH tunnel
+      shell:
+        cmd: |
+          echo "SSH command: {{ SSH_CMD }}" >&2
 
-      # Invoke SSH
-      set -e
-      #timeout --foreground --preserve-status --signal=KILL {{ DOCKER_SOCK_TIMEOUT }} $CMD &
-      $CMD || exit 3
-      RETVAL=$?
-      PID=$!
-      echo $PID
-      [ $RETVAL -eq 0 ] || exit 100+$RETVAL
-      sleep 1
-  changed_when: false
-  register: ssh_forwarding
+          # Stop any already running instances of this command
+          PID="$(echo "$(ps -eo pid,command | grep -E '[0-9]+\s+ssh ' | fgrep "{{ SSH_LOGIN }}" | fgrep "{{ DOCKER_SOCK_MAPPING }}" | sed -Ee 's/\s*([0-9]+).*$/\1/g')")"
+          echo "Already running: $PID" >&2
+          [[ "$PID" != "" ]] && kill $PID
+
+          # Remove any left-over socket
+          [[ -e "{{ DOCKER_SOCK_LOCAL }}" ]] && rm -vf "{{ DOCKER_SOCK_LOCAL }}" >&2
+
+          # Start SSH tunnel
+          set -e
+          #timeout --foreground --preserve-status --signal=KILL {{ DOCKER_SOCK_TIMEOUT }} "{{ SSH_CMD }}" &
+          {{ SSH_CMD }} || exit 3
+          RETVAL=$?
+          PID=$!
+
+          [ $RETVAL -eq 0 ] || exit 100+$RETVAL
+          echo $PID
+      changed_when: false
 
 
 #
@@ -117,30 +115,31 @@
   vars:
     ansible_connection: docker
     ansible_docker_extra_args: "--host {{ DOCKER_HOST }}"
-  delegate_to: "{{ CONTAINER_NAME }}"
-  delegate_facts: true
+    ansible_host: "{{ CONTAINER_NAME }}"
+    ansible_user: root
   tags: configure
   block:
-    - name: Create user and group
+    - name: Configure group
+      group:
+        name: "{{ GROUP_NAME | default('www-data') }}"
+        gid: "{{ GROUP_ID | default(omit) }}"
+
+    - name: Configure user
       user:
         name: "{{ USER_NAME | default('www-data') }}"
         group: "{{ GROUP_NAME | default('www-data') }}"
-        uid: "{{ USER_UID | default(omit) }}"
-        gid: "{{ GROUP_GID | default(omit) }}"
+        uid: "{{ USER_ID | default(omit) }}"
         shell: "{{ USER_SHELL | default('/bin/bash') }}"
-      # tags:
-      #   - user
 
-    - name: Install packages for HTTPS apt
+    - name: Install packages required for secure package download
       apt:
         name:
           - ca-certificates
           - apt-transport-https
           - debian-keyring
+          - gnupg
         state: present
         update_cache: yes
-      # tags:
-      #   - package_verification
 
     - name: Remove existing sources.list files
       file:
@@ -149,32 +148,51 @@
       loop:
         - /etc/apt/sources.list
         - /etc/apt/sources.list.d
-      # tags:
-      #   - package_verification
+
+    - name: Create directories
+      file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - /etc/apt/apt.conf.d
+        - /etc/apt/sources.list.d
+        - /etc/apt/trusted.gpg.d
 
     - name: Copy sources.list files
       copy:
         src: "{{ DIR_SOURCES_LISTS }}/{{ item }}"
         dest: "/etc/apt/sources.list.d/{{ item }}"
-      loop: "{{ SOURCES_LISTS_FILES }}"
-      # tags:
-      #   - sources_lists
+      loop: "{{ SOURCES_LIST_FILES }}"
 
     - name: Copy apt configuration files
       copy:
         src: "{{ DIR_APT_CONF }}/{{ item }}"
         dest: "/etc/apt/apt.conf.d/{{ item }}"
       loop: "{{ APT_CONF_FILES }}"
-      # tags:
-      #   - apt_conf
 
     - name: Copy GPG public keys
       copy:
         src: "{{ DIR_APT_KEYS }}/{{ item }}"
         dest: "/etc/apt/trusted.gpg.d/{{ item }}"
       loop: "{{ APT_KEY_FILES }}"
-      # tags:
-      #   - apt_keys
+
+    - name: Install additional useful packages
+      apt:
+        name:
+          - debian-archive-keyring
+          - debian-ports-archive-keyring
+          - fasttrack-archive-keyring
+          - emdebian-archive-keyring
+          - debian-edu-archive-keyring
+          - neurodebian-archive-keyring
+          - ubuntu-keyring
+          - ubuntu-archive-keyring
+          - ubuntu-cloud-keyring
+          - ubuntu-dbgsym-keyring
+          - jitsi-archive-keyring
+        state: present
+        update_cache: yes
+      ignore_errors: true
 
     - name: Install packages from bundle files
       apt:
@@ -182,15 +200,25 @@
         state: present
         update_cache: yes
       loop: "{{ PACKAGE_BUNDLE_FILES }}"
-      # tags:
-      #   - packages
+      ignore_errors: true
+
+    - name: Clean up the container
+      shell:
+        cmd: |
+          apt-get clean
+          rm -rf /var/lib/apt/lists/*
+          rm -fr /var/cache/apt/archives/*
 
 
 - name: Stop Docker socket forwarding via SSH tunnel
   delegate_to: localhost
   tags: configure
-  command:
-    cmd: kill {{ ssh_forwarding.stdout }}
+  shell:
+    cmd: |
+      PID="$(echo "$(ps -eo pid,command | grep -E '[0-9]+\s+ssh ' | fgrep "{{ SSH_LOGIN }}" | fgrep "{{ DOCKER_SOCK_MAPPING }}" | sed -Ee 's/\s*([0-9]+).*$/\1/g')")"
+      echo "Stopping SSH: $PID" >&2
+      [[ "$PID" != "" ]] && kill $PID
+      [[ -e "{{ DOCKER_SOCK_LOCAL }}" ]] && rm -vf "{{ DOCKER_SOCK_LOCAL }}" >&2
   changed_when: false
 
 
@@ -204,27 +232,14 @@
 
     - name: Display container status
       debug:
-        msg: "Container {{ inventory_hostname }} is {{ container_info.container['State']['Status'] }}"
+        msg: "Status of container {{ inventory_hostname }}: {{ container_info.container['State']['Status'] }}"
 
     - name: Verify user creation
       command:
-        cmd: "docker exec {{ inventory_hostname }} id {{ USER_NAME }}"
+        cmd: "docker exec {{ inventory_hostname }} id -u {{ USER_NAME }}"
       register: user_check
       changed_when: false
 
-    - name: Display user information
-      debug:
-        var: user_check.stdout
-
-    - name: Verify installed packages
-      command:
-        cmd: "docker exec {{ inventory_hostname }} dpkg -l"
-      register: package_check
-      changed_when: false
-
-    - name: Display installed packages
-      debug:
-        var: package_check.stdout_lines
 
 # - name: Create image from container
 #   community.docker.docker_image:
@@ -246,8 +261,6 @@
 # Tasks to run on the host after container setup
 #
 - name: Create Docker image
-  when:
-    - ansible_connection != 'docker'
   tags: image
   block:
     - name: Commit image
@@ -267,15 +280,15 @@
         - IMAGE_REPO is defined
       tags: publish
 
-    - name: Delete image
-      community.docker.docker_image:
-        name: "{{ IMAGE_NAME }}"
-        state: absent
-      tags: purge
+    # - name: Delete image
+    #   community.docker.docker_image:
+    #     name: "{{ IMAGE_NAME }}"
+    #     state: absent
+    #   tags: purge
 
-    - name: Delete container
-      community.docker.docker_container:
-        name: "{{ CONTAINER_NAME }}"
-        state: absent
-      tags: purge
+    # - name: Delete container
+    #   community.docker.docker_container:
+    #     name: "{{ CONTAINER_NAME }}"
+    #     state: absent
+    #   tags: purge
 

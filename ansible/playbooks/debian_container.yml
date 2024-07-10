@@ -1,39 +1,24 @@
 ---
 - name: Set up a Debian container
   hosts: all
-  gather_facts: true
   vars:
     BASE_IMAGE: docker.io/debian:bookworm-slim
 
     CONTAINER_NAME: debian
 
-    # DIR_SOURCES_LISTS: ./files/sources_lists
-    # SOURCES_LISTS_FILES:
-    #   - debian-main.list
-    #   - debian-security.list
+    SOURCES_LIST_FILES:
+      - bookworm.list
+      - bullseye.list
+      - vscodium.list
+      - jitsi.list
+      - signal-messenger.list
+      - wire-messenger.list
 
-    # DIR_APT_CONF: ./files/apt_conf
-    # APT_CONF_FILES:
-    #   - 01proxy
-    #   - 02compress-indexes
-
-    # DIR_APT_KEYS: ./files/apt_keys
-    # APT_KEY_FILES:
-    #   - debian-archive-bullseye-stable.gpg
-
-    # DIR_PACKAGE_BUNDLES: ./files/package_bundles
-    # PACKAGE_BUNDLE_FILES:
-    #   - base-packages.txt
-    #   - app-packages.txt
-
-    IMAGE_CMD: ["/bin/bash", "-l"]
-    IMAGE_NAME: debian:latest
-    IMAGE_REPO: registry.gitlab.com/your-project/your-image
-
-    DOCKER_SOCK_REMOTE: "/var/run/docker.sock"
-    DOCKER_SOCK_LOCAL: "/tmp/debian_container.docker.sock"
-    DOCKER_HOST: "unix://{{ DOCKER_SOCK_LOCAL }}"
-    DOCKER_SOCK_TIMEOUT: 300
+    PACKAGE_BUNDLE_FILES:
+      - debian-essentials.list
+      - console-tools.list
+      - python3.list
+      - version-control.list
 
   roles:
     - role: debian_container
