@@ -15,15 +15,64 @@
         name: docker
         state: started
 
-    - name: Pull the base Debian image
-      community.docker.docker_image:
-        name: "{{ BASE_IMAGE }}"
-        source: pull
+    # - name: Remove container
+    #   docker_container:
+    #     name: "{{ CONTAINER_NAME }}"
+    #     state: absent
+
+    # - name: Remove image
+    #   docker_image:
+    #     name: "{{ IMAGE_NAME }}"
+    #     state: absent
+
+    - name: Create build directory
+      file:
+        path: "{{ BUILD_DIR }}"
+        state: directory
+        mode: '0755'
+
+    - name: Copy Dockerfile to remote host
+      template:
+        src: "{{ item }}"
+        dest: "{{ BUILD_DIR }}/{{ item | basename }}"
+        mode: '0644'
+      loop:
+        - Dockerfile.j2
+        - "{{ INITIAL_SOURCES_LIST }}"
+
+    # - name: Get UID of user www-data
+    #   command: id -u www-data
+    #   register: www_data_uid
+
+    # - name: Set UID
+    #   set_fact:
+    #     USER_UID: "{{ www_data_uid.stdout }}"
+
+    # - name: Get GID of group www-data
+    #   command: id -g www-data
+    #   register: www_data_gid
+
+    # - name: Set GID
+    #   set_fact:
+    #     USER_GID: "{{ www_data_gid.stdout }}"
+
+    # - name: Enumerate initial packages
+    #   set_fact:
+    #     # Required for ansible tasks below: python3
+    #     INITIAL_PACKAGES: "{{ lookup('file', INITIAL_PACKAGE_LIST).splitlines() }} python3"
+
+    - name: Build initial image
+      docker_image:
+        name: "{{ IMAGE_NAME }}"
+        build:
+          path: "{{ BUILD_DIR }}"
+        source: build
 
     - name: Create Debian container
       community.docker.docker_container:
         name: "{{ CONTAINER_NAME }}"
-        image: "{{ BASE_IMAGE }}"
+        hostname: "{{ CONTAINER_NAME }}"
+        image: "{{ IMAGE_NAME }}"
         state: started
         detach: yes
         command: sleep infinity
@@ -41,7 +90,7 @@
       echo "SSH command: $CMD" >&2
 
       # Stop any already running instances of this command
-      PID="$(ps -eo pid,command | grep -E '[0-9]+\s+ssh ' | fgrep $SSH_LOGIN | fgrep $SOCK_MAPPING | cut -d" " -f1)"
+      PID="$(echo "$(ps -eo pid,command | grep -E '[0-9]+\s+ssh ' | fgrep "$SSH_LOGIN" | fgrep "$SOCK_MAPPING" | sed -Ee 's/\s*([0-9]+).*$/\1/g')")"
       echo "Already running: $PID" >&2
       [[ "$PID" == "" ]] || kill $PID
 
@@ -54,14 +103,9 @@
       $CMD || exit 3
       RETVAL=$?
       PID=$!
-      # echo $PID
-      # [ $RETVAL -eq 0 ] || exit 100+$RETVAL
-
-      # sleep 3
-      # PID="$(ps -eo pid,command | grep -E '[0-9]+\s+ssh ' | fgrep $SSH_LOGIN | fgrep $SOCK_MAPPING | cut -d" " -f1)"
-      # [[ "$PID" != "" ]] || exit 4
-
       echo $PID
+      [ $RETVAL -eq 0 ] || exit 100+$RETVAL
+      sleep 1
   changed_when: false
   register: ssh_forwarding
 

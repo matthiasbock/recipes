@@ -1,10 +1,19 @@
 ---
 BASE_IMAGE: docker.io/debian:bookworm-slim
-CONTAINER_NAME: debian
 
 USER_NAME: www-data
+USER_ID: 33
 GROUP_NAME: www-data
+GROUP_ID: 33
 USER_SHELL: /bin/bash
+
+DIR_ASSETS: ../../lib/assets
+BOOTSTRAP_PACKAGE_LIST: "{{ DIR_ASSETS }}/apt/package-bundles/debian-essentials.list"
+INITIAL_PACKAGE_LIST: "{{ DIR_ASSETS }}/apt/package-bundles/console-tools.list"
+INITIAL_SOURCES_LIST: "{{ DIR_ASSETS }}/apt/sources.list.d/bookworm.list"
+BUILD_DIR: /tmp
+
+CONTAINER_NAME: debian
 
 DIR_SOURCES_LISTS: /etc/apt/sources.list.d
 SOURCES_LISTS_FILES: []
