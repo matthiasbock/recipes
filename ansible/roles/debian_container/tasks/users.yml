@@ -1,0 +1,16 @@
+---
+- name: Configure group
+  group:
+    name: "{{ GROUP_NAME }}"
+    gid: "{{ GROUP_ID | default(omit) }}"
+  when:
+    - create_group | bool
+
+- name: Configure user
+  user:
+    name: "{{ USER_NAME }}"
+    group: "{{ GROUP_NAME | default(omit) }}"
+    uid: "{{ USER_ID | default(omit) }}"
+    shell: "{{ USER_SHELL | default(omit) }}"
+  when:
+    - create_user | bool

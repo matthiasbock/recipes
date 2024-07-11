@@ -6,12 +6,14 @@
 # * install
 # * start
 # * stop
+# * enable
+# * disable
 #
 - name: Ensure Docker is installed
   package:
     name: docker
     state: present
-  when: install | bool
+  when: (install | bool) or (start | bool) or (enable | bool)
 
 - name: Ensure Docker is started
   service:
@@ -24,3 +26,16 @@
     name: docker
     state: stopped
   when: stop | bool
+
+- name: Enable Docker service
+  service:
+    name: docker
+    state: enabled
+  when: enable | bool
+
+- name: Disable Docker service
+  service:
+    name: docker
+    state: disabled
+  when: disable | bool
+

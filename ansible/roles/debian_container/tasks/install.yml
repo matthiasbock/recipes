@@ -1,40 +1,11 @@
 ---
-#
-# Operations on a Debian system
-#
-# Switches:
-# * create_user
-# * create_group
-# * enable_ssl
-# * install_keyrings
-# * remove_apt_configuration
-# * remove_sources_lists
-# * install_sources_lists
-# * install_apt_keys
-#
-- name: Configure group
-  group:
-    name: "{{ GROUP_NAME }}"
-    gid: "{{ GROUP_ID | default(omit) }}"
-  when:
-    - create_group | bool
-
-- name: Configure user
-  user:
-    name: "{{ USER_NAME }}"
-    group: "{{ GROUP_NAME | default(omit) }}"
-    uid: "{{ USER_ID | default(omit) }}"
-    shell: "{{ USER_SHELL | default(omit) }}"
-  when:
-    - create_user | bool
-
 - name: Install packages needed for SSL
   apt:
     name:
       - ca-certificates
       - apt-transport-https
     state: present
-    update_cache: yes
+    update_cache: true
   ignore_errors: true
   when:
     - enable_ssl | bool
@@ -45,7 +16,7 @@
       - debian-keyring
       - gnupg
     state: present
-    update_cache: yes
+    update_cache: true
   ignore_errors: true
   when:
     - install_keyrings | bool
@@ -95,15 +66,14 @@
   loop: "{{ APT_CONF_FILES }}"
   when: APT_CONF_FILES is defined
 
-- name:   Copy GPG public keys
-  copy:
-    src: "{{ DIR_APT_KEYS }}/{{ item }}"
-    dest: "/etc/apt/trusted.gpg.d/{{ item }}"
+- name: Install apt keys
+  apt_key:
+    content: "{{ lookup('file', item) }}"
   loop: "{{ APT_KEY_FILES }}"
   when:
     - install_apt_keys | bool
 
-- name: Install additional useful packages
+- name: Install additional keyrings
   apt:
     name:
       - debian-archive-keyring
@@ -118,26 +88,25 @@
       - ubuntu-dbgsym-keyring
       - jitsi-archive-keyring
     state: present
-    update_cache: yes
+    update_cache: true
   ignore_errors: true
   when:
     - install_keyrings | bool
 
-- name: Install packages from bundle files
+- name: Install package bundles
   apt:
     name: "{{ lookup('file', DIR_PACKAGE_BUNDLES + '/' + item).splitlines() }}"
     state: present
-    update_cache: yes
+    update_cache: true
   loop: "{{ PACKAGE_BUNDLE_FILES }}"
   ignore_errors: true
   when:
     - install_package_bundles | bool
 
-- name: Clean up the container
+- name: Clean up apt cache
   shell:
     cmd: |
-      apt-get clean
-      rm -rf /var/lib/apt/lists/*
-      rm -fr /var/cache/apt/archives/*
+      rm -vrf /var/lib/apt/lists/*
+      rm -vfr /var/cache/apt/archives/*
   when:
-    - remove_temporary_files | bool
+    - cleanup_apt_cache | bool

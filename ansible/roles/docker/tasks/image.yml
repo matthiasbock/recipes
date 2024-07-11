@@ -4,14 +4,30 @@
 #
 # Switches:
 # * remove_image
+# * commit_image
+# * push_image
 #
-# TODO: commit, push
-#
+- name: Commit Docker image
+  community.docker.docker_image:
+    name: "{{ IMAGE_NAME }}"
+    source: container
+    container_source: "{{ CONTAINER_NAME }}"
+    user: "{{ USER_NAME | default(omit) }}"
+    command: "{{ IMAGE_CMD | default(omit) }}"
+  when:
+    - commit_image | bool
+
+- name: Push Docker image to repository
+  community.docker.docker_image:
+    name: "{{ IMAGE_NAME }}"
+    repository: "{{ IMAGE_REPO }}"
+    push: yes
+  when:
+    - push_image | bool
+
 - name: Remove Docker image
   docker_image:
     name: "{{ IMAGE_NAME }}"
     state: absent
   when:
-    - IMAGE_NAME is defined
     - remove_image | bool
-

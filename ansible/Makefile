@@ -7,11 +7,13 @@ NFTABLES_FAILSAFE=nftables-failsafe.yml
 COCKPIT=cockpit.yml
 #PLAYBOOKS=$(filter-out $(INVENTORY),$(wildcard *.yml))
 PLAYBOOKS=$(NFTABLES_FAILSAFE) $(COCKPIT)
+# $(info $(PLAYBOOKS))
 
-PLAYBOOK_TESTS=$(shell find modules filters roles playbooks -type f -name "*_test.yml")
+PLAYBOOK_TESTS=$(shell find modules filters roles playbooks -type f \( -name '*_test.yml' -o -wholename '**/test/*.yml' \))
 
+ROLE_TESTS=$(shell find roles -type d -iname '*test*' -exec find {} -type f -name '*.yml' -print \;)
+$(info $(ROLE_TESTS))
 
-$(info $(PLAYBOOKS))
 
 .PHONY: all
 all: list_hosts
@@ -20,17 +22,8 @@ all: list_hosts
 .PHONY: check
 check:
 	ansible-playbook \
-		-i $(INVENTORY) \
 		$(PLAYBOOKS) \
 		--syntax-check
-
-
-.PHONY: list_hosts
-list_hosts:
-	ansible-playbook \
-		-i $(INVENTORY) \
-		$(PLAYBOOKS) \
-		--list-hosts
 
 
 .PHONY: $(NFTABLES_FAILSAFE)
@@ -65,10 +58,12 @@ test: $(DIR_VENV)
 		-vv \
 		filters \
 		modules
-	make $(PLAYBOOK_TESTS)
 
 
-.PHONY: $(PLAYBOOK_TESTS)
-$(PLAYBOOK_TESTS):
+.PHONY: test_roles
+test_roles: $(ROLE_TESTS)
+
+.PHONY: $(ROLE_TESTS)
+$(ROLE_TESTS):
 	ansible-playbook "$@"
 

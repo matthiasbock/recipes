@@ -7,7 +7,7 @@
 # * stop_ssh_tunnel
 #
 - name: Compose SSH login and Docker socket mapping
-  set_fact:
+  ansible.builtin.set_fact:
     DOCKER_SOCK_MAPPING: "{{ DOCKER_SOCK_LOCAL }}:{{ DOCKER_SOCK_REMOTE }}"
     SSH_LOGIN: "{{ ansible_user }}@{{ ansible_host }}"
   changed_when: false
@@ -15,7 +15,7 @@
     - (start_ssh_tunnel | bool) or (stop_ssh_tunnel | bool)
 
 - name: Compose SSH command
-  set_fact:
+  ansible.builtin.set_fact:
     SSH_CMD: "ssh -fNL {{ DOCKER_SOCK_MAPPING }} -o ExitOnForwardFailure=yes {{ SSH_LOGIN }}"
     # ConnectTimeout=3,TCPKeepAlive=yes,ServerAliveInterval=2,ServerAliveCountMax=3,ForwardX11=no
   changed_when: false
@@ -24,7 +24,7 @@
 
 - name: Start Docker socket forwarding via SSH tunnel
   delegate_to: localhost
-  shell:
+  ansible.builtin.shell:
     cmd: |
       echo "SSH command: {{ SSH_CMD }}" >&2
 
@@ -50,7 +50,7 @@
 
 - name: Stop Docker socket forwarding via SSH tunnel
   delegate_to: localhost
-  shell:
+  ansible.builtin.shell:
     cmd: |
       PID="$(echo "$(ps -eo pid,command | grep -E '[0-9]+\s+ssh ' | fgrep "{{ SSH_LOGIN }}" | fgrep "{{ DOCKER_SOCK_MAPPING }}" | sed -Ee 's/\s*([0-9]+).*$/\1/g')")"
       echo "Stopping SSH: $PID" >&2

@@ -8,11 +8,11 @@
       register: results
 
     - name: Show parsed files
-      debug:
+      ansible.builtin.debug:
         var: results.files
 
     - name: Check the result
-      assert:
+      ansible.builtin.assert:
         that:
           - results.changed == false
           - results.num_files > 40
@@ -24,11 +24,11 @@
       register: results
 
     - name: Show parsed files
-      debug:
+      ansible.builtin.debug:
         var: results.files
 
     - name: Check the result
-      assert:
+      ansible.builtin.assert:
         that:
           - results.changed == false
           - results.num_files < 40

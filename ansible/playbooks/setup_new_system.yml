@@ -5,11 +5,11 @@
       vars:
         disk_device: /dev/sdb
 
-    - role: debian-installation
-      tags:
-        - bootstrap
-        -
+    - role: debian
       vars:
-        additional_packages:
+        install_packages: true
+        packages:
           - git
           - nginx
+
+
