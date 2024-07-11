@@ -1,0 +1,14 @@
+---
+- name: Install Debian bootstrapping packages
+  apt:
+    name:
+      - debootstrap
+    state: present
+    update_cache: true
+  when:
+    - debootstrap | bool
+
+- name: Debootstrap Debian
+  command: debootstrap --arch "{{ DEBIAN_ARCH }}" "{{ DEBIAN_VERSION }}" "{{ DEBIAN_ROOT }}" "{{ DEBIAN_RESPOSITORY }}"
+  when:
+    - debootstrap | bool

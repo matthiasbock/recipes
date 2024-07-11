@@ -1,0 +1,35 @@
+---
+- name: Remove any sources.list files
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/apt/sources.list
+    - /etc/apt/sources.list.d
+  when:
+    - remove_sources_lists | bool
+
+- name: Create /etc/apt/sources.list.d
+  file:
+    path: "{{ ansible_root | default('') }}/etc/apt/sources.list.d"
+    state: directory
+  when:
+    - install_sources_list | bool
+
+- name: Install apt package sources.list
+  copy:
+    src: "{{ file }}"
+    dest: "{{ ansible_root | default('') }}/etc/apt/sources.list"
+  loop: "{{ SOURCES_LIST_FILES }}"
+  when:
+    - install_sources_list | bool
+    - file is defined
+
+- name: Install apt package source lists
+  copy:
+    src: "{{ DIR_SOURCES_LISTS }}/{{ item }}"
+    dest: "/etc/apt/sources.list.d/{{ item }}"
+  loop: "{{ SOURCES_LIST_FILES }}"
+  when:
+    SOURCES_LIST_FILES is defined
+

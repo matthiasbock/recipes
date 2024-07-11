@@ -1,0 +1,20 @@
+---
+# Initial image to derive from
+BASE_IMAGE: docker.io/debian:bookworm-slim
+
+# Into the base image a minimal set of packages is installed
+# to allow for the use of ansible modules
+DIR_ASSETS: ../../lib/assets
+
+# TODO:
+# BOOTSTRAP_PACKAGE_LIST: "{{ DIR_ASSETS }}/apt/package-bundles/debian-essentials.list"
+# INITIAL_PACKAGE_LIST: "{{ DIR_ASSETS }}/apt/package-bundles/console-tools.list"
+INITIAL_SOURCES_LIST: "{{ DIR_ASSETS }}/apt/sources.list.d/bookworm.list"
+
+REMOTE_BUILD_DIR: /tmp
+
+# The tag name of the augmented base image
+INITIAL_IMAGE_NAME: debian:bookworm
+
+# From the initial image a container is instantiated
+CONTAINER_NAME: debian

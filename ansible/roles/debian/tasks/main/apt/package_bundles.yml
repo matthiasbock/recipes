@@ -1,0 +1,10 @@
+---
+- name: Install package bundles
+  apt:
+    name: "{{ lookup('file', DIR_PACKAGE_BUNDLES + '/' + item).splitlines() }}"
+    state: present
+    update_cache: true
+  loop: "{{ PACKAGE_BUNDLE_FILES }}"
+  ignore_errors: true
+  when:
+    - install_package_bundles | bool

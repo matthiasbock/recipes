@@ -1,0 +1,7 @@
+---
+# A non-root user to create in the container
+USER_NAME: www-data
+USER_ID: 33
+GROUP_NAME: www-data
+GROUP_ID: 33
+USER_SHELL: /bin/bash

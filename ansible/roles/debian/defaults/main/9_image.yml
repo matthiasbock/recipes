@@ -1,0 +1,5 @@
+---
+IMAGE_ENTRYPOINT: ["/bin/bash", "-lc"]
+IMAGE_CMD: ["/bin/bash"]
+IMAGE_NAME: debian:custom
+IMAGE_REPO: registry.bihealth.org:443/bockm/recipes

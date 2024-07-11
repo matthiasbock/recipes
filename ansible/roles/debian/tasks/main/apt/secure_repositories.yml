@@ -1,0 +1,25 @@
+---
+- name: Install packages needed for SSL
+  apt:
+    name:
+      - ca-certificates
+      - apt-transport-https
+    state: present
+    update_cache: true
+  ignore_errors: true
+  when:
+    - secure_apt_repositories | bool
+
+- name: Create /etc/apt/apt.conf.d
+  file:
+    name: "{{ ansible_root | default('') }}/etc/apt/apt.conf.d"
+    state: directory
+  when:
+    - secure_apt_repositories | bool
+
+- name: Configure secure package download
+  template:
+    src: apt.conf.d/99secure.j2
+    dest: "{{ ansible_root | default('') }}/etc/apt/apt.conf.d/99secure"
+  when:
+    - secure_apt_repositories | bool

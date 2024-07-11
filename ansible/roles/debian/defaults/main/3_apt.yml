@@ -1,0 +1,29 @@
+---
+# Replace apt sources.list files
+DIR_SOURCES_LISTS: "{{ DIR_ASSETS }}/apt/sources.list.d"
+SOURCES_LIST_FILES:
+  - bookworm.list
+
+# Append apt config files
+DIR_APT_CONF: "{{ DIR_ASSETS }}/apt/apt.conf.d"
+APT_CONF_FILES:
+  - proxy.conf
+  - suggestions.conf
+
+# Define trusted apt keys
+DIR_APT_KEYS: "{{ DIR_ASSETS }}/apt/keys" #/etc/apt/trusted.gpg.d
+APT_KEY_FILES:
+  - armbian.asc
+  - blivet-gui.asc
+  - jitsi.asc
+  - microsoft.asc
+  - openproject.asc
+  - signal-messenger.asc
+  - wire-messenger.asc
+  - zoom.asc
+
+# Install additional packages in the container
+DIR_PACKAGE_BUNDLES: "{{ DIR_ASSETS }}/apt/package-bundles"
+PACKAGE_BUNDLE_FILES:
+  - debian-essentials.list
+  - console-tools.list

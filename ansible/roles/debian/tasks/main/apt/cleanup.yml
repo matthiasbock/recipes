@@ -1,0 +1,9 @@
+---
+- name: Clean up apt cache
+  shell:
+    cmd: |
+      rm -vfr --preserve-root \
+        "{{ DEBIAN_ROOT }}/var/lib/apt/lists/*" \
+        "{{ DEBIAN_ROOT }}/var/cache/apt/archives/*"
+  when:
+    - cleanup_apt_cache | bool

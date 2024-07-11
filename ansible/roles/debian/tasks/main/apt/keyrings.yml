@@ -1,0 +1,38 @@
+---
+- name: Install Debian keyring
+  apt:
+    name:
+      - debian-keyring
+      - gnupg
+    state: present
+    update_cache: true
+  ignore_errors: true
+  when:
+    - install_keyrings | bool
+
+#
+# Note:
+# This is a separate task, because the listed
+# packages may or may not be available depending on
+# which release i.e. package sources are configured.
+#
+- name: Install additional keyrings
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: true
+  ignore_errors: true
+  loop:
+    - debian-archive-keyring
+    - debian-ports-archive-keyring
+    - fasttrack-archive-keyring
+    - emdebian-archive-keyring
+    - debian-edu-archive-keyring
+    - neurodebian-archive-keyring
+    - ubuntu-keyring
+    - ubuntu-archive-keyring
+    - ubuntu-cloud-keyring
+    - ubuntu-dbgsym-keyring
+    - jitsi-archive-keyring
+  when:
+    - install_keyrings | bool

@@ -1,0 +1,7 @@
+---
+- name: Install trusted apt keys
+  apt_key:
+    content: "{{ item }}"
+  with_files: "{{ APT_KEY_FILES }}"
+  when:
+    - install_apt_keys | bool

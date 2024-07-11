@@ -1,0 +1,37 @@
+---
+#
+# Configure the APT package manager
+#
+- name: Remove any sources.list files
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/apt/sources.list
+    - /etc/apt/sources.list.d
+  when:
+    - remove_sources_lists | bool
+
+- name: Recreate apt configuration directories
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - /etc/apt/apt.conf.d
+    - /etc/apt/sources.list.d
+    - /etc/apt/trusted.gpg.d
+
+- name: Copy sources.list files
+  copy:
+    src: "{{ DIR_SOURCES_LISTS }}/{{ item }}"
+    dest: "/etc/apt/sources.list.d/{{ item }}"
+  loop: "{{ SOURCES_LIST_FILES }}"
+  when: SOURCES_LIST_FILES is defined
+
+- name: Copy apt configuration files
+  copy:
+    src: "{{ DIR_APT_CONF }}/{{ item }}"
+    dest: "/etc/apt/apt.conf.d/{{ item }}"
+  loop: "{{ APT_CONF_FILES }}"
+  when: APT_CONF_FILES is defined
+
