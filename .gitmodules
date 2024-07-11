@@ -1,7 +1,7 @@
 
 [submodule "lib/bash"]
 	path = lib/bash
-	url = ssh://git@git.bihealth.org:2022/bockm/bash-container-library.git
+	url = ssh://git@git.bihealth.org:2022/matthiasbock/bash-library.git
 
 [submodule "lib/assets/apt"]
 	path = lib/assets/apt
@@ -14,3 +14,15 @@
 [submodule "lib/assets/widevine"]
 	path = lib/assets/widevine
 	url = git@github.com:proprietary/chromium-widevine.git
+
+[submodule "lib/ansible/debian"]
+	path = lib/ansible/debian
+	url = git@github.com:/liv-io/ansible-roles-debian.git
+
+[submodule "lib/ansible/debootstrap"]
+	path = lib/ansible/debootstrap
+	url = git@github.com:/nilsmeyer/ansible-debootstrap.git
+
+[submodule "lib/ansible/debian-bootstrap"]
+	path = lib/ansible/debian-bootstrap
+	url = git@github.com:/HanXHX/ansible-debian-bootstrap.git
