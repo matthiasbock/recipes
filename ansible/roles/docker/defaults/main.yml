@@ -9,7 +9,7 @@ start_ssh_tunnel: false
 stop_ssh_tunnel: false
 
 DOCKER_SOCK_REMOTE: "/var/run/docker.sock"
-DOCKER_SOCK_LOCAL: "/tmp/debian_container.docker.sock"
+DOCKER_SOCK_LOCAL: "/tmp/{{ ansible_host }}_docker.sock"
 DOCKER_HOST: "unix://{{ DOCKER_SOCK_LOCAL }}"
 DOCKER_SOCK_TIMEOUT: 300
 

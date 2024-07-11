@@ -1,11 +1,17 @@
 ---
+#
+# Operations on a Docker image
+#
+# Switches:
+# * remove_image
+#
 # TODO: commit, push
-
+#
 - name: Remove Docker image
   docker_image:
     name: "{{ IMAGE_NAME }}"
     state: absent
   when:
-    # - IMAGE_NAME is defined
+    - IMAGE_NAME is defined
     - remove_image | bool
 

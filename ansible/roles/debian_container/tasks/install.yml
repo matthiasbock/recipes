@@ -1,9 +1,23 @@
 ---
+#
+# Operations on a Debian system
+#
+# Switches:
+# * create_user
+# * create_group
+# * enable_ssl
+# * install_keyrings
+# * remove_apt_configuration
+# * remove_sources_lists
+# * install_sources_lists
+# * install_apt_keys
+#
 - name: Configure group
   group:
     name: "{{ GROUP_NAME }}"
     gid: "{{ GROUP_ID | default(omit) }}"
-  when: GROUP_NAME is defined
+  when:
+    - create_group | bool
 
 - name: Configure user
   user:
@@ -11,18 +25,40 @@
     group: "{{ GROUP_NAME | default(omit) }}"
     uid: "{{ USER_ID | default(omit) }}"
     shell: "{{ USER_SHELL | default(omit) }}"
-  when: USER_NAME is defined
+  when:
+    - create_user | bool
 
-- name: Install packages required for secure package download
+- name: Install packages needed for SSL
   apt:
     name:
       - ca-certificates
       - apt-transport-https
+    state: present
+    update_cache: yes
+  ignore_errors: true
+  when:
+    - enable_ssl | bool
+
+- name: Install Debian keyring
+  apt:
+    name:
       - debian-keyring
       - gnupg
     state: present
     update_cache: yes
   ignore_errors: true
+  when:
+    - install_keyrings | bool
+
+- name: Remove any sources.list files
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/apt/sources.list
+    - /etc/apt/sources.list.d
+  when:
+    - remove_sources_lists | bool
 
 - name: Remove apt configuration
   file:
@@ -33,6 +69,8 @@
     - /etc/apt/sources.list
     - /etc/apt/sources.list.d
     - /etc/apt/trusted.gpg.d
+  when:
+    - remove_sources_lists
 
 - name: Recreate apt configuration directories
   file:
@@ -57,12 +95,13 @@
   loop: "{{ APT_CONF_FILES }}"
   when: APT_CONF_FILES is defined
 
-- name: Copy GPG public keys
+- name:   Copy GPG public keys
   copy:
     src: "{{ DIR_APT_KEYS }}/{{ item }}"
     dest: "/etc/apt/trusted.gpg.d/{{ item }}"
   loop: "{{ APT_KEY_FILES }}"
-  when: APT_KEY_FILES is defined
+  when:
+    - install_apt_keys | bool
 
 - name: Install additional useful packages
   apt:
@@ -81,6 +120,8 @@
     state: present
     update_cache: yes
   ignore_errors: true
+  when:
+    - install_keyrings | bool
 
 - name: Install packages from bundle files
   apt:
@@ -88,8 +129,9 @@
     state: present
     update_cache: yes
   loop: "{{ PACKAGE_BUNDLE_FILES }}"
-  when: PACKAGE_BUNDLE_FILES is defined
   ignore_errors: true
+  when:
+    - install_package_bundles | bool
 
 - name: Clean up the container
   shell:
@@ -97,4 +139,5 @@
       apt-get clean
       rm -rf /var/lib/apt/lists/*
       rm -fr /var/cache/apt/archives/*
-
+  when:
+    - remove_temporary_files | bool

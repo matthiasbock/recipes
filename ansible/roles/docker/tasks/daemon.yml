@@ -1,4 +1,12 @@
 ---
+#
+# Operations on the Docker daemon
+#
+# Switches:
+# * install
+# * start
+# * stop
+#
 - name: Ensure Docker is installed
   package:
     name: docker
@@ -16,4 +24,3 @@
     name: docker
     state: stopped
   when: stop | bool
-

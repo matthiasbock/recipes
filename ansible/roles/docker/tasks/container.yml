@@ -1,4 +1,12 @@
 ---
+#
+# Operations on a Docker container
+#
+# Switches:
+# * start_container
+# * stop_container
+# * remove_container
+#
 - name: Start Docker container
   docker_container:
     name: "{{ CONTAINER_NAME }}"
