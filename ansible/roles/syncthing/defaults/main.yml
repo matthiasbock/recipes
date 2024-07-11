@@ -9,6 +9,7 @@ stop: false
 
 SYNCTHING_BASE_IMAGE: docker.io/syncthing/syncthing:1.27
 SYNCTHING_CONTAINER_NAME: syncthing
+SYNCTHING_CONTAINER_HOSTNAME: "{{ ansible_host | default('syncthing') }}"
 SYNCTHING_CONTAINER_IP: 172.18.9.2
 SYNCTHING_CONTAINER_SUBNET: 172.18.9.0/30
 # SYNCTHING_CONTAINER_IP_RANGE: 172.17.9.0/30
@@ -21,16 +22,21 @@ SYNCTHING_CONTAINER_PORTS:
 
 SYNCTHING_ROOT: /var/syncthing
 
+SYNCTHING_PROMETHEUS_FILE: /var/lib/prometheus/node-exporter/syncthing_health.prom
+SYNCTHING_PROMETHEUS_METRIC: syncthing_health_status
+
 SYNCTHING_CONTAINER_VOLUMES:
   - "{{ SYNCTHING_ROOT }}:/var/syncthing:rw"
   - /etc/letsencrypt/live/{{ ansible_host }}/privkey.pem:/var/syncthing/config/https-key.pem:ro
   - /etc/letsencrypt/live/{{ ansible_host }}/fullchain.pem:/var/syncthing/config/https-cert.pem:ro
+  - "{{ SYNCTHING_PROMETHEUS_FILE }}:{{ SYNCTHING_PROMETHEUS_FILE }}"
 
 SYNCTHING_CONTAINER_ADDITIONAL_VOLUMES: []
 
 SYNCTHING_CONTAINER_NETWORKS: []
 SYNCTHING_NETWORK_NAME: syncthing_network
 SYNCTHING_BRIDGE_NAME: br_syncthing
+
 
 SYNCTHING_USER: www-data
 SYNCTHING_GROUP: www-data

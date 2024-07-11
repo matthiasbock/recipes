@@ -17,11 +17,14 @@
     - container | bool
 
 
-- name: Setting Syncthing's runtime user and group IDs
+- name: Compile Syncthing container environment
   set_fact:
     SYNCTHING_CONTAINER_ENV:
+      CONTAINER_NAME: "{{ SYNCTHING_CONTAINER_NAME }}"
       PUID: "{{ syncthing_user.stdout }}"
       PGID: "{{ syncthing_group.stdout }}"
+      PROMETHEUS_FILE: "{{ SYNCTHING_PROMETHEUS_FILE }}"
+      PROMETHEUS_METRIC: "{{ SYNCTHING_PROMETHEUS_METRIC }}"
   changed_when: false
   when:
     - install | bool
@@ -45,15 +48,26 @@
     - network | bool
 
 
-- name: Select Syncthing container network
+- name: Compile Syncthing container networks setting
   set_fact:
     SYNCTHING_CONTAINER_NETWORKS:
       - name: "{{ SYNCTHING_NETWORK_NAME }}"
         ipv4_address: "{{ SYNCTHING_CONTAINER_IP }}"
+  changed_when: false
   when:
     - install | bool
     - container | bool
     - network | bool
+
+
+# TODO:
+# template: Dockerfile.j2 /tmp
+# copy healthcheck.sh /tmp
+
+
+# - name: Build Syncthing container with healthcheck
+# name: syncthing/custom
+# build_dir: /tmp
 
 
 - name: Create Syncthing container
@@ -62,6 +76,8 @@
     image: "{{ SYNCTHING_BASE_IMAGE }}"
     env: "{{ SYNCTHING_CONTAINER_ENV }}"
     volumes: "{{ SYNCTHING_CONTAINER_VOLUMES + SYNCTHING_CONTAINER_ADDITIONAL_VOLUMES }}"
+    restart_policy: unless-stopped
+    restart_retries: 20
 
     # Limit capabilities
     # capabilities:
@@ -71,6 +87,7 @@
     #   - all
 
     networks: "{{ SYNCTHING_CONTAINER_NETWORKS }}"
+    ports: "{{ SYNCTHING_CONTAINER_PORTS }}"
 
     # healthcheck:
     #   # Check if nginx server is healthy by curl'ing the server.
@@ -82,6 +99,7 @@
     #   start_period: 30s
     #   start_interval: 10s
 
+    log-driver: journald
     state: present
   when:
     - install | bool
