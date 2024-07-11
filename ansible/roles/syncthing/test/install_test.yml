@@ -25,14 +25,17 @@
           fgrep 'Active:' |
           sed -Ee 's/^[^\(]*\(([^\)]+)\).*$/\1/g'
       register: docker_service_status
+      changed_when: false
 
     - name: Get Docker service status
       set_fact:
         STATE_DOCKER: "{{ 'started' if docker_service_status.stdout == 'running' else 'stopped' }}"
+      changed_when: false
 
     - name: Print Docker service status
       debug:
         msg: "Docker service is currently: {{ STATE_DOCKER }}"
+      changed_when: false
 
     - name: Start Docker service
       service:
