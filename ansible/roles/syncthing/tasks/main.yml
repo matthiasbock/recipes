@@ -22,6 +22,7 @@
     SYNCTHING_CONTAINER_ENV:
       PUID: "{{ syncthing_user.stdout }}"
       PGID: "{{ syncthing_group.stdout }}"
+  changed_when: false
   when:
     - install | bool
     - container | bool
@@ -106,3 +107,29 @@
     - start | bool
     - container | bool
 
+
+- name: Stop Syncthing container
+  docker_container:
+    name: "{{ SYNCTHING_CONTAINER_NAME }}"
+    state: stopped
+  when:
+    - stop | bool
+    - container | bool
+
+
+- name: Remove Syncthing container
+  docker_container:
+    name: "{{ SYNCTHING_CONTAINER_NAME }}"
+    state: absent
+  when:
+    - uninstall | bool
+    - container | bool
+
+
+- name: Remove Syncthing network
+  docker_network:
+    name: "{{ SYNCTHING_NETWORK_NAME }}"
+    state: absent
+  when:
+    - uninstall | bool
+    - network | bool

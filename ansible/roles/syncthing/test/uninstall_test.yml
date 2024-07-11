@@ -1,0 +1,73 @@
+---
+- name: Test Syncthing container creation
+  hosts: all
+
+  pre_tasks:
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+
+    # FIXME: Doesn't work:
+
+    # - name: Get Docker service status
+    #   service_facts:
+
+    # - name: Get Docker service status
+    #   set_fact:
+    #     STATE_DOCKER: "{{ ansible_facts.services['docker.service'].status }}"
+
+    - name: Get Docker service status
+      shell:
+        cmd: |
+          systemctl status docker.service |
+          head -n10 |
+          fgrep 'Active:' |
+          sed -Ee 's/^[^\(]*\(([^\)]+)\).*$/\1/g'
+      register: docker_service_status
+      changed_when: false
+
+    - name: Get Docker service status
+      set_fact:
+        STATE_DOCKER: "{{ 'started' if docker_service_status.stdout == 'running' else 'stopped' }}"
+      changed_when: false
+
+    - name: Print Docker service status
+      debug:
+        msg: "Docker service is currently: {{ STATE_DOCKER }}"
+      changed_when: false
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+
+  roles:
+    - name: Uninstall Syncthing container
+      role: syncthing
+      vars:
+        uninstall: true
+        container: true
+        network: true
+
+  post_tasks:
+    - name: List containers
+      command: 'docker container ls -a --format \"\{\{.Names\}\}\"'
+      register: containers
+      changed_when: false
+
+    - name: List containers
+      debug:
+        msg: "{{ containers.stdout.splitlines() }}"
+
+    - name: Check if container exists
+      assert:
+        that: "{{ SYNCTHING_CONTAINER_NAME not in containers.stdout }}"
+        fail_msg: "Container still present after removal: {{ SYNCTHING_CONTAINER_NAME }}"
+      ignore_errors: true
+
+    - name: Restore previous Docker service state
+      service:
+        name: docker
+        state: "{{ STATE_DOCKER }}"
+

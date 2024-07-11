@@ -52,6 +52,21 @@
         start: true
 
   post_tasks:
+    - name: List containers
+      command: 'docker container ls -a --format \"\{\{.Names\}\}\"'
+      register: containers
+      changed_when: false
+
+    - name: List containers
+      debug:
+        msg: "{{ containers.stdout.splitlines() }}"
+
+    - name: Check if container exists
+      assert:
+        that: "{{ SYNCTHING_CONTAINER_NAME in containers.stdout }}"
+        fail_msg: "Container not present after install: {{ SYNCTHING_CONTAINER_NAME }}"
+      ignore_errors: true
+
     - name: Restore previous Docker service state
       service:
         name: docker
