@@ -1,0 +1,33 @@
+---
+- name: Load ethernet address files
+  shell:
+    cmd: |
+      ETC_ETHERS="{{ ETC_ETHERS | default('/etc/ethers') }}"
+      if [ ! -e "$ETC_ETHERS" ]; then
+        echo File not found: "$ETC_ETHERS" >&2
+        exit 100
+      fi
+      grep -iE '^([a-f0-9]{2}[: \t]){6}\s*[a-z0-9_\t \.\-]+' "$ETC_ETHERS"
+      RETVAL=$?
+      # "No match" is not an error:
+      [[ $RETVAL == 1 ]] && exit 0
+      exit $RETVAL
+  register: ethers
+  when:
+    - load_ethers | bool
+  changed_when: false
+
+- name: "Setting fact: ETHERS"
+  set_fact:
+    ETHERS: "{{ ethers.stdout.splitlines() }}"
+  when:
+    - load_ethers | bool
+  changed_when: false
+
+- name: Print loaded ethernet addresses
+  debug:
+    msg: "{{ ETHERS }}"
+  when:
+    - load_ethers | bool
+    - debug | bool
+  changed_when: false
