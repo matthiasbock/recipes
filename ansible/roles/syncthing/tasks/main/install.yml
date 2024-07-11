@@ -1,0 +1,80 @@
+---
+- name: Get user ID
+  command: "id -u {{ SYNCTHING_USER }}"
+  register: syncthing_user
+  when:
+    - install | bool
+    - container | bool
+
+- name: Get group ID
+  command: "id -g {{ SYNCTHING_GROUP }}"
+  register: syncthing_group
+  when:
+    - install | bool
+    - container | bool
+
+- name: Setting Syncthing's runtime user and group IDs
+  set_fact:
+    SYNCTHING_CONTAINER_ENV:
+      PUID: "{{ syncthing_user.stdout }}"
+      PGID: "{{ syncthing_group.stdout }}"
+  when:
+    - install | bool
+    - container | bool
+
+- name: Set up Docker network for Syncthing
+  docker_network:
+    name: "{{ SYNCTHING_NETWORK_NAME }}"
+    driver: bridge
+    driver_options:
+      com.docker.network.bridge.name: "{{ SYNCTHING_BRIDGE_NAME }}"
+    ipam_config:
+      - subnet: "{{ SYNCTHING_CONTAINER_SUBNET }}"
+      # - iprange: "{{ SYNCTHING_CONTAINER_IP_RANGE }}"
+    enable_ipv6: false
+    internal: true
+  when:
+    - install | bool
+    - network | bool
+
+- name: Create Syncthing container
+  docker_container:
+    name: "{{ SYNCTHING_CONTAINER_NAME }}"
+    image: "{{ SYNCTHING_BASE_IMAGE }}"
+    env: "{{ SYNCTHING_CONTAINER_ENV }}"
+    volumes: "{{ SYNCTHING_CONTAINER_VOLUMES + SYNCTHING_CONTAINER_ADDITIONAL_VOLUMES }}"
+
+    # Limit capabilities
+    # capabilities:
+    #   - chown
+    #   - net-broadcast
+    # cap_drop:
+    #   - all
+
+    networks:
+      - name: "{{ SYNCTHING_NETWORK_NAME }}"
+        ipv4_address: "{{ SYNCTHING_CONTAINER_IP }}"
+
+    # healthcheck:
+    #   # Check if nginx server is healthy by curl'ing the server.
+    #   # If this fails or timeouts, the healthcheck fails.
+    #   test: ["CMD", "curl", "--fail", "http://nginx.host.com"]
+    #   interval: 1m30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 30s
+    #   start_interval: 10s
+
+    state: present
+  when:
+    - install | bool
+    - container | bool
+
+- name: Remove all but selected containers from Syncthing network
+  docker_network:
+    name: "{{ SYNCTHING_NETWORK_NAME }}"
+    connected:
+      - "{{ SYNCTHING_CONTAINER_NAME }}"
+  when:
+    - install | bool
+    - network | bool

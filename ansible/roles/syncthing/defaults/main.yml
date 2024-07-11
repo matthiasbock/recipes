@@ -1,0 +1,35 @@
+---
+network: false
+container: false
+
+install: false
+uninstall: false
+start: false
+stop: false
+
+SYNCTHING_BASE_IMAGE: docker.io/syncthing/syncthing:1.27
+SYNCTHING_CONTAINER_NAME: syncthing
+SYNCTHING_CONTAINER_IP: 172.18.9.2
+SYNCTHING_CONTAINER_SUBNET: 172.18.9.0/30
+# SYNCTHING_CONTAINER_IP_RANGE: 172.17.9.0/30
+
+SYNCTHING_CONTAINER_PORTS:
+  - 8384:8384/tcp
+  - 22000:22000/tcp
+  - 22000:22000/udp
+  - 21027:21027/udp
+
+SYNCTHING_ROOT: /var/syncthing
+
+SYNCTHING_CONTAINER_VOLUMES:
+  - "{{ SYNCTHING_ROOT }}:/var/syncthing:rw"
+  - /etc/letsencrypt/live/{{ ansible_host }}/privkey.pem:/var/syncthing/config/https-key.pem:ro
+  - /etc/letsencrypt/live/{{ ansible_host }}/fullchain.pem:/var/syncthing/config/https-cert.pem:ro
+
+SYNCTHING_CONTAINER_ADDITIONAL_VOLUMES: []
+
+SYNCTHING_NETWORK_NAME: syncthing_network
+SYNCTHING_BRIDGE_NAME: br_syncthing
+
+SYNCTHING_USER: www-data
+SYNCTHING_GROUP: www-data

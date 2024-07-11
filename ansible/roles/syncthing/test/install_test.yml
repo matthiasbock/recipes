@@ -1,0 +1,56 @@
+---
+- name: Test Syncthing container creation
+  hosts: all
+
+  pre_tasks:
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+
+    # FIXME: Doesn't work:
+
+    # - name: Get Docker service status
+    #   service_facts:
+
+    # - name: Get Docker service status
+    #   set_fact:
+    #     STATE_DOCKER: "{{ ansible_facts.services['docker.service'].status }}"
+
+    - name: Get Docker service status
+      shell:
+        cmd: |
+          systemctl status docker.service |
+          head -n10 |
+          fgrep 'Active:' |
+          sed -Ee 's/^[^\(]*\(([^\)]+)\).*$/\1/g'
+      register: docker_service_status
+
+    - name: Get Docker service status
+      set_fact:
+        STATE_DOCKER: "{{ 'started' if docker_service_status.stdout == 'running' else 'stopped' }}"
+
+    - name: Print Docker service status
+      debug:
+        msg: "Docker service is currently: {{ STATE_DOCKER }}"
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+
+  roles:
+    - name: Create and start Syncthing container
+      role: syncthing
+      vars:
+        container: true
+        network: true
+        install: true
+        start: true
+
+  post_tasks:
+    - name: Restore previous Docker service state
+      service:
+        name: docker
+        state: "{{ STATE_DOCKER }}"
+
