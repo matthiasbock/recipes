@@ -1,0 +1,22 @@
+---
+- name: Read current crypttab content
+  slurp:
+    src: /etc/crypttab
+  register: crypttab_content
+
+- name: Parse crypttab content
+  set_fact:
+    crypttab_lines: "{{ crypttab_content.content | b64decode | splitlines }}"
+
+- name: Comment out existing entries for the LUKS partition
+  lineinfile:
+    path: /etc/crypttab
+    regexp: '^([^#]({{ partition.luks.name }}|UUID={{ partition_uuid.stdout }}\s+)).*$'
+    backrefs: yes
+    line: '# \1  # Commented out by Ansible'
+
+- name: Add new crypttab entry for the LUKS partition
+  lineinfile:
+    path: /etc/crypttab
+    line: "{{ partition.luks_name }} UUID={{ partition_uuid.stdout }} none luks,keyring={{ luks_keyring }}"
+    insertafter: '^# \1  # Commented out by Ansible'

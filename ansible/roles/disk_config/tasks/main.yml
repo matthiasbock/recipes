@@ -1,11 +1,19 @@
 ---
-- name: Ensure base required packages are installed
+# roles/disk_config/tasks/main.yml
+
+- name: Ensure required packages are installed
   apt:
     name:
       - parted
       - e2fsprogs
       - lvm2
       - cryptsetup
+      - keepassxc
+      - python3-pykeepass
+      - grub-pc
+      - grub-efi-amd64
+      - linux-image-generic
+      - linux-headers-generic
     state: present
 
 - name: Install filesystem-specific packages
@@ -23,3 +31,198 @@
   loop: "{{ disks }}"
   loop_control:
     loop_var: disk
+
+# roles/disk_config/tasks/configure_disk.yml
+
+- name: Check if disk has existing partitions
+  command: "blkid -p /dev/{{ disk.id | regex_replace('^.*-', '') }}"
+  register: blkid_result
+  changed_when: false
+  failed_when: false
+
+- name: Fail if disk has existing partitions and force is not set
+  fail:
+    msg: "Disk /dev/{{ disk.id | regex_replace('^.*-', '') }} has existing partitions. Set 'force: true' to overwrite."
+  when:
+    - blkid_result.rc == 0
+    - not disk.force | default(false)
+
+- name: Create partition table
+  community.general.parted:
+    device: "/dev/{{ disk.id | regex_replace('^.*-', '') }}"
+    label: "{{ disk.type }}"
+  when:
+    - disk.type in ['gpt', 'msdos']
+    - blkid_result.rc != 0 or disk.force | default(false)
+
+- name: Configure partitions
+  include_tasks: configure_partition.yml
+  loop: "{{ disk.partitions }}"
+  loop_control:
+    loop_var: partition
+
+- name: Install MBR bootloader
+  command: "dd if=/usr/lib/syslinux/mbr/mbr.bin of=/dev/{{ disk.id | regex_replace('^.*-', '') }} bs=440 count=1"
+  when: disk.type == 'msdos' and disk.install_mbr_bootloader | default(false)
+
+- name: Install GRUB
+  include_tasks: install_grub.yml
+  when: disk.install_grub | default(false)
+
+# roles/disk_config/tasks/configure_partition.yml
+
+- name: Create partition
+  community.general.parted:
+    device: "/dev/{{ disk.id | regex_replace('^.*-', '') }}"
+    number: "{{ partition.number }}"
+    state: present
+    part_end: "{{ partition.size | default('100%') }}"
+    flags: "{{ ['boot'] if partition.bootable | default(false) else omit }}"
+  when: blkid_result.rc != 0 or disk.force | default(false)
+  register: partition_created
+
+- name: Set up LUKS encryption
+  block:
+    - name: Generate LUKS password if not provided
+      command: openssl rand -base64 32
+      register: generated_password
+      when: not partition.luks.passphrase | default(false)
+
+    - name: Store password in KeePassXC
+      community.general.keepass:
+        database: "{{ keepassxc_db_path }}"
+        keyfile: "{{ keepassxc_keyfile }}"
+        password: "{{ keepassxc_master_password }}"
+        state: present
+        entry: "/LUKS/{{ disk.id }}_partition_{{ partition.number }}"
+        username: "luks"
+        password: "{{ generated_password.stdout }}"
+      when: not partition.luks.passphrase | default(false)
+
+    - name: Retrieve LUKS password from KeePassXC
+      community.general.keepass:
+        database: "{{ keepassxc_db_path }}"
+        keyfile: "{{ keepassxc_keyfile }}"
+        password: "{{ keepassxc_master_password }}"
+        state: present
+        entry: "/LUKS/{{ disk.id }}_partition_{{ partition.number }}"
+      register: keepass_entry
+
+    - name: Set up LUKS encryption
+      community.crypto.luks_device:
+        device: "/dev/{{ disk.id | regex_replace('^.*-', '') }}{{ partition.number }}"
+        state: present
+        passphrase: "{{ partition.luks.passphrase | default(keepass_entry.password) }}"
+        keyring: "{{ luks_keyring }}"
+
+    - name: Open LUKS partition
+      community.crypto.luks_device:
+        device: "/dev/{{ disk.id | regex_replace('^.*-', '') }}{{ partition.number }}"
+        state: opened
+        name: "{{ partition.luks.name }}"
+        passphrase: "{{ partition.luks.passphrase | default(keepass_entry.password) }}"
+        keyring: "{{ luks_keyring }}"
+
+    - name: Update crypttab
+      include_tasks: update_crypttab.yml
+
+  when: partition.luks is defined
+
+- name: Create Physical Volume
+  community.general.lvg:
+    vg: "{{ partition.vg }}"
+    pvs: "{{ '/dev/mapper/' + partition.luks.name if partition.luks is defined else '/dev/' + disk.id | regex_replace('^.*-', '') + partition.number }}"
+  when: partition.type == 'lvm'
+
+- name: Create Volume Group
+  community.general.lvg:
+    vg: "{{ partition.vg }}"
+    pvs: "{{ '/dev/mapper/' + partition.luks.name if partition.luks is defined else '/dev/' + disk.id | regex_replace('^.*-', '') + partition.number }}"
+    pesize: "{{ partition.pesize | default('4') }}"
+  when: partition.type == 'lvm'
+
+- name: Create Logical Volume
+  community.general.lvol:
+    vg: "{{ partition.vg }}"
+    lv: "{{ item.name }}"
+    size: "{{ item.size }}"
+  loop: "{{ partition.volumes }}"
+  when: partition.type == 'lvm'
+
+- name: Format partition or logical volume
+  community.general.filesystem:
+    fstype: "{{ partition.type if partition.type != 'lvm' else item.type }}"
+    dev: "{{ '/dev/mapper/' + partition.luks.name if partition.luks is defined else '/dev/' + disk.id | regex_replace('^.*-', '') + partition.number if partition.type != 'lvm' else '/dev/' + partition.vg + '/' + item.name }}"
+    opts: "{{ '-L ' + item.label if item.label is defined else omit }}"
+  loop: "{{ [partition] if partition.type != 'lvm' else partition.volumes }}"
+  when: blkid_result.rc != 0 or disk.force | default(false)
+  register: format_result
+
+- name: Get partition UUID
+  command: blkid -s UUID -o value /dev/{{ disk.id | regex_replace('^.*-', '') }}{{ partition.number }}
+  register: partition_uuid
+  when: format_result.changed
+
+- name: Get partition information
+  community.general.parted:
+    device: "/dev/{{ disk.id | regex_replace('^.*-', '') }}"
+    number: "{{ partition.number }}"
+    state: info
+  register: partition_info
+  when: format_result.changed
+
+- name: Update fstab
+  include_tasks: update_fstab.yml
+  when: format_result.changed
+
+- name: Mount partition or logical volume
+  mount:
+    path: "{{ partition.mount.path if partition.type != 'lvm' else item.mount.path }}"
+    src: "UUID={{ partition_uuid.stdout }}"
+    fstype: "{{ partition.type if partition.type != 'lvm' else item.type }}"
+    opts: "{{ partition.mount.options if partition.type != 'lvm' else item.mount.options }}"
+    state: "{{ partition.state if partition.type != 'lvm' else item.state }}"
+  loop: "{{ [partition] if partition.type != 'lvm' else partition.volumes }}"
+  when: (partition.state | default('') == 'mounted') or (item.state | default('') == 'mounted')
+
+- name: Reload systemd
+  systemd:
+    daemon_reload: true
+  when: format_result.changed
+
+# roles/disk_config/tasks/install_grub.yml
+
+- name: Identify boot partition
+  set_fact:
+    boot_partition: "{{ disk.partitions | selectattr('bootable', 'defined') | selectattr('bootable') | first }}"
+
+- name: Install GRUB package
+  apt:
+    name: "grub-{{ grub_version }}"
+    state: present
+
+- name: Install GRUB to disk
+  command: "grub-install --boot-directory={{ boot_partition.mount.path }} /dev/{{ disk.id | regex_replace('^.*-', '') }}"
+  changed_when: true
+
+- name: Generate GRUB configuration
+  command: "grub-mkconfig -o {{ boot_partition.mount.path }}/grub/grub.cfg"
+  changed_when: true
+
+- name: Install kernel and initramfs
+  apt:
+    name:
+      - linux-image-generic
+      - linux-headers-generic
+    state: present
+
+- name: Copy kernel and initramfs to boot partition
+  copy:
+    src: "/boot/{{ item }}"
+    dest: "{{ boot_partition.mount.path }}/{{ item }}"
+    remote_src: true
+  loop:
+    - "vmlinuz-{{ ansible_kernel }}"
+    - "initrd.img-{{ ansible_kernel }}"
+
+# Other task files (update_fstab.yml, update_crypttab.yml) remain the same as in the previous version

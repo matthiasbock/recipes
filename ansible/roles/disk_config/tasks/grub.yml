@@ -1,0 +1,6 @@
+---
+- name: Install GRUB
+  include_tasks: install_grub.yml
+  when: disk.install_grub | default(false)
+
+

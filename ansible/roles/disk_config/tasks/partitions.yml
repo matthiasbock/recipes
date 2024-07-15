@@ -1,0 +1,10 @@
+---
+- name: Create partition
+  community.general.parted:
+    device: "/dev/{{ disk.id | regex_replace('^.*-', '') }}"
+    number: "{{ partition.number }}"
+    state: present
+    part_end: "{{ partition.size | default('100%') }}"
+    flags: "{{ ['boot'] if partition.bootable | default(false) else omit }}"
+  when: blkid_result.rc != 0 or disk.force | default(false)
+  register: partition_created

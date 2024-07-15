@@ -1,54 +1,96 @@
 ---
-disks:
-  - id: ata-Samsung_SSD_850_EVO_1TB_S2RXNX0XA12345X
-    type: gpt
-    partitions:
-      - number: 1
-        uuid: 3fd93f1e-6dca-425a-a10d-334480503ec4
-        type: ext4
-        label: root
-        state: mounted
-        mount:
-          path: /
-          options: rw,exec,dev,auto
+drives:
+  - path: pci-0000:00:1f.2-ata-2
+    type: bluray disk writer
 
-      - number: 2
-        type: lvm
-        luks_encrypted: true
-        luks_name: cryptlvm
-        luks_passphrase: "{{ vault_luks_passphrase }}"
-        vg: vg_data
-        volumes:
-          - name: lv_home
-            size: 100G
-            type: xfs
-            label: home
-            state: mounted
-            mount:
-              path: /home
-              options: rw,noatime
-          - name: lv_var
-            size: 50G
-            type: ext4
-            label: var
-            state: mounted
-            mount:
-              path: /var
-              options: rw,noatime
-          - name: lv_swap
-            size: 8G
-            type: swap
-            label: swap
-            state: present
+  - path: pci-0000:00:1f.2-ata-1
+    type: ssd
+    model: Samsung SSD 850
+    id: ata-Samsung_SSD_850_EVO_1TB_S2RXNX0XA12345X
+    size:
+      bytes: 1000204886016
+      sectors: 1953525168
+      human_readable: 931.51 GiB
 
-  - id: ata-Crucial_CT500MX500SSD1_1234567890ABC
-    type: gpt
-    force: true
+    sector_size:
+      logical: 512
+      physical: 512
+
+    io_size:
+      minimum: 512
+      optimal: 512
+
+    disklabel:
+      type:       gpt
+      identifier: 27613856-0D3B-2049-B276-B70BC1377BDA
+      lba:
+        first_usable:   2048
+        last_usable:    1953525134
+        alternative:    1953525167
+        partition_entries:
+          starting:   2
+          ending:     128
+          allocated:  128
+      grub:
+        state: installed
+
     partitions:
-      - number: 1
-        type: btrfs
-        label: backup
-        state: mounted
-        mount:
-          path: /mnt/backup
-          options: rw,noatime,compress=zstd
+      - number:       1
+        start:        2048
+        end:          1050623
+        uuid:         3fd93f1e-6dca-425a-a10d-334480503ec4
+        type_uuid:    C12A7328-F81F-11D2-BA4B-00A0C93EC93B
+        part_uuid:    CE236D37-3B8E-374E-907C-D48CAFDE97F0
+        filesystem:
+          type:       ext4
+          label:      boot
+        fstab:
+          path:       /boot
+          options:    rw,exec,nodev,auto,nofail
+        state:        mounted
+
+      - number:       2
+        start:        1050624
+        end:          1953523711
+        type:         lvm_pv
+        type_uuid:    E6D6D379-F507-44C2-A23C-238F2A3DF928
+        uuid:         5CFA1F73-5DD0-BC4D-A5CD-27F1FCACEBDE
+        lvm_pv:
+          - uuid: BPL6LI-r5pC-e79M-1IcE-ugER-y1Vc-t3u9MS
+
+  # - id: ata-Crucial_CT500MX500SSD1_1234567890ABC
+  #   type: gpt
+  #   force: true
+  #   partitions:
+  #     - number: 1
+  #       type: btrfs
+  #       label: data
+  #       state: mounted
+  #       mount:
+  #         path: /mnt/data
+  #         options: rw,noatime,compress=zstd
+
+lvm:
+  physical_volumes:
+    - uuid: BPL6LI-r5pC-e79M-1IcE-ugER-y1Vc-t3u9MS
+      part_uuid: 5cfa1f73-5dd0-bc4d-a5cd-27f1fcacebde
+
+  volume_groups:
+    - uuid: Td8PWf-pxPj-9X1E-0riF-NdfQ-sdiQ-qYp0ts
+      format: lvm2
+      extent_size: 4m
+      physical_volumes:
+        - uuid: BPL6LI-r5pC-e79M-1IcE-ugER-y1Vc-t3u9MS
+      state: active
+
+      logical_volumes:
+        root_luks:
+          state: active
+          lsize: 883g
+          type:  ext4
+          label: root
+          fstab:
+            path: /
+            options: rw,noatime
+        # TODO...
+

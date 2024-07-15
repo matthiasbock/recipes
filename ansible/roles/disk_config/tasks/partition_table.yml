@@ -12,16 +12,11 @@
     - blkid_result.rc == 0
     - not disk.force | default(false)
 
-- name: Create GPT partition table
+- name: Create partition table
   community.general.parted:
     device: "/dev/{{ disk.id | regex_replace('^.*-', '') }}"
-    label: gpt
+    label: "{{ disk.type }}"
   when:
-    - disk.type == 'gpt'
+    - disk.type in ['gpt', 'msdos']
     - blkid_result.rc != 0 or disk.force | default(false)
 
-- name: Configure partitions
-  include_tasks: configure_partition.yml
-  loop: "{{ disk.partitions }}"
-  loop_control:
-    loop_var: partition

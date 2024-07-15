@@ -1,0 +1,103 @@
+hackepeter_1tb {
+    id = "Td8PWf-pxPj-9X1E-0riF-NdfQ-sdiQ-qYp0ts"
+    seqno = 22
+    format = "lvm2"                 # informational
+    status = ["RESIZEABLE", "READ", "WRITE"]
+    flags = []
+    extent_size = 8192              # 4 Megabytes
+    max_lv = 0
+    max_pv = 0
+    metadata_copies = 0
+
+    physical_volumes {
+
+            pv0 {
+                    id = "BPL6LI-r5pC-e79M-1IcE-ugER-y1Vc-t3u9MS"
+                    device = "/dev/sda2"    # Hint only
+
+                    status = ["ALLOCATABLE"]
+                    flags = []
+                    dev_size = 1952471040   # 931.011 Gigabytes
+                    pe_start = 2048
+                    pe_count = 238338       # 931.008 Gigabytes
+            }
+    }
+
+    logical_volumes {
+
+            root_luks {
+                    id = "EHsRIV-c3OB-z0iT-G6vS-Ls6b-sZXA-1WERis"
+                    status = ["READ", "WRITE", "VISIBLE"]
+                    flags = []
+                    creation_time = 1625514800      # 2021-07-05 21:53:20 +0200
+                    creation_host = "debian"
+                    segment_count = 1
+
+                    segment1 {
+                            start_extent = 0
+                            extent_count = 8192     # 32 Gigabytes
+
+                            type = "striped"
+                            stripe_count = 1        # linear
+
+                            stripes = [
+                                    "pv0", 0
+                            ]
+                    }
+            }
+
+            home_luks {
+                    id = "2eyZ1Y-YJsy-CoIR-Ig3o-jgf7-P3AX-7khnNP"
+                    status = ["READ", "WRITE", "VISIBLE"]
+                    flags = []
+                    creation_time = 1625514838      # 2021-07-05 21:53:58 +0200
+                    creation_host = "debian"
+                    segment_count = 2
+
+                    segment1 {
+                            start_extent = 0
+                            extent_count = 131072   # 512 Gigabytes
+
+                            type = "striped"
+                            stripe_count = 1        # linear
+
+                            stripes = [
+                                    "pv0", 8192
+                            ]
+                    }
+                    segment2 {
+                            start_extent = 131072
+                            extent_count = 94978    # 371.008 Gigabytes
+
+                            type = "striped"
+                            stripe_count = 1        # linear
+
+                            stripes = [
+                                    "pv0", 143360
+                            ]
+                    }
+            }
+
+            swap_luks {
+                    id = "ZKCzAb-h0tB-tqEj-X6Kc-z087-1C5S-ujNq81"
+                    status = ["READ", "WRITE", "VISIBLE"]
+                    flags = []
+                    creation_time = 1625523932      # 2021-07-06 00:25:32 +0200
+                    creation_host = "debian"
+                    segment_count = 1
+
+                    segment1 {
+                            start_extent = 0
+                            extent_count = 4096     # 16 Gigabytes
+
+                            type = "striped"
+                            stripe_count = 1        # linear
+
+                            stripes = [
+                                    "pv0", 139264
+                            ]
+                    }
+            }
+    }
+
+}

@@ -1,0 +1,47 @@
+---
+- name: Set up LUKS encryption
+  block:
+    - name: Generate LUKS password if not provided
+      command: openssl rand -base64 32
+      register: generated_password
+      when: not partition.luks.passphrase | default(false)
+
+    - name: Store password in KeePassXC
+      community.general.keepass:
+        database: "{{ keepassxc_db_path }}"
+        keyfile: "{{ keepassxc_keyfile }}"
+        password: "{{ keepassxc_master_password }}"
+        state: present
+        entry: "/LUKS/{{ disk.id }}_partition_{{ partition.number }}"
+        username: "luks"
+        password: "{{ generated_password.stdout }}"
+      when: not partition.luks.passphrase | default(false)
+
+    - name: Retrieve LUKS password from KeePassXC
+      community.general.keepass:
+        database: "{{ keepassxc_db_path }}"
+        keyfile: "{{ keepassxc_keyfile }}"
+        password: "{{ keepassxc_master_password }}"
+        state: present
+        entry: "/LUKS/{{ disk.id }}_partition_{{ partition.number }}"
+      register: keepass_entry
+
+    - name: Set up LUKS encryption
+      community.crypto.luks_device:
+        device: "/dev/{{ disk.id | regex_replace('^.*-', '') }}{{ partition.number }}"
+        state: present
+        passphrase: "{{ partition.luks.passphrase | default(keepass_entry.password) }}"
+        keyring: "{{ luks_keyring }}"
+
+    - name: Open LUKS partition
+      community.crypto.luks_device:
+        device: "/dev/{{ disk.id | regex_replace('^.*-', '') }}{{ partition.number }}"
+        state: opened
+        name: "{{ partition.luks.name }}"
+        passphrase: "{{ partition.luks.passphrase | default(keepass_entry.password) }}"
+        keyring: "{{ luks_keyring }}"
+
+    - name: Update crypttab
+      include_tasks: update_crypttab.yml
+
+  when: partition.luks is defined
