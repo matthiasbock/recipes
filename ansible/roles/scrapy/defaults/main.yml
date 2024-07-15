@@ -1,0 +1,8 @@
+---
+install_python: true
+create_random_workdir: true
+
+workdir:
+  path: /tmp/scrapy
+
+cleanup_workdir: true

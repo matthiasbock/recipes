@@ -1,0 +1,14 @@
+---
+- hosts: all
+  roles:
+    - role: scrapy
+      vars:
+        update_cache: false
+        install_python: false
+        create_random_workdir: true
+        workdir:
+          path: /tmp/scrapy
+        cleanup_workdir: false
+
+        vscode_extension:
+          name: GitHub.copilot

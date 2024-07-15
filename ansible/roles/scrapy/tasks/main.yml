@@ -1,0 +1,80 @@
+---
+- name: Install Scrapy
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: true
+  with_items:
+    - python3
+    - python3-pip
+    - python3-venv
+    - python3-virtualenv
+  become: true
+  when: install_python | bool
+
+
+- name: Run scrapy in virtual environment
+  block:
+    - name: Create temporary directory
+      tempfile:
+        prefix: scrapy-
+        suffix: .tmp
+        state: directory
+      register: workdir
+      when: create_random_workdir | bool
+
+
+    - name: Deploy scrapy project
+      copy:
+        src:   "files/workdir/"
+        dest:  "{{ workdir.path }}/"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode:  0755
+      become: true
+
+
+    - name: Create virtual environment and install scrapy
+      pip:
+        name: scrapy
+        state: present
+        virtualenv: "{{ workdir.path }}/.venv"
+
+
+    - name: Test Scrapy
+      shell: >
+        cd "{{ workdir.path }}" &&
+        pwd -P >&2 &&
+        ls -la >&2 &&
+        source "{{ workdir.path }}/.venv/bin/activate" &&
+        scrapy list
+      register: scrapy_spiders
+
+
+    - name: Test Scrapy
+      assert:
+        that:
+          - "'vscode_extension' in {{ scrapy_spiders.stdout.splitlines() }}"
+
+
+    - name: Download Visual Studio Code extension
+      shell: >
+        cd "{{ workdir.path }}" &&
+        source "{{ workdir.path }}/.venv/bin/activate" &&
+        scrapy crawl vscode_extension
+          -a extension_name="{{ vscode_extension.name }}"
+          -a download_version="{{ vscode_extension.version | default('latest') }}"
+          -a download_to="{{ vscode_extension.save_as | default('extension.') }}"
+      register: scrapy
+      when:
+        - vscode_extension is defined
+        - vscode_extension.name is defined
+
+
+  always:
+    - name: Remove working directory
+      file:
+        path: "{{ workdir.path }}"
+        state: absent
+      become: true
+      when: cleanup_workdir | bool
