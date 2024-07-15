@@ -1,5 +1,6 @@
 ---
-- hosts: all
+- name: Download a Visual Studio Code extension
+  hosts: all
   roles:
     - role: scrapy
       vars:
@@ -12,3 +13,5 @@
 
         vscode_extension:
           name: GitHub.copilot
+          download_version: 1.213.986
+

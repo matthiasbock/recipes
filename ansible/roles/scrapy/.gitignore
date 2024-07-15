@@ -1,0 +1,7 @@
+
+# Downloads
+*.json
+
+# Visual Studio Code extension crawler
+*.vsix
+*.md

@@ -15,30 +15,30 @@
 
 - name: Run scrapy in virtual environment
   block:
-    - name: Create temporary directory
-      tempfile:
-        prefix: scrapy-
-        suffix: .tmp
-        state: directory
-      register: workdir
-      when: create_random_workdir | bool
+    # - name: Create temporary directory
+    #   tempfile:
+    #     prefix: scrapy-
+    #     suffix: .tmp
+    #     state: directory
+    #   register: workdir
+    #   when: create_random_workdir | bool
 
 
-    - name: Deploy scrapy project
-      copy:
-        src:   "files/workdir/"
-        dest:  "{{ workdir.path }}/"
-        owner: "{{ ansible_user }}"
-        group: "{{ ansible_user }}"
-        mode:  0755
-      become: true
+    # - name: Deploy scrapy project
+    #   copy:
+    #     src:   "files/workdir/"
+    #     dest:  "{{ workdir.path }}/"
+    #     owner: "{{ ansible_user }}"
+    #     group: "{{ ansible_user }}"
+    #     mode:  0755
+    #   become: true
 
 
-    - name: Create virtual environment and install scrapy
-      pip:
-        name: scrapy
-        state: present
-        virtualenv: "{{ workdir.path }}/.venv"
+    # - name: Create virtual environment and install scrapy
+    #   pip:
+    #     name: scrapy
+    #     state: present
+    #     virtualenv: "{{ workdir.path }}/.venv"
 
 
     - name: Test Scrapy
@@ -61,14 +61,15 @@
       shell: >
         cd "{{ workdir.path }}" &&
         source "{{ workdir.path }}/.venv/bin/activate" &&
-        scrapy crawl vscode_extension
-          -a extension_name="{{ vscode_extension.name }}"
-          -a download_version="{{ vscode_extension.version | default('latest') }}"
-          -a download_to="{{ vscode_extension.save_as | default('extension.') }}"
+        scrapy crawl vscode_extension \
+          -a extension_name="{{ vscode_extension.name }}" \
+          -a download_version="{{ vscode_extension.version | default('latest') }}" \
+          -a output_filename="{{ vscode_extension.save_as | default('extension.') }}"
       register: scrapy
       when:
         - vscode_extension is defined
         - vscode_extension.name is defined
+      changed_when: true
 
 
   always:
