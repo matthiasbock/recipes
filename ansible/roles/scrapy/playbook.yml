@@ -1,6 +1,9 @@
 ---
 - name: Download a Visual Studio Code extension
   hosts: all
+  vars:
+    output_filename: "GitHub.copilot-1.213.986.vsxi"
+
   roles:
     - role: scrapy
       vars:
@@ -13,5 +16,15 @@
 
         vscode_extension:
           name: GitHub.copilot
-          download_version: 1.213.986
+          version: 1.213.986
+          save_as: "{{ output_filename }}"
 
+  # post_tasks:
+  #   - shell: >
+  #       whoami;
+  #       ls -lad /tmp/scrapy*;
+  #       ls -1 {{ output_filename | dirname }}
+  #     register: ls
+
+  #   - assert:
+  #       that: "{{ output_filename in ls.stdout.splitlines() }}"

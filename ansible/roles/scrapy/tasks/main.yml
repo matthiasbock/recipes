@@ -15,30 +15,29 @@
 
 - name: Run scrapy in virtual environment
   block:
-    # - name: Create temporary directory
-    #   tempfile:
-    #     prefix: scrapy-
-    #     suffix: .tmp
-    #     state: directory
-    #   register: workdir
-    #   when: create_random_workdir | bool
+    - name: Create temporary directory
+      tempfile:
+        prefix: scrapy-
+        suffix: .tmp
+        state: directory
+      register: workdir
+      when: create_random_workdir | bool
 
 
-    # - name: Deploy scrapy project
-    #   copy:
-    #     src:   "files/workdir/"
-    #     dest:  "{{ workdir.path }}/"
-    #     owner: "{{ ansible_user }}"
-    #     group: "{{ ansible_user }}"
-    #     mode:  0755
-    #   become: true
+    - name: Deploy scrapy project
+      copy:
+        src: "files/workdir/"
+        dest: "{{ workdir.path }}/"
+        # owner: "{{ ansible_user }}"
+        # group: "{{ ansible_user }}"
+        mode: "755"
 
 
-    # - name: Create virtual environment and install scrapy
-    #   pip:
-    #     name: scrapy
-    #     state: present
-    #     virtualenv: "{{ workdir.path }}/.venv"
+    - name: Create virtual environment and install scrapy
+      pip:
+        name: scrapy
+        state: present
+        virtualenv: "{{ workdir.path }}/.venv"
 
 
     - name: Test Scrapy
@@ -49,6 +48,7 @@
         source "{{ workdir.path }}/.venv/bin/activate" &&
         scrapy list
       register: scrapy_spiders
+      changed_when: false
 
 
     - name: Test Scrapy
@@ -70,6 +70,12 @@
         - vscode_extension is defined
         - vscode_extension.name is defined
       changed_when: true
+
+    # - stat:
+
+
+    # - assert:
+    #     that: "{{ output_filename in ls.stdout.splitlines() }}"
 
 
   always:

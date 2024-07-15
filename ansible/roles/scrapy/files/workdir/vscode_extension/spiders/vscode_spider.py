@@ -25,52 +25,53 @@ class VSCodeExtensionSpider(scrapy.Spider):
             self,
             extension_name: str,
             output_filename: str,
-            download_version: Optional[str] = "latest",
+            download_version: str = "latest",
             *args, **kwargs
         ):
         super(VSCodeExtensionSpider, self).__init__(*args, **kwargs)
-        self.parse_name(extension_name)
+        self.parse_displayname(extension_name)
         self.download_version = download_version
         self.output_filename = os.path.realpath(output_filename)
         self.item_url = VSCodeExtensionSpider.url_extension_page(publisher=self.publisher, extension=self.extension)
 
 
-    def parse_name(self, name: str) -> None:
-        self.display_name = name
-        s = name.split(".")
+    def parse_displayname(self, displayname: str) -> None:
+        self.display_name = displayname
+        s = displayname.split(".")
         self.publisher = s[0]
         self.extension = s[1]
 
 
     @classmethod
+    @property
     def url_prefix(cls) -> str:
-        # return f"{self.custom_settings['protocol']}://{self.custom_settings['host']}"
         return "https://marketplace.visualstudio.com"
 
 
     @classmethod
     def url_extension_page(cls, publisher: str, extension: str) -> str:
-        return f"{cls.url_prefix()}/items?itemName={publisher}.{extension}"
+        return f"{cls.url_prefix}/items?itemName={publisher}.{extension}"
 
 
     @classmethod
+    @property
     def url_prefix_api_gallery(cls) -> str:
-        return f"{cls.url_prefix()}/_apis/public/gallery"
+        return f"{cls.url_prefix}/_apis/public/gallery"
 
 
     @classmethod
     def url_extension_query(cls) -> str:
-        return f"{cls.url_prefix_api_gallery()}/extensionquery"
+        return f"{cls.url_prefix_api_gallery}/extensionquery"
 
 
     @classmethod
     def url_overview_md(cls, id: str, version: str) -> str:
-        return f"{cls.url_prefix_api_gallery()}/extensions/{id}/{version}/assets/Microsoft.VisualStudio.Services.Content.Details"
+        return f"{cls.url_prefix_api_gallery}/extensions/{id}/{version}/assets/Microsoft.VisualStudio.Services.Content.Details"
 
 
     @classmethod
     def url_download_version(cls, publisher: str, extension: str, version: str) -> str:
-        return f"{cls.url_prefix_api_gallery()}/publishers/{publisher}/vsextensions/{extension}/{version}/vspackage"
+        return f"{cls.url_prefix_api_gallery}/publishers/{publisher}/vsextensions/{extension}/{version}/vspackage"
 
 
     def parse(self, response: scrapy.http.Response) -> Generator[scrapy.Request, None, None]:
@@ -83,7 +84,6 @@ class VSCodeExtensionSpider(scrapy.Spider):
             self.log(f"Parsing extension page...")
 
             json_data = response.css('script.jiContent::text').get()
-            self.log(json_data)
             extension_info = json.loads(json_data)
             resources = extension_info["Resources"]
 
@@ -119,14 +119,14 @@ class VSCodeExtensionSpider(scrapy.Spider):
             "assetTypes": [],
             "flags": 2151
         }
-        with open("extension_query.json", "w") as f:
+        with open(os.path.realpath("extension_query.json"), "w") as f:
             f.write(json.dumps(payload, indent=2))
         self.log(f"Posting extension query...")
 
         def parse_response(response: scrapy.http.Response) -> None:
             self.log(f"Parsing POST response...")
             response_data = json.loads(response.text)
-            with open("extension_query.response.json", "w") as f:
+            with open(os.path.realpath("extension_query.response.json"), "w") as f:
                 f.write(json.dumps(response_data, indent=2))
             results = response_data["results"]
             self.extension_id = results[0]["extensions"][0]["extensionId"]
@@ -150,7 +150,7 @@ class VSCodeExtensionSpider(scrapy.Spider):
         )
 
 
-    def get_overview_md(self, filename: str = "overview.md") -> Generator[scrapy.Request, None, None]:
+    def get_overview_md(self, filename: str = os.path.realpath("overview.md")) -> Generator[scrapy.Request, None, None]:
         """
         Fetch extension description (Markdown)
 
@@ -196,7 +196,7 @@ class VSCodeExtensionSpider(scrapy.Spider):
 
         def save_to_file(response: scrapy.http.Response) -> None:
             self.log(f"Saving download to file: {self.output_filename}")
-            with open(self.output_filename, 'wb') as f:
+            with open(os.path.realpath(self.output_filename), 'wb') as f:
                 f.write(response.body)
 
         yield scrapy.Request(url=download_url, callback=save_to_file)
