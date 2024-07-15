@@ -1,0 +1,54 @@
+---
+disks:
+  - id: ata-Samsung_SSD_850_EVO_1TB_S2RXNX0XA12345X
+    type: gpt
+    partitions:
+      - number: 1
+        uuid: 3fd93f1e-6dca-425a-a10d-334480503ec4
+        type: ext4
+        label: root
+        state: mounted
+        mount:
+          path: /
+          options: rw,exec,dev,auto
+
+      - number: 2
+        type: lvm
+        luks_encrypted: true
+        luks_name: cryptlvm
+        luks_passphrase: "{{ vault_luks_passphrase }}"
+        vg: vg_data
+        volumes:
+          - name: lv_home
+            size: 100G
+            type: xfs
+            label: home
+            state: mounted
+            mount:
+              path: /home
+              options: rw,noatime
+          - name: lv_var
+            size: 50G
+            type: ext4
+            label: var
+            state: mounted
+            mount:
+              path: /var
+              options: rw,noatime
+          - name: lv_swap
+            size: 8G
+            type: swap
+            label: swap
+            state: present
+
+  - id: ata-Crucial_CT500MX500SSD1_1234567890ABC
+    type: gpt
+    force: true
+    partitions:
+      - number: 1
+        type: btrfs
+        label: backup
+        state: mounted
+        mount:
+          path: /mnt/backup
+          options: rw,noatime,compress=zstd

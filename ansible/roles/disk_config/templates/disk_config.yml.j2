@@ -1,0 +1,41 @@
+---
+disks:
+{% for disk in disks %}
+  - id: {{ disk.vendor }}_{{ disk.model }}_{{ disk.serial }}
+    type: {{ disk.partitions.label if disk.partitions.label == 'gpt' else 'mbr' }}
+    force: false
+    partitions:
+{% for part_name, part in disk.partitions.items() %}
+      - number: {{ part_name | regex_replace('^.*[^0-9]', '') }}
+        uuid: {{ part.uuid }}
+        type: {{ part.fstype if part.fstype else 'lvm' if part_name in pvs else 'unknown' }}
+{% if part_name in luks_devices | map(attribute='device') | list %}
+        luks_encrypted: true
+        luks_name: {{ luks_devices | selectattr('device', 'equalto', part_name) | map(attribute='name') | first }}
+        luks_uuid: {{ luks_devices | selectattr('device', 'equalto', part_name) | map(attribute='uuid') | first }}
+{% endif %}
+{% if part.fstype %}
+        label: {{ part.label | default('') }}
+        state: {{ 'mounted' if part.mountpoint else 'present' }}
+{% if part.mountpoint %}
+        mount:
+          path: {{ part.mountpoint }}
+          options: {{ mounts | selectattr('device', 'equalto', '/dev/' + part_name) | map(attribute='options') | first }}
+{% endif %}
+{% elif part_name in pvs %}
+        vg: {{ pvs[part_name].vg_name }}
+        volumes:
+{% for lv_name, lv in lvs.items() if lv.vg_name == pvs[part_name].vg_name %}
+          - name: {{ lv_name }}
+            size: {{ lv.size_g }}G
+            type: {{ lv.fs_type if lv.fs_type else 'unknown' }}
+            state: {{ 'mounted' if lv.mount else 'present' }}
+{% if lv.mount %}
+            mount:
+              path: {{ lv.mount }}
+              options: {{ mounts | selectattr('device', 'equalto', '/dev/' + lv.vg_name + '/' + lv_name) | map(attribute='options') | first }}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endfor %}

@@ -1,0 +1,25 @@
+---
+- name: Ensure base required packages are installed
+  apt:
+    name:
+      - parted
+      - e2fsprogs
+      - lvm2
+      - cryptsetup
+    state: present
+
+- name: Install filesystem-specific packages
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - "{{ 'btrfs-progs' if 'btrfs' in disks | map(attribute='partitions') | map(attribute='type') else [] }}"
+    - "{{ 'dosfstools' if 'vfat' in disks | map(attribute='partitions') | map(attribute='type') else [] }}"
+    - "{{ 'ntfs-3g' if 'ntfs' in disks | map(attribute='partitions') | map(attribute='type') else [] }}"
+  when: item | length > 0
+
+- name: Configure disks
+  include_tasks: configure_disk.yml
+  loop: "{{ disks }}"
+  loop_control:
+    loop_var: disk

@@ -1,0 +1,30 @@
+---
+- name: Gather facts about block devices
+  community.general.blockdev_facts:
+
+- name: Gather LVM facts
+  community.general.lvg_facts:
+
+- name: Gather mount facts
+  ansible.posix.mount_facts:
+
+- name: Gather LUKS facts
+  community.crypto.luks_device:
+    device: "{{ item.device }}"
+    state: info
+  loop: "{{ ansible_devices.values() | list }}"
+  register: luks_info
+  ignore_errors: true
+
+- name: Generate disk configuration YAML
+  template:
+    src: disk_config.yml.j2
+    dest: "{{ playbook_dir }}/host_vars/{{ inventory_hostname }}/disk_config.yml"
+  vars:
+    disks: "{{ ansible_devices.values() | list }}"
+    partitions: "{{ ansible_devices.values() | map(attribute='partitions') | flatten }}"
+    mounts: "{{ ansible_mounts }}"
+    lvs: "{{ ansible_lvm.lvs }}"
+    vgs: "{{ ansible_lvm.vgs }}"
+    pvs: "{{ ansible_lvm.pvs }}"
+    luks_devices: "{{ luks_info.results | selectattr('luks_info', 'defined') | map(attribute='luks_info') | list }}"

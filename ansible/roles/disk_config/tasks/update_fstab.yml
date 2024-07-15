@@ -1,0 +1,24 @@
+---
+- name: Read current fstab content
+  slurp:
+    src: /etc/fstab
+  register: fstab_content
+
+- name: Parse fstab content
+  set_fact:
+    fstab_lines: "{{ fstab_content.content | b64decode | splitlines }}"
+
+- name: Comment out existing entries for the formatted partition
+  lineinfile:
+    path: /etc/fstab
+    regexp: '^([^#].*({{ "/dev/" + disk.id | regex_replace("^.*-", "") + partition.number }}|UUID={{ partition_uuid.stdout }}|PARTUUID={{ partition_info.partitions[0].uuid }})).*$'
+    line: '# \1  # Commented out by Ansible'
+    backrefs: yes
+  when: format_result.changed
+
+- name: Add new fstab entry for the formatted partition
+  lineinfile:
+    path: /etc/fstab
+    line: "UUID={{ partition_uuid.stdout }} {{ partition.mount.path }} {{ partition.type }} {{ partition.mount.options }} 0 2"
+    insertafter: '^# \1  # Commented out by Ansible'
+  when: format_result.changed and partition.state == 'mounted'

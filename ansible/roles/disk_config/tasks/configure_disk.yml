@@ -1,0 +1,27 @@
+---
+- name: Check if disk has existing partitions
+  command: "blkid -p /dev/{{ disk.id | regex_replace('^.*-', '') }}"
+  register: blkid_result
+  changed_when: false
+  failed_when: false
+
+- name: Fail if disk has existing partitions and force is not set
+  fail:
+    msg: "Disk /dev/{{ disk.id | regex_replace('^.*-', '') }} has existing partitions. Set 'force: true' to overwrite."
+  when:
+    - blkid_result.rc == 0
+    - not disk.force | default(false)
+
+- name: Create GPT partition table
+  community.general.parted:
+    device: "/dev/{{ disk.id | regex_replace('^.*-', '') }}"
+    label: gpt
+  when:
+    - disk.type == 'gpt'
+    - blkid_result.rc != 0 or disk.force | default(false)
+
+- name: Configure partitions
+  include_tasks: configure_partition.yml
+  loop: "{{ disk.partitions }}"
+  loop_control:
+    loop_var: partition
