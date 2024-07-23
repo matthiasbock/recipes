@@ -1,32 +1,43 @@
 ---
 #
-# Operations on a Docker container
+# Docker container actions
 #
-# Switches:
-# * start_container
-# * stop_container
-# * remove_container
+# Links:
+# * https://docs.ansible.com/ansible/latest/collections/community/docker/docker_container_module.html
 #
-- name: Start Docker container
-  docker_container:
-    name: "{{ CONTAINER_NAME }}"
-    state: started
-  when:
-    # - CONTAINER_NAME is defined
-    - start_container | bool
 
-- name: Stop Docker container
+- name: Create Docker container
   docker_container:
     name: "{{ CONTAINER_NAME }}"
-    state: stopped
+    image: "{{ CONTAINER_BASE_IMAGE }}"
+    user: "{{ CONTAINER_UID }}:{{ CONTAINER_GID }}"
+    restart_policy: unless-stopped
+    volumes:
+      - "{{ DIR_WATCHED }}:/watch:rw"
+    state: present
   when:
-    # - CONTAINER_NAME is defined
-    - stop_container | bool
+    - create_container | bool
+
 
 - name: Remove Docker container
   docker_container:
     name: "{{ CONTAINER_NAME }}"
     state: absent
   when:
-    # - CONTAINER_NAME is defined
     - remove_container | bool
+
+
+- name: Start Docker container
+  docker_container:
+    name: "{{ CONTAINER_NAME }}"
+    state: started
+  when:
+    - start_container | bool
+
+
+- name: Stop Docker container
+  docker_container:
+    name: "{{ CONTAINER_NAME }}"
+    state: stopped
+  when:
+    - stop_container | bool

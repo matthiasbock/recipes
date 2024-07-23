@@ -1,0 +1,15 @@
+---
+#
+# Daemon actions
+#
+install_docker: false
+uninstall_docker: false
+
+get_docker_state: false
+restore_docker_state: false
+
+start_docker: false
+stop_docker: false
+
+enable_docker: false
+disable_docker: false

@@ -1,0 +1,16 @@
+---
+#
+# Image actions
+#
+build_image: false
+remove_image: false
+pull_image: false
+commit_image: false
+push_image: false
+
+#
+# Building a Docker image using a Dockerfile
+#
+IMAGE_BUILD_DIR: /tmp/docker-build.tmp
+IMAGE_ADD_FILES: []
+TEMPLATE_DOCKERFILE: Dockerfile.j2

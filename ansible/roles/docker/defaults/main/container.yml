@@ -1,0 +1,8 @@
+---
+#
+# Container actions
+#
+create_container: false
+start_container: false
+stop_container: false
+remove_container: false

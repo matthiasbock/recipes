@@ -1,41 +1,104 @@
 ---
 #
-# Operations on the Docker daemon
+# Docker daemon actions
 #
-# Switches:
-# * install
-# * start
-# * stop
-# * enable
-# * disable
-#
+
+- name: Get the state of the Docker daemon (absent/started/stopped)
+  block:
+    #
+    # FIXME: Doesn't work:
+    #
+    # - name: Get Docker service status
+    #   service_facts:
+    #
+    # - name: Get Docker service status
+    #   set_fact:
+    #     DOCKER_STATE: "{{ ansible_facts.services['docker.service'].status }}"
+    #
+    - name: Check if Docker is installed
+      command: which docker
+      register: which_docker
+      ignore_errors: true
+      changed_when: false
+
+    - name: Get the state of the Docker service
+      shell:
+        cmd: |
+          systemctl status docker.service |
+          head -n10 |
+          fgrep 'Active:' |
+          sed -Ee 's/^[^\(]*\(([^\)]+)\).*$/\1/g'
+      register: docker_service_status
+      changed_when: false
+      when: which_docker.rc == 0
+
+    - name: Parse systemctl output
+      set_fact:
+        DOCKER_STATE: >-
+          {% if which_docker.rc != 0 %}
+          absent
+          {% elif docker_service_status.stdout == 'running' %}
+          started
+          {% else %}
+          stopped
+          {% endif %}
+      changed_when: false
+
+    - name: Print Docker service status
+      debug:
+        msg: "Docker status: {{ DOCKER_STATE }}"
+      changed_when: false
+
+  when:
+    - get_docker_state | bool
+
+
+- name: Restore the previous state of the Docker daemon
+  service:
+    name: docker
+    state: "{{ DOCKER_STATE }}"
+  when:
+    - restore_docker_state | bool
+
+
 - name: Ensure Docker is installed
   package:
     name: docker
     state: present
-  when: (install | bool) or (start | bool) or (enable | bool)
+  when: (install_docker | bool) or (start_docker | bool) or (enable_docker | bool)
+
+
+- name: Ensure Docker is uninstalled
+  package:
+    name: docker
+    state: absent
+  when: uninstall_docker | bool
+
 
 - name: Ensure Docker is started
   service:
     name: docker
     state: started
-  when: start | bool
+  when: start_docker | bool
+
 
 - name: Ensure Docker is stopped
   service:
     name: docker
     state: stopped
-  when: stop | bool
+  when: stop_docker | bool
+
 
 - name: Enable Docker service
   service:
     name: docker
     state: enabled
-  when: enable | bool
+  when: enable_docker | bool
+
 
 - name: Disable Docker service
   service:
     name: docker
     state: disabled
-  when: disable | bool
+  when: disable_docker | bool
 

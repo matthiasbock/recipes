@@ -1,12 +1,12 @@
 ---
-- name: Tasks operating on the Docker daemon
-  ansible.builtin.include_tasks: daemon.yml
+- name: Docker daemon-related tasks
+  include_tasks: daemon.yml
 
-- name: Forwarding of Docker unix socket via SSH tunnel
-  ansible.builtin.include_tasks: ssh_tunnel.yml
+- name: Docker unix socket forwarding
+  include_tasks: remote.yml
 
-- name: Operations on a Docker image
-  ansible.builtin.include_tasks: image.yml
+- name: Docker image-related tasks
+  include_tasks: image.yml
 
-- name: Operations on a Docker container
-  ansible.builtin.include_tasks: container.yml
+- name: Docker container-related tasks
+  include_tasks: container.yml

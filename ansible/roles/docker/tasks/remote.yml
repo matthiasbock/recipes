@@ -1,0 +1,98 @@
+---
+#
+# Enables controlling a remote host's Docker daemon as if it were local,
+# by forwarding the remote daemon's Unix socket to localhost via SSH
+#
+
+- name: Compose arguments for SSH command
+  ansible.builtin.set_fact:
+    DOCKER_SOCK_MAPPING: "{{ DOCKER_SOCK_LOCAL }}:{{ DOCKER_SOCK_REMOTE }}"
+    SSH_LOGIN: "{{ ansible_user }}@{{ ansible_host }}"
+  changed_when: false
+  when:
+    - (start_ssh_tunnel | bool) or (stop_ssh_tunnel | bool)
+
+
+- name: Compose SSH command
+  ansible.builtin.set_fact:
+    SSH_CMD: "ssh -fNL {{ DOCKER_SOCK_MAPPING }} -o ExitOnForwardFailure=yes {{ SSH_LOGIN }}"
+    # ConnectTimeout=3,TCPKeepAlive=yes,ServerAliveInterval=2,ServerAliveCountMax=3,ForwardX11=no
+  changed_when: false
+  when:
+    - (start_ssh_tunnel | bool) or (stop_ssh_tunnel | bool)
+
+
+- name: Start Docker socket forwarding
+  delegate_to: localhost
+  ansible.builtin.shell:
+    cmd: |
+      # Exit on error
+      set -e
+
+      echo "SSH command: {{ SSH_CMD }}" >&2
+      echo "Docker socket mapping: {{ DOCKER_SOCK_MAPPING }}" >&2
+
+      [[ "{{ SSH_CMD }}" != "" ]] || exit 10
+      [[ "{{ DOCKER_SOCK_LOCAL }}" != "" ]] || exit 11
+      [[ "{{ DOCKER_SOCK_MAPPING }}" != "" ]] || exit 12
+
+      # Stop any already running instances of this command
+      PID_LIST="$(ps -eo pid,command | \
+                  grep -E '[0-9]+\s+ssh ' | \
+                  fgrep "{{ SSH_LOGIN }}" | \
+                  fgrep "{{ DOCKER_SOCK_MAPPING }}" | \
+                  sed -Ee 's/\s*([0-9]+).*$/\1/g')"
+      PID="$(echo $PID_LIST)"
+      [[ "$PID" != "" ]] && { echo "Killing redundant SSH process: $PID" >&2; kill $PID; }
+
+      # Remove any left-over socket
+      [[ -e "{{ DOCKER_SOCK_LOCAL }}" ]] && rm -vf "{{ DOCKER_SOCK_LOCAL }}" >&2
+
+      # Start SSH and print the process ID to stdout
+      {{ SSH_CMD }} || exit $((100 + $?))
+      RETVAL=$?
+      PID=$!
+      echo $PID
+
+      # Terminate process after timeout
+      function timeout() {
+          local TIMEOUT="{{ DOCKER_SOCK_TIMEOUT }}"
+          local PID="$PID"
+          (
+              sleep "$TIMEOUT"
+              if kill -0 "$PID" 2>/dev/null; then
+                  echo "Terminating SSH process with PID $PID) after $TIMEOUT second timeout" >&2
+                  kill -s QUIT "$PID" && true >&2
+                  sleep 3
+                  kill -s TERM "$PID" && true >&2
+                  sleep 3
+                  kill -s KILL "$PID" && true >&2
+              fi
+          ) &
+      }
+      timeout & disown
+
+  changed_when: false
+  when:
+    - start_ssh_tunnel | bool
+
+
+- name: Stop Docker socket forwarding
+  delegate_to: localhost
+  ansible.builtin.shell:
+    cmd: |
+      PID_LIST="$(ps -eo pid,command | \
+                  grep -E '[0-9]+\s+ssh ' | \
+                  fgrep "{{ SSH_LOGIN }}" | \
+                  fgrep "{{ DOCKER_SOCK_MAPPING }}" | \
+                  sed -Ee 's/\s*([0-9]+).*$/\1/g')"
+      PID="$(echo $PID_LIST)"
+
+      [[ "$PID" != "" ]] && { echo "Stopping SSH: $PID" >&2; kill $PID; }
+
+      [[ -e "{{ DOCKER_SOCK_LOCAL }}" ]] && rm -vf "{{ DOCKER_SOCK_LOCAL }}" >&2
+
+  changed_when: false
+  when:
+    - stop_ssh_tunnel | bool
+
