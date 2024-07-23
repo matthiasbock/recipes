@@ -5,7 +5,7 @@
 #
 # To update a Prometheus file, the environment must define:
 # * CONTAINER_NAME
-# * PROMETHEUS_FILE
+# * PROMETHEUS_FILEPATH
 # * PROMETHEUS_METRIC
 #
 
@@ -15,15 +15,15 @@ UDP_PORTS="22000 21027"
 
 # Function to check TCP port connectivity
 check_tcp_port() {
-  local port=$1
-  nc -vzw 3 localhost $port 2>&1
+  local PORT=$1
+  nc -vzw 3 localhost $PORT 2>&1
   return $?
 }
 
 # Function to check UDP port connectivity
 check_udp_port() {
-  local port=$1
-  echo -n "" | nc -vuzw 3 localhost $port 2>&1
+  local PORT=$1
+  echo -n "" | nc -vuzw 3 localhost $PORT 2>&1
   return $?
 }
 
@@ -33,15 +33,15 @@ set_health_status() {
   local ERROR_MESSAGE="$2"
 
   if [ "$CONTAINER_NAME" = "" ]; then return; fi
-  if [ "$PROMETHEUS_FILE" = "" ]; then return; fi
-  if [ ! -f "$PROMETHEUS_FILE" ]; then exit 2; fi
+  if [ "$PROMETHEUS_FILEPATH" = "" ]; then return; fi
+  if [ ! -f "$PROMETHEUS_FILEPATH" ]; then exit 2; fi
   if [ "$PROMETHEUS_METRIC" = "" ]; then return; fi
 
   local PAYLOAD="container=\"$CONTAINER_NAME\",timestamp=\"$(date)\""
 
   if [ "$ERROR_MESSAGE" != "" ]; then PAYLOAD="$PAYLOAD,error=\"$ERROR_MESSAGE\""; fi
 
-  echo "${PROMETHEUS_METRIC}{$PAYLOAD} $STATUS" > $PROMETHEUS_FILE
+  echo "${PROMETHEUS_METRIC}{$PAYLOAD} $STATUS" > $PROMETHEUS_FILEPATH
 }
 
 error() {
@@ -68,18 +68,18 @@ if [ ! $? ]; then
 fi
 
 # Check connectivity for each TCP port
-for port in $TCP_PORTS; do
-  echo "Testing TCP port: $port"
-  if ! check_tcp_port $port; then
-    error "TCP port $port is not accessible"
+for PORT in $TCP_PORTS; do
+  echo "Testing TCP port: $PORT"
+  if ! check_tcp_port $PORT; then
+    error "TCP port $PORT is not accessible"
   fi
 done
 
 # Check connectivity for each UDP port
-for port in $UDP_PORTS; do
-  echo "Testing UDP port: $port"
-  if ! check_udp_port $port; then
-    error "UDP port $port is not accessible"
+for PORT in $UDP_PORTS; do
+  echo "Testing UDP port: $PORT"
+  if ! check_udp_port $PORT; then
+    error "UDP port $PORT is not accessible"
   fi
 done
 

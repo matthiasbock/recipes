@@ -48,7 +48,7 @@
     - network | bool
 
 
-- name: Compile Syncthing container networks setting
+- name: Compose Syncthing container network setting
   set_fact:
     SYNCTHING_CONTAINER_NETWORKS:
       - name: "{{ SYNCTHING_NETWORK_NAME }}"
@@ -152,3 +152,58 @@
   when:
     - uninstall | bool
     - network | bool
+
+
+---
+- name: Test Syncthing container creation
+  hosts: all
+
+  tasks:
+    - name: Get Docker state
+      include_role:
+        name: docker
+      vars:
+        get_docker_state: true
+
+    - name: Ensure Docker is installed
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+
+    - name: Test installation
+      block:
+        - name: Create and start Syncthing container
+          include_role:
+            name: syncthing
+          vars:
+            container: true
+            network: true
+            install: true
+            start: true
+
+        - name: List containers
+          command: 'docker container ls -a --format \"\{\{.Names\}\}\"'
+          register: containers
+          changed_when: false
+
+        - name: List containers
+          debug:
+            msg: "{{ containers.stdout.splitlines() }}"
+
+        - name: Check if container exists
+          assert:
+            that: "{{ SYNCTHING_CONTAINER_NAME in containers.stdout }}"
+            fail_msg: "Container not present after installation: {{ SYNCTHING_CONTAINER_NAME }}"
+
+      always:
+        - name: Restore previous Docker state
+          include_role:
+            name: docker
+          vars:
+            restore_docker_state: true
+

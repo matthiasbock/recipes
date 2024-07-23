@@ -1,0 +1,20 @@
+---
+- name: Ensure Docker is installed
+  apt:
+    name: docker.io
+    state: present
+
+- name: Ensure Docker is running
+  service:
+    name: docker
+    state: started
+
+- name: Remove Syncthing container
+  include_role:
+    name: docker
+    tasks_from: container/remove.yml
+
+- name: Remove Syncthing network
+  include_role:
+    name: docker
+    tasks_from: network/remove.yml

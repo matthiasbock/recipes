@@ -1,0 +1,13 @@
+---
+# Network ports exposed by the image
+image.expose: {{ syncthing.ports }}
+
+#
+# Owner of synchronized files
+# Use user and group IDs from the Docker host for compatibility.
+#
+image:
+  add_user:
+    host_user: www-data
+  add_group:
+    host_group: www-data

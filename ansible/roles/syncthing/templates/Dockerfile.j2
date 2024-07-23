@@ -1,11 +1,8 @@
-# Derive from official image
-FROM {{ SYNCTHING_BASE_IMAGE }}
+
+FROM {{ IMAGE_FROM }}
 
 # Add health check script
 COPY healthcheck.sh /usr/local/bin/healthcheck.sh
-
-# Make the script executable
-RUN chmod +x /usr/local/bin/healthcheck.sh
 
 # Set the health check
 HEALTHCHECK --interval=300s --timeout=20s --start-period=60s --retries=1 CMD ["/usr/local/bin/healthcheck.sh"]

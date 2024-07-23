@@ -1,0 +1,16 @@
+---
+# Path to the folder path containing configuration and database on the host
+SYNCTHING_ROOT: /var/syncthing
+
+# List of ports Syncthing listens on
+SYNCTHING_PORTS:
+  - 8384/tcp
+  - 22000/tcp
+  - 22000/udp
+  - 21027/udp
+
+for the healthcheck script:
+
+# Ports to check for connectivity
+TCP_PORTS="8384 22000"
+UDP_PORTS="22000 21027"
