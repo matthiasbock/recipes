@@ -1,0 +1,8 @@
+---
+- name: Log-in to Docker repository
+  docker_login:
+    registry: "{{ docker_registry.url }}"
+    username: "{{ docker_registry.username }}"
+    password: "{{ docker_registry.password }}"
+    reauthorize: yes
+

@@ -1,0 +1,5 @@
+---
+- name: Remove Docker image
+  docker_image:
+    name: "{{ image.name }}"
+    state: absent

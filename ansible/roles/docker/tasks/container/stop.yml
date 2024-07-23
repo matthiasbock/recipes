@@ -1,0 +1,5 @@
+---
+- name: Stop Docker container
+  docker_container:
+    name: "{{ docker.container.name }}"
+    state: stopped

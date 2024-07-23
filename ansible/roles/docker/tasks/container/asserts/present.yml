@@ -1,0 +1,78 @@
+---
+#
+# Docker container actions
+#
+# Links:
+# * https://docs.ansible.com/ansible/latest/collections/community/docker/docker_container_module.html
+#
+
+- name: Create Docker container
+  docker_container:
+    name: "{{ CONTAINER_NAME }}"
+    image: "{{ CONTAINER_BASE_IMAGE }}"
+    user: "{{ CONTAINER_UID }}:{{ CONTAINER_GID }}"
+    restart_policy: "{{ CONTAINER_RESTART_POLICY }}"
+    volumes: "{{ CONTAINER_VOLUMES | list }}"
+    state: present
+  when:
+    - create_container | bool
+
+
+- name: Remove Docker container
+  docker_container:
+    name: "{{ CONTAINER_NAME }}"
+    state: absent
+  when:
+    - remove_container | bool
+
+
+- name: Get container information
+  # command: 'docker container ls -a --format \"\{\{.Names\}\}\"'
+  docker_container_info:
+    name: "{{ CONTAINER_NAME }}"
+  register: container
+  when:
+    - get_container_info | bool
+
+
+- name: Print container information
+  debug:
+    msg: "{{ container }}"
+  when:
+    - get_container_info | bool
+
+
+- name: Check whether the container exists
+  assert:
+    that: "{{ container.exists }}"
+    fail_msg: "Container not present after installation: {{ CONTAINER_NAME }}"
+  when:
+    - assert_container_exists | bool
+
+
+- name: Start Docker container
+  docker_container:
+    name: "{{ CONTAINER_NAME }}"
+    state: started
+  when:
+    - start_container | bool
+
+
+- name: Stop Docker container
+  docker_container:
+    name: "{{ CONTAINER_NAME }}"
+    state: stopped
+  when:
+    - stop_container | bool
+
+
+# TODO:
+# - name: Commit Docker image
+#   community.docker.docker_image_build:
+#     name: "{{ IMAGE_NAME }}"
+#     source: container
+#     container_source: "{{ CONTAINER_NAME }}"
+#     user: "{{ USER_NAME | default(omit) }}"
+#     command: "{{ IMAGE_CMD | default(omit) }}"
+#   when:
+#     - commit_image | bool

@@ -1,0 +1,19 @@
+---
+- name: Compose SSH command
+  include_tasks: ssh.yml
+
+- name: Stop Docker socket forwarding
+  delegate_to: localhost
+  ansible.builtin.shell:
+    cmd: |
+      PID_LIST="$(ps -eo pid,command | \
+                  grep -E '[0-9]+\s+ssh ' | \
+                  fgrep "{{ SSH_LOGIN }}" | \
+                  fgrep "{{ DOCKER_SOCK_MAPPING }}" | \
+                  sed -Ee 's/\s*([0-9]+).*$/\1/g')"
+      PID="$(echo $PID_LIST)"
+
+      [[ "$PID" != "" ]] && { echo "Stopping SSH: $PID" >&2; kill $PID; }
+
+      [[ -e "{{ DOCKER_SOCK_LOCAL }}" ]] && rm -vf "{{ DOCKER_SOCK_LOCAL }}" >&2
+  changed_when: false

@@ -1,13 +1,11 @@
 ---
 - name: Test container creation
   hosts: all
-
   tasks:
     - name: Get Docker state
       include_role:
         name: docker
-      vars:
-        get_docker_state: true
+        tasks_from: daemon/state/save.yml
 
     - name: Ensure Docker is installed
       package:
@@ -21,31 +19,29 @@
 
     - name: Test installation
       vars:
-        CONTAINER_NAME: test
-        CONTAINER_BASE_IMAGE: docker.io/debian:bookworm-slim
+        container:
+          name: test
+          base_image: docker.io/debian:bookworm-slim
 
       block:
         - name: Create a container
           include_role:
             name: docker
-          vars:
-            create_container: true
+            tasks_from: container/create.yml
 
         - name: Check whether the container exists
           include_role:
             name: docker
-          vars:
-            assert_container_exists: true
+            tasks_from: container/asserts/exists.yml
 
       always:
         - name: Clean-up created container
           docker_container:
-            name: "{{ CONTAINER_NAME }}"
+            name: "{{ docker.container.name }}"
             state: absent
 
         - name: Restore previous Docker state
           include_role:
             name: docker
-          vars:
-            restore_docker_state: true
+            tasks_from: daemon/state/restore.yml
 

@@ -1,0 +1,8 @@
+---
+- name: Push Docker image to repository
+  docker_image:
+    name: "{{ image.name }}"
+    repository: "{{ image.repository }}"
+    source: null
+    push: true
+

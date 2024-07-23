@@ -1,0 +1,11 @@
+---
+# TODO:
+# - name: Commit Docker image
+#   community.docker.docker_image_build:
+#     name: "{{ IMAGE_NAME }}"
+#     source: container
+#     container_source: "{{ CONTAINER_NAME }}"
+#     user: "{{ USER_NAME | default(omit) }}"
+#     command: "{{ IMAGE_CMD | default(omit) }}"
+#   when:
+#     - commit_image | bool

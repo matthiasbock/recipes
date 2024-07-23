@@ -3,11 +3,11 @@ SHELL = /bin/bash
 
 HOST = localhost
 
-TESTS = $(wildcard *.yml)
+TESTS = $(wildcard */*.yml)
 
 
 .PHONY: tests $(TESTS)
 tests: $(TESTS)
 $(TESTS):
-	ansible-playbook -l $(HOST) ./$@
+	ansible-playbook -v -l $(HOST) ./$@
 

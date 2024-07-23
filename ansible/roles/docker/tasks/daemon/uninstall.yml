@@ -1,0 +1,5 @@
+---
+- name: Ensure Docker is uninstalled
+  package:
+    name: docker
+    state: absent

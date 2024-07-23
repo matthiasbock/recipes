@@ -1,0 +1,12 @@
+---
+- name: Restore the previous state of the Docker service
+  service:
+    name: docker
+    state: "{{ docker.service.saved_state }}"
+
+
+- name: Restore the previous state of the Docker package
+  package:
+    name: docker
+    state: "{{ docker.package.saved_state }}"
+

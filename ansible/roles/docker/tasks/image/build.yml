@@ -1,0 +1,56 @@
+---
+#
+# Docker image actions
+#
+# Links:
+# * https://docs.ansible.com/ansible/latest/collections/community/docker/docker_image_build_module.html
+#
+- name: Build Docker image using Dockerfile
+  block:
+    - name: Create build directory
+      file:
+        path: "{{ image.build_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Copy files to build directory
+      files:
+        src: "{{ item.src }}"
+        dest: "{{ image.build_dir }}/{{ item.dest }}"
+        mode: "{{ item.mode | default('0644') }}"
+      loop: "{{ image.add_files }}"
+
+    - name: Render templates to build directory
+      template:
+        src: "{{ item.src | default(item) }}"
+        dest: "{{ image.build_dir }}/{{ item.dest }}"  #  | default(item.src | basename | default(item))
+        mode: "{{ item.mode | default('0644') }}"
+      loop: >-
+        {{
+          image.add_templates +
+          [{
+            'src': image.dockerfile,
+            'dest': image.build_dir + '/Dockerfile',
+            'mode': '0644'
+          }]
+        }}"
+
+    - name: Use Dockerfile to build container image
+      docker_image:
+        name: "{{ image.name }}"
+        source: build
+        build:
+          path: "{{ image.build_dir }}"
+
+  always:
+    - name: Clean-up build directory
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop: >-
+        {{
+          [item.dest for item in image.add_files] +
+          [item.dest for item in image.add_templates] +
+          ['Dockerfile'] +
+          image.build_dir
+        }}

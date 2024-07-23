@@ -28,15 +28,21 @@
       changed_when: false
       when: which_docker.rc == 0
 
-    - name: Update facts
+    - name: Print the docker facts
+      debug:
+        msg: "{{ docker }}"
+      when:
+        - debug | default(false) | bool
+
+    - name: Elaborate state
       set_fact:
-        PREVIOUS_DOCKER_PACKAGE_STATE: >-
+        docker_package_saved_state: >-
           {% if which_docker.rc == 0 %}
           present
           {% else %}
           absent
           {% endif %}
-        PREVIOUS_DOCKER_SERVICE_STATE: >-
+        docker_service_saved_state: >-
           {% if which_docker.rc != 0 %}
           absent
           {% elif docker_service_status.stdout == 'running' %}
@@ -44,14 +50,31 @@
           {% else %}
           stopped
           {% endif %}
-      changed_when: false
+
+    - name: Update docker dictionary
+      set_fact:
+        docker: >-
+          {{
+            docker |
+            combine({
+              'package':{
+                'saved_state': docker_package_saved_state | trim
+              },
+              'service':{
+                'saved_state': docker_service_saved_state | trim
+              }
+            })
+          }}
+
+    - name: Print the docker facts
+      debug:
+        msg: "{{ docker }}"
+      when:
+        - debug | default(false) | bool
 
     - name: Print Docker state
       debug:
         msg: |
-          Docker package state: {{ PREVIOUS_DOCKER_PACKAGE_STATE }}
-          Docker service state: {{ PREVIOUS_DOCKER_SERVICE_STATE }}
+          Docker package state: {{ docker.package.saved_state }}
+          Docker service state: {{ docker.service.saved_state }}
       changed_when: false
-
-  when:
-    - get_docker_state | bool

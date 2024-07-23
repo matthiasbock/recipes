@@ -1,0 +1,66 @@
+---
+docker_subnet_prefix: 172.18.9
+docker_subnet_bits: 30
+docker_subnet_cidr: "{{ docker_subnet_prefix }}.0/{{ docker_subnet_bits }}"
+
+docker_sock_local: "/tmp/{{ ansible_host }}_docker.sock"
+docker_sock_remote: "/var/run/docker.sock"
+docker_forwarded_host: "unix://{{ docker_sock_local }}"
+
+docker:
+  package:
+    saved_state: null
+
+  service:
+    saved_state: null
+
+  forwarding:
+    delegate_to: localhost
+    sock:
+      # Path to the Docker unix socket on the remote host
+      remote: "{{ docker_sock_remote }}"
+
+      # Path to the Docker unix socket to create on localhost
+      local: "{{ docker_sock_local }}"
+
+      # The maximum time (seconds) for the unix socket to remain open, before disconnecting
+      timeout: 300
+    host: "{{ docker_forwarded_host }}"
+
+  registry:
+    name: DockerHub
+    url: docker.io
+    # username: default
+    # password: default
+
+  image:
+    dockerfile: Dockerfile.j2
+    build_dir: /tmp/docker-build.tmp
+    add_files: []
+    add_templates: []
+    # ports: []
+    # cmd: []
+    # entrypoint: []
+
+  #
+  # https://docs.ansible.com/ansible/latest/collections/community/docker/docker_network_module.html
+  #
+  network:
+    name: docker0
+    bridge_name: br_docker0
+    subnet:
+      prefix: "{{ docker_subnet_prefix }}"
+      bits: "{{ docker_subnet_bits }}"
+      cidr: "{{ docker_subnet_cidr }}"
+    internal: false
+    enable_ipv6: false
+
+  container:
+    name: container
+    base_image: null
+    user: 1000
+    group: 1000
+    env: []
+    volumes: []
+    ports: []
+    restart_policy: unless-stopped

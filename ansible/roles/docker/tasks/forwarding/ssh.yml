@@ -1,0 +1,14 @@
+---
+- name: Compose SSH command arguments
+  ansible.builtin.set_fact:
+    DOCKER_SOCK_MAPPING: "{{ DOCKER_SOCK_LOCAL }}:{{ DOCKER_SOCK_REMOTE }}"
+    SSH_LOGIN: "{{ ansible_user }}@{{ ansible_host }}"
+  changed_when: false
+
+
+- name: Compose SSH command
+  ansible.builtin.set_fact:
+    SSH_CMD: "ssh -fNL {{ DOCKER_SOCK_MAPPING }} -o ExitOnForwardFailure=yes {{ SSH_LOGIN }}"
+    # ConnectTimeout=3,TCPKeepAlive=yes,ServerAliveInterval=2,ServerAliveCountMax=3,ForwardX11=no
+  changed_when: false
+

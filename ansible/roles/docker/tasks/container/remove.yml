@@ -1,0 +1,10 @@
+---
+- name: Remove Docker container
+  docker_container:
+    name: "{{ docker.container.name }}"
+    state: absent
+
+
+- name: Remove dedicated network
+  include_tasks: network/remove.yml
+

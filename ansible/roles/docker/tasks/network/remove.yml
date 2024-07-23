@@ -1,0 +1,5 @@
+---
+- name: Remove Docker network
+  docker_network:
+    name: "{{ docker.network.name }}"
+    state: absent

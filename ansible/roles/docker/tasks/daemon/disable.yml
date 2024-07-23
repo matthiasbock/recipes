@@ -1,0 +1,6 @@
+---
+- name: Ensure Docker service is disabled
+  service:
+    name: docker
+    state: disabled
+
