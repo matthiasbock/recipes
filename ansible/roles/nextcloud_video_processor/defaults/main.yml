@@ -1,0 +1,40 @@
+---
+image: false
+build: false
+remove: false
+
+container: false
+create: false
+start: false
+stop: false
+
+
+DIR_WATCHED: /var/lib/nextcloud/data
+
+IMAGE_BASE: debian:bookworm-slim
+IMAGE_BUILD_DIR: /tmp
+
+APT_INSTALL_BOOTSTRAP_PACKAGES:
+  - ca-certificates
+  - gnupg
+  - apt-transport-https
+  - debian-keyring
+
+APT_INSTALL_ADDITIONAL_PACKAGES:
+  - ffmpeg
+  - inotify-tools
+
+IMAGE_CMD: /usr/local/bin/container_cmd.sh
+IMAGE_NAME: video_processor:latest
+
+CONTAINER_NAME: nextcloud_video_processor
+
+# Create a user and group matching UID and GID of a host user and group, respectively
+HOST_USER: www-data
+HOST_GROUP: www-data
+CONTAINER_USER: www-data
+CONTAINER_GROUP: www-data
+
+# Health status reporting
+PROMETHEUS_FILEPATH: /var/lib/prometheus/node-exporter/video_processor_health.prom
+PROMETHEUS_METRIC: video_processor_health

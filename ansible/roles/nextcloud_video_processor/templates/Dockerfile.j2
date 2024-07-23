@@ -1,0 +1,35 @@
+
+FROM
+
+# Avoid prompts from apt
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Set up a non-root user
+RUN groupadd -r -g "{{ HOST_UID }}" "{{ CONTAINER_GROUP }}" && \
+    useradd -r -u "{{ HOST_GID }}" -G "{{ CONTAINER_GROUP }}" -s /bin/bash "{{ CONTAINER_USER }}"
+
+# Install necessary packages for HTTPS and package verification
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        {% for pkg in APT_INSTALL_BOOTSTRAP_PACKAGES %}{{ pkg }} {% endfor %} \
+        && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install ffmpeg and other required packages
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        {% for pkg in APT_INSTALL_ADDITIONAL_PACKAGES %}{{ pkg }} {% endfor %} \
+        && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy scripts
+COPY "{{ FILEPATH_PROCESS_VIDEO | basename }}" "{{ FILEPATH_PROCESS_VIDEO }}"
+# RUN chmod +x "{{ FILEPATH_PROCESS_VIDEO }}"
+
+COPY "{{ IMAGE_CMD | basename }}" "{{ IMAGE_CMD }}"
+# RUN chmod +x "{{ IMAGE_CMD }}"
+
+# Switch to non-root user
+USER "{{ CONTAINER_USER }}"
+
+CMD ["{{ IMAGE_CMD }}"]

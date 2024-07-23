@@ -1,0 +1,64 @@
+---
+- name: Ensure Docker is installed
+  apt:
+    name: docker.io
+    state: present
+  when:
+    - image | bool
+    - build | bool
+
+
+- name: Build image in temporary directory
+  block:
+    - name: Create build directory
+      file:
+        path: "{{ IMAGE_BUILD_DIR }}"
+        state: directory
+        mode: "0755"
+
+    - name: Copy scripts to ansible host
+      template:
+        src: "./{{ item }}"
+        dest: "{{ IMAGE_BUILD_DIR }}/{{ item }}"
+        mode: "0755"
+      loop:
+        - convert.sh
+        - healthcheck.sh
+        - monitors.sh
+
+    - name: Copy templates to ansible host
+      template:
+        src: Dockerfile.j2
+        dest: "{{ IMAGE_BUILD_DIR }}/Dockerfile"
+        mode: "0644"
+
+    - name: Build image
+      docker_image:
+        name: "{{ IMAGE_NAME }}"
+        build:
+          path: "{{ IMAGE_BUILD_DIR }}"
+        source: build
+
+  always:
+    - name: Clean-up temporary files
+      file:
+        path: "{{ IMAGE_BUILD_DIR }}/{{ item }}"
+        state: absent
+      loop:
+        - convert.sh
+        - healthcheck.sh
+        - monitor.sh
+        - Dockerfile
+
+  when:
+    - image | bool
+    - build | bool
+
+
+- name: Remove image from previous build
+  docker_image:
+    name: "{{ IMAGE_NAME }}"
+    state: absent
+  when:
+    - image | bool
+    - remove | bool

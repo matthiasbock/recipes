@@ -1,0 +1,49 @@
+---
+#
+# Create container from image
+#
+- name: Create container
+  docker_container:
+    name: "{{ CONTAINER_NAME }}"
+    image: "{{ IMAGE_NAME }}"
+    user: "{{ UID }}:{{ GID }}"
+    restart_policy: unless-stopped
+    volumes:
+      - "{{ DIR_WATCHED }}:/watch:rw"
+    state: present
+  when:
+    - container | bool
+    - create | bool
+
+#
+# Start container
+#
+- name: Start container
+  docker_container:
+    name: "{{ CONTAINER_NAME }}"
+    state: started
+  when:
+    - container | bool
+    - start | bool
+
+#
+# Stop container
+#
+- name: Stop container
+  docker_container:
+    name: "{{ CONTAINER_NAME }}"
+    state: stopped
+  when:
+    - container | bool
+    - stop | bool
+
+#
+# Remove container
+#
+- name: Remove container
+  docker_container:
+    name: "{{ CONTAINER_NAME }}"
+    state: absent
+  when:
+    - container | bool
+    - remove | bool

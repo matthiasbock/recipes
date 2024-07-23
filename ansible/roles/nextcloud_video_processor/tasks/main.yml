@@ -1,0 +1,15 @@
+---
+- name: Get host user and group IDs
+  include_tasks: uid_gid.yml
+
+
+- name: Docker image-related tasks
+  include_tasks: image.yml
+  when:
+    - image | bool
+
+
+- name: Docker container-related tasks
+  include_tasks: container.yml
+  when:
+    - container | bool

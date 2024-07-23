@@ -1,0 +1,8 @@
+---
+- name: Test container creation
+  hosts: all
+  roles:
+    - role: nextcloud_video_processor
+      vars:
+        remove_container: true
+

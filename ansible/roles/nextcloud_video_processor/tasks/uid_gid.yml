@@ -1,0 +1,18 @@
+---
+- name: Get host user ID
+  command: id -u "{{ HOST_USER }}"
+  register: host_uid
+  changed_when: false
+
+- name: Set UID
+  set_fact:
+    HOST_UID: "{{ host_uid.stdout }}"
+
+- name: Get host group ID
+  command: id -g "{{ HOST_GROUP }}"
+  register: host_gid
+  changed_when: false
+
+- name: Set GID
+  set_fact:
+    HOST_GID: "{{ host_gid.stdout }}"

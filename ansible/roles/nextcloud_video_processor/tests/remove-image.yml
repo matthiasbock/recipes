@@ -1,0 +1,8 @@
+---
+- name: Test image building
+  hosts: all
+  roles:
+    - role: nextcloud_video_processor
+      vars:
+        remove_image: true
+
