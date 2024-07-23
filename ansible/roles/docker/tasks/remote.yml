@@ -10,7 +10,8 @@
     SSH_LOGIN: "{{ ansible_user }}@{{ ansible_host }}"
   changed_when: false
   when:
-    - (start_ssh_tunnel | bool) or (stop_ssh_tunnel | bool)
+    - (start_forwarding | bool) or
+      (stop_forwarding | bool)
 
 
 - name: Compose SSH command
@@ -19,7 +20,8 @@
     # ConnectTimeout=3,TCPKeepAlive=yes,ServerAliveInterval=2,ServerAliveCountMax=3,ForwardX11=no
   changed_when: false
   when:
-    - (start_ssh_tunnel | bool) or (stop_ssh_tunnel | bool)
+    - (start_forwarding | bool) or
+      (stop_forwarding | bool)
 
 
 - name: Start Docker socket forwarding
@@ -74,7 +76,7 @@
 
   changed_when: false
   when:
-    - start_ssh_tunnel | bool
+    - start_forwarding | bool
 
 
 - name: Stop Docker socket forwarding
@@ -94,5 +96,5 @@
 
   changed_when: false
   when:
-    - stop_ssh_tunnel | bool
+    - stop_forwarding | bool
 

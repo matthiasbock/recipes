@@ -47,3 +47,6 @@ Actions:
 * `start_container`
 * `stop_container`
 * `commit_container`
+* `get_container_info`
+* `assert_container_exists`
+

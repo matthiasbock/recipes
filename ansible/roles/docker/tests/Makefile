@@ -1,10 +1,13 @@
 
-# install_docker:
+SHELL = /bin/bash
 
-# uninstall_docker:
+HOST = localhost
 
-# start_docker:
+TESTS = $(wildcard *.yml)
 
-# stop_docker:
 
+.PHONY: tests $(TESTS)
+tests: $(TESTS)
+$(TESTS):
+	ansible-playbook -l $(HOST) ./$@
 

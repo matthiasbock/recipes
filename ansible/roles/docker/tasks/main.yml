@@ -1,12 +1,52 @@
 ---
+- name: Resolve task dependencies
+  include_tasks: dependencies.yml
+
+
+- name: Get current state
+  include_tasks: save_state.yml
+  when:
+    - get_docker_state | bool
+
+
 - name: Docker daemon-related tasks
   include_tasks: daemon.yml
+  when:
+    - (install_docker | bool) or
+      (uninstall_docker | bool) or
+      (start_docker | bool) or
+      (stop_docker | bool) or
+      (enable_docker | bool) or
+      (disable_docker | bool)
+
 
 - name: Docker unix socket forwarding
   include_tasks: remote.yml
+  when:
+    - (start_forwarding | bool) or
+      (stop_forwarding | bool)
+
 
 - name: Docker image-related tasks
   include_tasks: image.yml
+  when:
+    - (build_image | bool) or
+      (remove_image | bool)
+
 
 - name: Docker container-related tasks
   include_tasks: container.yml
+  when:
+    - (create_container | bool) or
+      (remove_container | bool) or
+      (start_container | bool) or
+      (stop_container | bool) or
+      (get_container_info | bool) or
+      (assert_container_exists | bool)
+
+
+- name: Restore previous state
+  include_tasks: restore_state.yml
+  when:
+    - restore_docker_state | bool
+

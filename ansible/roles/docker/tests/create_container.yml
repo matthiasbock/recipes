@@ -1,0 +1,51 @@
+---
+- name: Test container creation
+  hosts: all
+
+  tasks:
+    - name: Get Docker state
+      include_role:
+        name: docker
+      vars:
+        get_docker_state: true
+
+    - name: Ensure Docker is installed
+      package:
+        name: docker.io
+        state: present
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+
+    - name: Test installation
+      vars:
+        CONTAINER_NAME: test
+        CONTAINER_BASE_IMAGE: docker.io/debian:bookworm-slim
+
+      block:
+        - name: Create a container
+          include_role:
+            name: docker
+          vars:
+            create_container: true
+
+        - name: Check whether the container exists
+          include_role:
+            name: docker
+          vars:
+            assert_container_exists: true
+
+      always:
+        - name: Clean-up created container
+          docker_container:
+            name: "{{ CONTAINER_NAME }}"
+            state: absent
+
+        - name: Restore previous Docker state
+          include_role:
+            name: docker
+          vars:
+            restore_docker_state: true
+

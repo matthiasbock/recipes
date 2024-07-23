@@ -2,7 +2,28 @@
 #
 # Container actions
 #
+# container_actions:
+#   - create_container
+#   - remove_container
+#   - start_container
+#   - stop_container
+#   - get_container_info
+#   - assert_container_exists
+
+
 create_container: false
+remove_container: false
+
 start_container: false
 stop_container: false
-remove_container: false
+
+get_container_info: false
+assert_container_exists: false
+
+
+CONTAINER_NAME: container
+CONTAINER_UID: 1000
+CONTAINER_GID: 1000
+CONTAINER_RESTART_POLICY: unless-stopped
+CONTAINER_VOLUMES: []
+

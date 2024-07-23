@@ -1,0 +1,57 @@
+---
+- name: Get the state of the Docker daemon (absent/started/stopped)
+  block:
+    #
+    # FIXME: Doesn't work:
+    #
+    # - name: Get Docker service status
+    #   service_facts:
+    #
+    # - name: Get Docker service status
+    #   set_fact:
+    #     DOCKER_STATE: "{{ ansible_facts.services['docker.service'].status }}"
+    #
+    - name: Check if Docker is installed
+      command: which docker
+      register: which_docker
+      ignore_errors: true
+      changed_when: false
+
+    - name: Get the state of the Docker service
+      shell:
+        cmd: |
+          systemctl status docker.service |
+          head -n10 |
+          fgrep 'Active:' |
+          sed -Ee 's/^[^\(]*\(([^\)]+)\).*$/\1/g'
+      register: docker_service_status
+      changed_when: false
+      when: which_docker.rc == 0
+
+    - name: Update facts
+      set_fact:
+        PREVIOUS_DOCKER_PACKAGE_STATE: >-
+          {% if which_docker.rc == 0 %}
+          present
+          {% else %}
+          absent
+          {% endif %}
+        PREVIOUS_DOCKER_SERVICE_STATE: >-
+          {% if which_docker.rc != 0 %}
+          absent
+          {% elif docker_service_status.stdout == 'running' %}
+          started
+          {% else %}
+          stopped
+          {% endif %}
+      changed_when: false
+
+    - name: Print Docker state
+      debug:
+        msg: |
+          Docker package state: {{ PREVIOUS_DOCKER_PACKAGE_STATE }}
+          Docker service state: {{ PREVIOUS_DOCKER_SERVICE_STATE }}
+      changed_when: false
+
+  when:
+    - get_docker_state | bool

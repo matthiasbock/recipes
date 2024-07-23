@@ -47,7 +47,7 @@
         - .
 
   when:
-    - create_image | bool
+    - build_image | bool
 
 
 - name: Remove Docker image
@@ -58,21 +58,11 @@
     - remove_image | bool
 
 
-- name: Commit Docker image
-  docker_image_build:
-    name: "{{ IMAGE_NAME }}"
-    source: container
-    container_source: "{{ CONTAINER_NAME }}"
-    user: "{{ USER_NAME | default(omit) }}"
-    command: "{{ IMAGE_CMD | default(omit) }}"
-  when:
-    - commit_image | bool
-
-
 - name: Push Docker image to repository
   docker_image:
     name: "{{ IMAGE_NAME }}"
     repository: "{{ IMAGE_REPO }}"
+    source: none
     push: true
   when:
     - push_image | bool
