@@ -23,7 +23,7 @@
       CONTAINER_NAME: "{{ SYNCTHING_CONTAINER_NAME }}"
       PUID: "{{ syncthing_user.stdout }}"
       PGID: "{{ syncthing_group.stdout }}"
-      PROMETHEUS_FILE: "{{ SYNCTHING_PROMETHEUS_FILE }}"
+      PROMETHEUS_FILE: "{{ SYNCTHING_PROMETHEUS_FILEPATH }}"
       PROMETHEUS_METRIC: "{{ SYNCTHING_PROMETHEUS_METRIC }}"
   changed_when: false
   when:
@@ -79,6 +79,7 @@
     restart_policy: unless-stopped
     restart_retries: 20
 
+    # TODO:
     # Limit capabilities
     # capabilities:
     #   - chown
