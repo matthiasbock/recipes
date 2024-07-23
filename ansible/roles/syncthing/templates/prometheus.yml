@@ -1,8 +1,8 @@
 scrape_configs:
-  - job_name: 'syncthing_health'
-    scrape_interval: 1m
+  - job_name: "{{ PROMETHEUS_METRIC }}"
+    scrape_interval: 10m
     static_configs:
-      - targets: ['localhost']
+      - targets: ["{{ ansible_host }}"]
         file_sd_configs:
           - files:
-              - /var/lib/prometheus/node-exporter/syncthing_health.prom
+              - "{{ PROMETHEUS_FILEPATH }}"
