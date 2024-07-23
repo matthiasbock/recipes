@@ -1,0 +1,8 @@
+scrape_configs:
+  - job_name: 'syncthing_health'
+    scrape_interval: 1m
+    static_configs:
+      - targets: ['localhost']
+        file_sd_configs:
+          - files:
+              - /var/lib/prometheus/node-exporter/syncthing_health.prom
