@@ -14,13 +14,13 @@
   tags: connect
 
 - name: Include tasks to query installed apps
-  import_tasks: query_apps.yml
+  include_tasks: query_apps.yml
   tags: query
 
 - name: Include tasks to install app
-  import_tasks: install_app.yml
+  include_tasks: install_app.yml
   tags: install
 
 - name: Include tasks to uninstall app
-  import_tasks: uninstall_app.yml
+  include_tasks: uninstall_app.yml
   tags: uninstall

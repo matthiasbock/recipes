@@ -1,0 +1,14 @@
+---
+#
+# Dedicated container network
+#
+subnet:
+  docker: 172.18.0.0/16
+  syncthing: "{{ subnet.docker.split('.')[:2] | join('.') }}.{{ network.number }}.0/24"
+
+network:
+  number: 9
+  name: syncthing
+  bridge_name: bridge_syncthing
+  subnet: "{{ subnet.syncthing }}"
+

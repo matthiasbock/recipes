@@ -3,15 +3,18 @@
 # Checks, whether syncthing is up and running
 # by verifying that the nominal TCP and UDP ports are listened on
 #
-# To update a Prometheus file, the environment must define:
-# * CONTAINER_NAME
-# * PROMETHEUS_FILEPATH
-# * PROMETHEUS_METRIC
-#
+
+# The name of the container this script is running in
+:${CONTAINER_NAME:="{{ container.name }}"}
+
+# Prometheus configuration
+:${PROMETHEUS_FILEPATH:="{{ prometheus.filepath_container }}"}
+:${PROMETHEUS_METRIC:="{{ prometheus.metric }}"}
 
 # Ports to check for connectivity
-TCP_PORTS="8384 22000"
-UDP_PORTS="22000 21027"
+:${TCP_PORTS:="{{ syncthing.ports.tcp | join(' ') }}"}
+:${UDP_PORTS:="{{ syncthing.ports.udp | join(' ') }}"}
+
 
 # Function to check TCP port connectivity
 check_tcp_port() {
@@ -53,11 +56,11 @@ error() {
 
 # Check the health status of the web UI
 echo "Testing web interface..."
-if ! curl -fs http://localhost:8384 >/dev/null; then
+if ! curl -fs "{{ syncthing.rest_api.host }}" >/dev/null; then
   error "Web UI is not accessible"
 fi
 
-REST_STATUS=$(curl -fkLsS -m 2 localhost:8384/rest/noauth/health)
+REST_STATUS=$(curl -fkLsS -m 2 {{ syncthing.rest_api.health }})
 if [ ! $? ]; then
   error "Failed to query Syncthing's REST interface"
 fi

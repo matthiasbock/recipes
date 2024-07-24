@@ -1,13 +1,23 @@
 ---
-# Network ports exposed by the image
-image.expose: {{ syncthing.ports }}
-
-#
-# Owner of synchronized files
-# Use user and group IDs from the Docker host for compatibility.
-#
 image:
+  name: syncthing:custom
+  from: docker.io/syncthing/syncthing:1.27
+
+  #
+  # Owner of synchronized files
+  # Use user and group IDs from the Docker host for compatibility.
+  #
   add_user:
     host_user: www-data
   add_group:
     host_group: www-data
+
+  add_files: []
+  add_templates:
+    - src: healthcheck.sh
+      dest: /usr/local/bin/healthcheck.sh
+      mode: '0755'
+
+  # Network ports exposed by the image
+  expose: "{{ syncthing.ports }}"
+

@@ -1,16 +1,22 @@
 ---
-# Path to the folder path containing configuration and database on the host
-SYNCTHING_ROOT: /var/syncthing
+syncthing:
+  # Path to the folder path containing configuration and database on the host
+  dir: /var/syncthing
 
-# List of ports Syncthing listens on
-SYNCTHING_PORTS:
-  - 8384/tcp
-  - 22000/tcp
-  - 22000/udp
-  - 21027/udp
+  web_interface:
+    port: 8384
+    enabled: true
 
-for the healthcheck script:
+  # List of default ports Syncthing listens on
+  ports:
+    tcp:
+      - "{{ syncthing.web_interface.port }}"
+      - 22000
+    udp:
+      - 22000
+      - 21027
 
-# Ports to check for connectivity
-TCP_PORTS="8384 22000"
-UDP_PORTS="22000 21027"
+  rest_api:
+    host: "http://localhost:{{ syncthing.web_interface.port }}"
+    health: "{{ syncthing.rest_api.host }}/rest/noauth/health"
+

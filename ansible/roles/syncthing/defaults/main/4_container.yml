@@ -1,0 +1,43 @@
+---
+#
+# Path to the private key and certificate to use for https (web interface)
+#
+ssl:
+  filepath_private_key: /etc/letsencrypt/live/{{ ansible_host }}/privkey.pem
+  filepath_certificate: /etc/letsencrypt/live/{{ ansible_host }}/fullchain.pem
+
+
+#
+# Health status reporting via Prometheus
+#
+prometheus:
+  dir: /var/lib/prometheus
+  metric: syncthing_health_status
+  filepath_local: "{{ prometheus.dir }}/node-exporter/syncthing_health.prom"
+  filepath_container: "{{ prometheus.filepath_local }}"
+
+
+#
+# Container
+#
+container:
+  name: syncthing
+  base_image: syncthing:custom
+  hostname: "{{ ansible_host | default('syncthing') }}"
+  network: "{{ network.name }}"
+  ip: "{{ network.subnet_prefix }}.2"
+
+  # Files and folder shared between host and container
+  env: []
+  volumes:
+    - "{{ syncthing.dir }}:/var/syncthing:rw"
+    - "{{ ssl.filepath_private_key }}:/var/syncthing/config/https-key.pem:ro"
+    - "{{ ssl.filepath_certificate }}:/var/syncthing/config/https-cert.pem:ro"
+    - "{{ prometheus.filepath_local }}:{{ prometheus.filepath_container }}:rw"
+
+  # The container user and group starting Syncthing
+  user: www-data
+  group: www-data
+
+  restart_policy: unless-stopped
+  internal: false

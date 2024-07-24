@@ -60,9 +60,11 @@
     - network | bool
 
 
+
 # TODO:
 # template: Dockerfile.j2 /tmp
 # copy healthcheck.sh /tmp
+
 
 
 # - name: Build Syncthing container with healthcheck
