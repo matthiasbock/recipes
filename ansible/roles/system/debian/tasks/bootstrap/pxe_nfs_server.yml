@@ -8,9 +8,9 @@
     dhcp_range_end: 192.168.1.200
     gateway: 192.168.1.1
     dns_server: 8.8.8.8
-    nfs_share_path: /srv/nfs/pxeroot
     pxe_kernel: vmlinuz
     pxe_initrd: initrd.img
+    nfs_share_path: /srv/nfs/pxeroot
 
   tasks:
     - name: Install required packages
