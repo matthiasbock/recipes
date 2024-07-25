@@ -12,15 +12,3 @@
   register: adb_connect_output
   changed_when: "'already connected' not in adb_connect_output.stdout"
   tags: connect
-
-- name: Include tasks to query installed apps
-  include_tasks: query_apps.yml
-  tags: query
-
-- name: Include tasks to install app
-  include_tasks: install_app.yml
-  tags: install
-
-- name: Include tasks to uninstall app
-  include_tasks: uninstall_app.yml
-  tags: uninstall
