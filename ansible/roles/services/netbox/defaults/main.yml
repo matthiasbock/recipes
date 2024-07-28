@@ -1,0 +1,26 @@
+---
+docker:
+  subnet: 172.18.0.0/16
+
+subnet:
+  number: 42
+  bits: 29
+
+netbox:
+  network:
+    name: netbox
+    bridge:
+      name: br_netbox
+    subnet:
+      cidr: "{{ docker.subnet | regex_replace('^(\\d+\\.\\d+).*', '\\1') }}.{{ subnet.number }}.0/{{ subnet.bits }}"
+    enable_ipv6: false
+    internal: true
+
+  container:
+    name: netbox
+    base_image: netboxcommunity/netbox:v4.0
+    port: 8000
+    restart_policy: unless-stopped
+
+  dir: /var/lib/netbox
+

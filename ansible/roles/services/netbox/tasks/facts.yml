@@ -1,0 +1,21 @@
+---
+- name: Get services from docker-compose.yml template
+  set_fact:
+    netbox: >-
+      {{
+        netbox | default({}) |
+          combine({
+            'services':
+                lookup('template', 'docker-compose.yml.j2') |
+                from_yaml |
+                json_query('services') |
+                dict2items |
+                map(attribute='key')
+          })
+      }}
+
+- name: Debug discovered Netbox services
+  debug:
+    var: netbox.services
+    verbosity: 1
+

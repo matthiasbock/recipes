@@ -1,0 +1,9 @@
+---
+- name: Test fact gathering
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Update facts
+      include_role:
+        name: services/netbox
+        tasks_from: facts.yml
