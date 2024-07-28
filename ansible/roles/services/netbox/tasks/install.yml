@@ -1,0 +1,50 @@
+---
+- name: Ensure Docker is installed
+  package:
+    name: docker.io
+    state: present
+  become: true
+
+- name: Start Docker service
+  service:
+    name: docker
+    state: started
+  become: true
+
+- name: Ensure git is installed
+  package:
+    name: git
+    state: present
+  become: true
+
+- name: Get user
+  command: whoami
+  register: whoami
+
+- name: Create installation directory
+  file:
+    path: "{{ netbox.dir }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ whoami.stdout }}"
+    group: "{{ whoami.stdout }}"
+    recurse: yes
+  become: true
+
+- name: Clone netbox-docker repository
+  git:
+    repo: https://github.com/netbox-community/netbox-docker
+    dest: "{{ netbox.dir }}"
+    depth: 1
+    force: true
+
+- name: Copy docker-compose.yml
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ netbox.dir }}/docker-compose.yml"
+
+- name: Create container
+  docker_compose:
+    project_src: "{{ netbox.dir }}"
+    state: present
+

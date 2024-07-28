@@ -1,0 +1,67 @@
+---
+- name: Test container creation
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Update facts
+      include_role:
+        name: services/netbox
+        tasks_from: facts.yml
+
+    - name: Test installation
+      block:
+        - name: Get current Docker state
+          include_role:
+            name: services/docker
+            tasks_from: daemon/state/save.yml
+
+        - name: Install NetBox
+          include_role:
+            name: "services/netbox"
+            tasks_from: install.yml
+
+        - name: Check whether the container exists
+          include_role:
+            name: "services/netbox"
+            tasks_from: asserts/exists.yml
+
+      always:
+        - name: Clean up created containers
+          docker_container:
+            name: "{{ item }}"
+            state: absent
+          loop: "{{ netbox.services }}"
+          ignore_errors: true
+
+        - name: Clean up created containers
+          docker_container:
+            name: "{{ item }}_1"
+            state: absent
+          loop: "{{ netbox.services }}"
+          ignore_errors: true
+
+        - name: Clean up created containers
+          docker_container:
+            name: "{{ item }}_2"
+            state: absent
+          loop: "{{ netbox.services }}"
+          ignore_errors: true
+
+        - name: Delete created network
+          ansible.builtin.docker_network:
+            name: "{{ netbox.network.name }}"
+            state: absent
+          ignore_errors: true
+
+        - name: Restore previous Docker state
+          include_role:
+            name: services/docker
+            tasks_from: daemon/state/restore.yml
+          ignore_errors: true
+
+        - name: Clean up installation directory
+          file:
+            path: "{{ netbox.dir }}"
+            state: absent
+          become: true
+

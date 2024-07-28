@@ -3,6 +3,7 @@
 #
 services:
   netbox: &netbox
+    container_name: netbox
     image: {{ netbox.container.base_image }}
     depends_on:
     - netbox-postgres
@@ -13,7 +14,7 @@ services:
     healthcheck:
       start_period: 60s
       timeout: 3s
-      interval: 15s
+      interval: 1min
       test: "curl -f http://localhost:8080/login/ || exit 1"
     volumes:
     - {{ netbox.dir }}/configuration:/etc/netbox/config:z,ro
@@ -23,6 +24,7 @@ services:
 
   netbox-worker:
     <<: *netbox
+    container_name: netbox-worker
     depends_on:
       netbox:
         condition: service_healthy
@@ -33,11 +35,12 @@ services:
     healthcheck:
       start_period: 20s
       timeout: 3s
-      interval: 15s
+      interval: 1min
       test: "ps -aux | grep -v grep | grep -q rqworker || exit 1"
 
   netbox-housekeeping:
     <<: *netbox
+    container_name: netbox-housekeeping
     depends_on:
       netbox:
         condition: service_healthy
@@ -46,47 +49,57 @@ services:
     healthcheck:
       start_period: 20s
       timeout: 3s
-      interval: 15s
+      interval: 1min
       test: "ps -aux | grep -v grep | grep -q housekeeping || exit 1"
 
   netbox-postgres:
+    container_name: netbox-postgres
     image: docker.io/postgres:16-alpine
     env_file: env/postgres.env
     volumes:
     - {{ netbox.dir }}/postgres:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 10s
+      interval: 1min
       retries: 5
       start_period: 30s
       timeout: 10s
 
-  netbox-redis:
+  netbox-redis: &redis
+    container_name: netbox-redis
     image: docker.io/redis:7-alpine
     command:
     - sh
     - -c # this is to evaluate the $REDIS_PASSWORD from the env
-    - redis-server --appendonly yes --requirepass $$REDIS_PASSWORD ## $$ because of docker-compose
+    - redis-server --appendonly yes --requirepass $REDIS_PASSWORD ## $ because of docker-compose
     env_file: env/redis.env
     volumes:
     - {{ netbox.dir }}/redis:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 1min
+      timeout: 3s
+      retries: 5
 
   netbox-redis-cache:
-    image: docker.io/redis:7-alpine
+    <<: *redis
+    container_name: netbox-redis-cache
     command:
     - sh
     - -c # this is to evaluate the $REDIS_PASSWORD from the env
-    - redis-server --requirepass $$REDIS_PASSWORD ## $$ because of docker-compose
+    - redis-server --requirepass $REDIS_PASSWORD ## $ because of docker-compose
     env_file: env/redis-cache.env
     volumes:
     - {{ netbox.dir }}/redis-cache:/data
 
 networks:
   {{ netbox.network.name }}:
+    name: "{{ netbox.network.name }}"
     driver: bridge
-    driver_options:
-      com.network.bridge.name: "{{ netbox.network.bridge.name }}"
-    ipam_config:
-      - subnet: "{{ netbox.network.subnet.cidr }}"
+    driver_opts:
+      com.docker.network.bridge.name: "{{ netbox.network.bridge.name }}"
+    ipam:
+      config:
+        - subnet: "{{ netbox.network.subnet.cidr }}"
     enable_ipv6: false
     internal: true
