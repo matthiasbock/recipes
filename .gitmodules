@@ -26,3 +26,8 @@
 [submodule "lib/ansible/debian-bootstrap"]
 	path = lib/ansible/debian-bootstrap
 	url = git@github.com:/HanXHX/ansible-debian-bootstrap.git
+
+[submodule "lib/ansible/openwrt"]
+	path = lib/ansible/openwrt
+	url = git@github.com:gekmihesg/ansible-openwrt.git
+
