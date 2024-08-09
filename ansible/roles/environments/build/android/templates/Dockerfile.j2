@@ -1,0 +1,40 @@
+FROM ubuntu:20.04
+
+# Install necessary packages
+RUN apt-get update && apt-get install -y \
+    wget \
+    unzip \
+    cmake \
+    build-essential
+
+# # Set NDK version
+# ENV NDK_VERSION=26.1.10909125
+
+# # Download and install NDK
+# RUN wget https://dl.google.com/android/repository/android-ndk-r${NDK_VERSION}-linux.zip \
+#     && unzip android-ndk-r${NDK_VERSION}-linux.zip -d /opt \
+#     && rm android-ndk-r${NDK_VERSION}-linux.zip
+
+# # Set NDK path
+# ENV ANDROID_NDK_HOME /opt/android-ndk-r${NDK_VERSION}
+
+# Install Android NDK
+RUN wget https://dl.google.com/android/repository/android-ndk-r21d-linux-x86_64.zip \
+    && unzip android-ndk-r21d-linux-x86_64.zip -d /opt \
+    && rm android-ndk-r21d-linux-x86_64.zip
+
+# Set NDK path
+ENV ANDROID_NDK_HOME /opt/android-ndk-r21d
+
+# Install Qt for Android (you'd need to adjust this based on your Qt version and license)
+RUN wget https://download.qt.io/official_releases/qt/5.15/5.15.2/qt-opensource-linux-x64-5.15.2.run \
+    && chmod +x qt-opensource-linux-x64-5.15.2.run \
+    && ./qt-opensource-linux-x64-5.15.2.run --script qt-noninteractive.qs
+
+# Set Qt path
+ENV PATH="/opt/Qt/5.15.2/android/bin:${PATH}"
+
+# Set working directory
+WORKDIR /app
+
+# Your build commands would go here in your CI/CD pipeline

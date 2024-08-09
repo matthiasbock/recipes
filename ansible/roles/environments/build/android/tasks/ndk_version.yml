@@ -1,0 +1,17 @@
+---
+#
+# Determine latest stable Android NDK version
+#
+- name: Fetch NDK versions from Android website
+  uri:
+    url: https://developer.android.com/ndk/downloads
+    return_content: true
+  register: ndk_page
+
+- name: Extract latest stable NDK version
+  set_fact:
+    latest_ndk_version: "{{ ndk_page.content | regex_search('android-ndk-r(\\d+[a-z]?)-linux-x86_64.zip', '\\1') | first }}"
+
+- name: Display latest NDK version
+  debug:
+    msg: "The latest stable Android NDK version is r{{ latest_ndk_version }}"
