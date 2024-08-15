@@ -1,0 +1,20 @@
+version: '3'
+services:
+  sourcegraph:
+    image: custom-sourcegraph
+    container_name: {{ container_name }}
+    ports:
+      - "{{ published_http_port }}:7080"
+    volumes:
+      - {{ ansible_env.HOME }}/.sourcegraph/config:/etc/sourcegraph
+      - {{ ansible_env.HOME }}/.sourcegraph/data:/var/opt/sourcegraph
+      - {{ local_repos_path }}:/repos:ro
+    environment:
+      - DISABLE_EXTERNAL_SERVICES=true
+    networks:
+      {{ container_network_name }}:
+        ipv4_address: {{ container_ip }}
+
+networks:
+  {{ container_network_name }}:
+    external: true

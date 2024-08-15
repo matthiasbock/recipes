@@ -1,0 +1,14 @@
+
+FROM sourcegraph/server:latest
+
+# Install nftables
+RUN apt-get update && apt-get install -y nftables
+
+# Copy the nftables rules file
+COPY nftables.conf /etc/nftables.conf
+
+# Copy the entrypoint script
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
+ENTRYPOINT ["/docker-entrypoint.sh"]

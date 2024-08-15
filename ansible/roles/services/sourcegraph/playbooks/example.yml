@@ -1,0 +1,11 @@
+- hosts: sourcegraph_servers
+  roles:
+    - role: sourcegraph
+      vars:
+        container_name: my_sourcegraph
+        container_ip: 172.20.0.2
+        container_network_name: my_sourcegraph_network
+        container_network_mask: 24
+        local_repos_path: /home/user/repos
+        published_http_port: 8080
+        lan_subnet: 10.0.0.0/24

@@ -1,0 +1,41 @@
+#!/usr/sbin/nft -f
+
+flush ruleset
+
+table ip filter {
+    chain input {
+        type filter hook input priority 0; policy drop;
+
+        # Allow loopback
+        iif lo accept
+
+        # Allow established/related connections
+        ct state established,related accept
+
+        # Allow incoming TCP SYN packets from specific LAN IP addresses
+        ip saddr {{ lan_subnet }} tcp dport {{ published_http_port }} tcp flags & (fin|syn|rst|ack) == syn accept
+
+        # Log dropped packets
+        log prefix "nftables-input-dropped: " drop
+    }
+
+    chain output {
+        type filter hook output priority 0; policy drop;
+
+        # Allow loopback
+        oif lo accept
+
+        # Allow established/related connections
+        ct state established,related accept
+
+        # Allow outgoing TCP SYN packets to specific LAN IP addresses
+        ip daddr {{ lan_subnet }} tcp dport {{ published_http_port }} tcp flags & (fin|syn|rst|ack) == syn accept
+
+        # Log dropped packets
+        log prefix "nftables-output-dropped: " drop
+    }
+
+    chain forward {
+        type filter hook forward priority 0; policy drop;
+    }
+}

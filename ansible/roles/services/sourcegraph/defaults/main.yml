@@ -1,0 +1,8 @@
+---
+container_name: sourcegraph
+container_ip: 172.18.0.2
+container_network_name: sourcegraph
+container_network_mask: 16
+local_repos_path: /path/to/local/repos
+published_http_port: 7080
+lan_subnet: 192.168.1.0/24
