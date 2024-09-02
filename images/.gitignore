@@ -21,3 +21,9 @@ jigdo-file-cache.db
 *.img
 *.dd
 *.raw
+
+# Keys
+*.key
+*.pem
+*.p12
+*.pfx
