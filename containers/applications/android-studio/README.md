@@ -2,6 +2,25 @@
 
 Android Studio is an IDE for Android developers.
 
+## Dockerfile
+
+~~~sh
+docker build -t android-studio .
+xhost +local:docker
+docker run -it --rm \
+    -e DISPLAY=$DISPLAY \
+    -v /tmp/.X11-unix:/tmp/.X11-unix \
+    --device /dev/bus/usb \
+    android-studio
+~~~
+
+Optional options:
+
+* --cap-drop=ALL
+* --cap-add=SYS_PTRACE
+* --cap-add=DAC_OVERRIDE
+* --security-opt seccomp=unconfined
+
 ## Dependencies
 
 android-studio/intellij runtime dependencies:
@@ -41,3 +60,9 @@ export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${JAVA_HOME}/lib/amd64:${JAVA_HOME}/j
 ## TODOs
 
 * Forward browser calls: invokation of chromium in the container should open chromium on the host
+
+## Links
+
+* Homepage: https://developer.android.com/studio
+* Direct link (22.11.2024): https://redirector.gvt1.com/edgedl/android/studio/ide-zips/2024.2.1.11/android-studio-2024.2.1.11-linux.tar.gz (sha256sum 81f2fa5da72ab6f6afacca4a5327de5191e133ad02706e3ee440dc8658b8cdc3)
+
