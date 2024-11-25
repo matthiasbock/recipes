@@ -1,0 +1,23 @@
+---
+imap:
+  # host: <IMAP-HOSTNAME>
+  port: 993
+  ssl: true
+  starttls: false
+  client_cert: ""
+  auth: true
+  auth_method: plain
+  # user: <USERNAME>
+  # password: <PASSWORD>
+
+smtp:
+  # host: <SMTP-HOSTNAME>
+  port: 587
+  ssl: false
+  starttls: true
+  client_cert: ""
+  auth: true
+  auth_method: plain
+  # user: <USERNAME>
+  # password: <PASSWORD>
+

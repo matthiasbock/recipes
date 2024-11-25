@@ -1,0 +1,11 @@
+# ---
+# - block: Copy custom facts scripts to ansible host (temporary directory)
+# Rerun fact gathering with custom facts.d path
+
+# block: localhost requests temporary netbox access token
+
+#   task: remote host updates netbox with gathered facts using token
+
+# always: localhost revokes token
+
+# always: clean up temporary directory

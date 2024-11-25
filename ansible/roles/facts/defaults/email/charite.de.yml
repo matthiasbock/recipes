@@ -1,0 +1,25 @@
+---
+imap:
+  # email-mx16.charite.de
+  host: 10.32.83.0
+  port: 993
+  ssl: true
+  starttls: false
+  client_cert: ""
+  auth: true
+  auth_method: plain
+  # user: <USERNAME>
+  # password: <PASSWORD>
+
+smtp:
+  # smtp-out.charite.de
+  host: 141.42.206.11
+  port: 587
+  ssl: false
+  starttls: true
+  client_cert: ""
+  auth: true
+  auth_method: plain
+  # user: <EMAIL>
+  # password: <PASSWORD>
+
