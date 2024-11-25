@@ -1,0 +1,8 @@
+#
+# Tasks:
+# * Start btrfs scrub now (either in the background or blocking)
+# * Schedule scrub for a later time
+# * Set up scrubbing to run at boot
+# * Set up scrubbing to run at regular intervals
+#
+
