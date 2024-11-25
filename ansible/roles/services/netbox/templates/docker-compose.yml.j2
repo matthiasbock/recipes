@@ -21,6 +21,8 @@ services:
     - {{ netbox.dir }}/media:/opt/netbox/netbox/media:rw
     - {{ netbox.dir }}/reports:/opt/netbox/netbox/reports:rw
     - {{ netbox.dir }}/scripts:/opt/netbox/netbox/scripts:rw
+    networks:
+    - "{{ netbox.network.name }}"
 
   netbox-worker:
     <<: *netbox
@@ -37,6 +39,8 @@ services:
       timeout: 3s
       interval: 1min
       test: "ps -aux | grep -v grep | grep -q rqworker || exit 1"
+    networks:
+    - "{{ netbox.network.name }}"
 
   netbox-housekeeping:
     <<: *netbox
@@ -51,6 +55,8 @@ services:
       timeout: 3s
       interval: 1min
       test: "ps -aux | grep -v grep | grep -q housekeeping || exit 1"
+    networks:
+    - "{{ netbox.network.name }}"
 
   netbox-postgres:
     container_name: netbox-postgres
@@ -64,6 +70,8 @@ services:
       retries: 5
       start_period: 30s
       timeout: 10s
+    networks:
+    - "{{ netbox.network.name }}"
 
   netbox-redis: &redis
     container_name: netbox-redis
@@ -71,7 +79,7 @@ services:
     command:
     - sh
     - -c # this is to evaluate the $REDIS_PASSWORD from the env
-    - redis-server --appendonly yes --requirepass $REDIS_PASSWORD ## $ because of docker-compose
+    - redis-server --appendonly yes --requirepass $$REDIS_PASSWORD  ## "$$" prevents docker-compose from interpreting the $ as an env var
     env_file: env/redis.env
     volumes:
     - {{ netbox.dir }}/redis:/data
@@ -80,6 +88,8 @@ services:
       interval: 1min
       timeout: 3s
       retries: 5
+    networks:
+    - "{{ netbox.network.name }}"
 
   netbox-redis-cache:
     <<: *redis
@@ -87,14 +97,16 @@ services:
     command:
     - sh
     - -c # this is to evaluate the $REDIS_PASSWORD from the env
-    - redis-server --requirepass $REDIS_PASSWORD ## $ because of docker-compose
+    - redis-server --requirepass $$REDIS_PASSWORD ## $$ because of docker-compose
     env_file: env/redis-cache.env
     volumes:
     - {{ netbox.dir }}/redis-cache:/data
+    networks:
+    - "{{ netbox.network.name }}"
 
 networks:
   {{ netbox.network.name }}:
-    name: "{{ netbox.network.name }}"
+    name: "bridge_{{ netbox.network.name }}"
     driver: bridge
     driver_opts:
       com.docker.network.bridge.name: "{{ netbox.network.bridge.name }}"
