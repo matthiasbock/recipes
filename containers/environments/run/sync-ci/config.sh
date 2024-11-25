@@ -9,10 +9,10 @@ container_name="${image_name}_${image_tag}"
 container_architecture="$debian_architecture"
 
 # Derive container from this image:
-base_image="$BASE_IMAGE"
+base_image="registry.bihealth.org:443/bockm/recipes/debian:bookworm-amd64"
 
 # Push resulting image to these repos:
-image_repositories="$IMAGE_REPOSITORY $IMAGE_REPOSITORIES"
+image_repositories="registry.bihealth.org:443/matthiasbock/sync-ci/ci-runner:latest"
 
 
 function container_setup() {
