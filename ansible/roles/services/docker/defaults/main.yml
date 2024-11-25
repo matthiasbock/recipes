@@ -1,7 +1,8 @@
 ---
-docker_subnet_prefix: 172.18.9
+docker_subnet_prefix: 172.18
+docker_subnet_number: 0
 docker_subnet_bits: 30
-docker_subnet_cidr: "{{ docker_subnet_prefix }}.0/{{ docker_subnet_bits }}"
+docker_subnet_cidr: "{{ docker_subnet_prefix }}.{{ docker_subnet_number }}.0/{{ docker_subnet_bits }}"
 
 docker_sock_local: "/tmp/{{ ansible_host }}_docker.sock"
 docker_sock_remote: "/var/run/docker.sock"
@@ -49,6 +50,7 @@ docker:
     name: docker0
     bridge_name: br_docker0
     subnet:
+      number: "{{ docker_subnet_number }}"
       prefix: "{{ docker_subnet_prefix }}"
       bits: "{{ docker_subnet_bits }}"
       cidr: "{{ docker_subnet_cidr }}"
