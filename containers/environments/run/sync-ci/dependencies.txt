@@ -1,0 +1,6 @@
+bash
+coreutils
+make
+git
+git-lfs
+openssh-client

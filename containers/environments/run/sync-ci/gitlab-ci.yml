@@ -1,0 +1,17 @@
+
+sync-ci_runner:
+  rules:
+    - changes:
+      - containers/environments/run/sync-ci/**/*
+    - when: manual
+  variables:
+    CONFIG: "environments/compute/sync-ci/config.sh"
+    BASE_IMAGE: "registry.bihealth.org:443/bockm/recipes/debian:bookworm-amd64"
+    IMAGE_REPOSITORY: "registry.bihealth.org:443/matthiasbock/sync-ci/ci-runner:latest"
+  script:
+    - echo "Building container..."
+    - ./containers/build.sh $CONFIG
+    - echo "Creating image from container..."
+    - ./containers/commit.sh $CONFIG
+    - echo "Publishing image to container registry..."
+    - ./containers/push.sh $CONFIG
