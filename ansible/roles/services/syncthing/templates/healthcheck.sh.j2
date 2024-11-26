@@ -1,93 +1,201 @@
 #!/bin/sh
 #
-# Checks, whether syncthing is up and running
-# by verifying that the nominal TCP and UDP ports are listened on
+# Checks, whether Syncthing is up and functioning properly
+#
+# This script is intended for container health monitoring,
+# executed in regular intervals, updating a status file
+# suitable for use with an instance of Prometheus.
+#
+# It verifies that the expected TCP and UDP ports are being listened on.
 #
 
 # The name of the container this script is running in
 :${CONTAINER_NAME:="{{ container.name }}"}
 
 # Prometheus configuration
-:${PROMETHEUS_FILEPATH:="{{ prometheus.filepath_container }}"}
-:${PROMETHEUS_METRIC:="{{ prometheus.metric }}"}
+:${PROMETHEUS_FILEPATH:="{{ prometheus.filepath_container | default('/var/lib/prometheus/node-exporter/syncthing.prom') }}"}
 
 # Ports to check for connectivity
-:${TCP_PORTS:="{{ syncthing.ports.tcp | join(' ') }}"}
-:${UDP_PORTS:="{{ syncthing.ports.udp | join(' ') }}"}
+:${TCP_PORTS:="{{ syncthing.ports.tcp | join(' ') | default('8384 22000') }}"}
+:${UDP_PORTS:="{{ syncthing.ports.udp | join(' ') | default('21027 22000')}}"}
+
+# URLs to check
+:${URL_REST_HOST:="{{ syncthing.rest_api.host | default('http://localhost:8384') }}"}
+:${URL_REST_STATUS:="{{ syncthing.rest_api.health | default('http://localhost:8384/rest/noauth/health') }}"}
 
 
-# Function to check TCP port connectivity
+#
+# Checks whether the given TCP port is connectable
+#
 check_tcp_port() {
   local PORT=$1
+  command -v nc >/dev/null 2>&1 || return 1
   nc -vzw 3 localhost $PORT 2>&1
   return $?
 }
 
-# Function to check UDP port connectivity
+#
+# Checks whether the given UDP port is connectable
+#
 check_udp_port() {
   local PORT=$1
+  command -v nc >/dev/null 2>&1 || return 1
   echo -n "" | nc -vuzw 3 localhost $PORT 2>&1
   return $?
 }
 
-# Function to set health status
-set_health_status() {
-  local STATUS="$1"
-  local ERROR_MESSAGE="$2"
-
-  if [ "$CONTAINER_NAME" = "" ]; then return; fi
-  if [ "$PROMETHEUS_FILEPATH" = "" ]; then return; fi
-  if [ ! -f "$PROMETHEUS_FILEPATH" ]; then exit 2; fi
-  if [ "$PROMETHEUS_METRIC" = "" ]; then return; fi
-
-  local PAYLOAD="container=\"$CONTAINER_NAME\",timestamp=\"$(date)\""
-
-  if [ "$ERROR_MESSAGE" != "" ]; then PAYLOAD="$PAYLOAD,error=\"$ERROR_MESSAGE\""; fi
-
-  echo "${PROMETHEUS_METRIC}{$PAYLOAD} $STATUS" > $PROMETHEUS_FILEPATH
+#
+# Clears the Prometheus metrics file
+#
+clear_prometheus_metrics() {
+  echo > "$PROMETHEUS_FILEPATH"
 }
 
+#
+# Appends the specified metric to the Prometheus metrics file
+#
+prometheus_add_status() {
+  local METRIC="$1"  # Prometheus metric name, e.g. 'syncthing_health'
+  local STATUS="$2"  # Status code, e.g. '0' or '1'
+  local LABELS="$3"  # Additional labels, e.g. 'container="syncthing"'
+  local TYPE="$4"    # Metric type, e.g. 'counter' or 'gauge'
+  local HELP="$5"    # Help text, e.g. 'Syncthing health status (1=healthy, 0=unhealthy)'
+
+  # Make sure, a Prometheus metric name was given
+  [ -z "$METRIC" ] && return
+
+  # Make sure, a status code was given
+  [ -z "$STATUS" ] && return
+
+  # If the name of the container is available, include it in the payload
+  [ -n "$CONTAINER_NAME" ] && LABELS="container=\"$CONTAINER_NAME\", $LABELS"
+
+  # Append timestamp to payload
+  LABELS="timestamp=\"$(date)\", $LABLES"
+
+  # Make sure, the path to the file is defined
+  [ -z "$PROMETHEUS_FILEPATH" ] && return
+
+  # Make sure, the file exists
+  [ ! -f "$PROMETHEUS_FILEPATH" ] && touch "$PROMETHEUS_FILEPATH"
+
+  # Make sure, the file is writable
+  [ ! -w "$PROMETHEUS_FILEPATH" ] && return
+
+  # Write the metric to file
+  [ -n "$HELP" ] && echo "# HELP $METRIC $HELP" >> "$PROMETHEUS_FILEPATH"
+  [ -n "$TYPE" ] && echo "# TYPE $METRIC $TYPE" >> "$PROMETHEUS_FILEPATH"
+  echo "$METRIC\{$LABELS\} $STATUS" >> "$PROMETHEUS_FILEPATH"
+  echo > "$PROMETHEUS_FILEPATH"
+}
+
+global HEALTH_STATUS=1
+global ERROR_MESSAGE=""
+
+#
+# Called when an error occurs
+#
+# Prints an error message, sets the global health status to 1 and
+# updates the specified Prometheus metric
+#
 error() {
-  local ERROR="$1"
-  echo $ERROR
-  set_health_status 0 "$ERROR"
-  exit 1
+  global ERROR_MESSAGE="$1"
+
+  # Print the given error message
+  echo $ERROR_MESSAGE
+
+  # Clear the global healthy flag
+  global HEALTH_STATUS=0
 }
 
-# Check the health status of the web UI
-echo "Testing web interface..."
-if ! curl -fs "{{ syncthing.rest_api.host }}" >/dev/null; then
-  error "Web UI is not accessible"
+#
+# Checks the connectability of the web interface
+#
+check_web_interface() {
+
+  echo "Connecting to Syncthing web interface..."
+  local WEB_STATUS="$(curl -fkLsS -m 2 "$URL_REST_HOST" >/dev/null; echo $?)"
+  [ -z $WEB_STATUS ] || error "Failed to connect to Syncthing web interface"
+  prometheus_add_status \
+    syncthing_web_connectable \
+    $WEB_STATUS \
+    "" \
+    gauge \
+    "Whether the web interface can be connected to (1=healthy, 0=unhealthy)"
+
+  local REST_STATUS="$(curl -fkLsS -m 2 "$URL_REST_STATUS"; echo $?)"
+  [ -z $REST_STATUS ] || error "Failed to query REST interface"
+  prometheus_add_status \
+    syncthing_rest_connectable \
+    $REST_STATUS \
+    "" \
+    gauge \
+    "Whether the REST interface can be connected to (1=healthy, 0=unhealthy)"
+
+  local REST_STATUS_OK="$(curl -fkLsS -m 2 "$URL_REST_STATUS" | fgrep -o --color=never OK; echo $?)"
+  [ -z $REST_STATUS_OK ] || error "REST interface status is not OK"
+  prometheus_add_status \
+    syncthing_rest_status_ok \
+    $REST_STATUS_OK \
+    "" \
+    gauge \
+    "Whether the REST interface status is OK (1=healthy, 0=unhealthy)"
+}
+
+#
+# Checks the connectability of all TCP ports
+#
+check_tcp_connectability() {
+  # If a list of ports was given, use it, otherwise use the default list
+  local PORTS="${1:-$TCP_PORTS}"
+
+  # Iterate over all TCP ports
+  for PORT in "$PORTS"; do
+    echo "Connecting to TCP port: $PORT"
+    local STATUS="$(check_tcp_port "$PORT"; echo $?)"
+    [ -z $STATUS ] && STATUS=1 || { STATUS=0; error "Error: Failed to connect to TCP port $PORT"; }
+
+    # Adding a corresponding Prometheus metric
+    prometheus_add_status \
+      syncthing_tcp_port_connectable \
+      $STATUS \
+      'protocol=tcp,port=$PORT' \
+      gauge \
+      "Whether TCP port $PORT can be connected to (1=healthy, 0=unhealthy)"
+  done
+}
+
+#
+# Checks the connectability of all UDP ports
+#
+check_udp_connectability() {
+  # If a list of ports was given, use it, otherwise use the default list
+  local PORTS="${1:-$UDP_PORTS}"
+
+  # Iterate over all UDP ports
+  for PORT in "$PORTS"; do
+    echo "Connecting to UDP port: $PORT"
+    local STATUS="$(check_udp_port "$PORT"; echo $?)"
+    [ -z $STATUS ] && STATUS=1 || { STATUS=0; error "Error: Failed to connect to UDP port $PORT"; }
+
+    # Adding a corresponding Prometheus metric
+    prometheus_add_status \
+      syncthing_udp_port_connectable \
+      $STATUS \
+      'protocol=udp,port=$PORT' \
+      gauge \
+      "Whether UDP port $PORT can be connected to (1=healthy, 0=unhealthy)"
+  done
+}
+
+# Perform health checks
+check_web_interface
+check_tcp_connectability
+check_udp_connectability
+
+# Communicate health status to caller via exit code
+if [ $HEALTH_STATUS -ne 0 ]; then
+  exit 0
+else
+  exit 1
 fi
-
-REST_STATUS=$(curl -fkLsS -m 2 {{ syncthing.rest_api.health }})
-if [ ! $? ]; then
-  error "Failed to query Syncthing's REST interface"
-fi
-
-echo $REST_STATUS | fgrep -o --color=never OK
-if [ ! $? ]; then
-  error "Syncthing status is not OK"
-fi
-
-# Check connectivity for each TCP port
-for PORT in $TCP_PORTS; do
-  echo "Testing TCP port: $PORT"
-  if ! check_tcp_port $PORT; then
-    error "TCP port $PORT is not accessible"
-  fi
-done
-
-# Check connectivity for each UDP port
-for PORT in $UDP_PORTS; do
-  echo "Testing UDP port: $PORT"
-  if ! check_udp_port $PORT; then
-    error "UDP port $PORT is not accessible"
-  fi
-done
-
-# If all checks pass
-echo "Container seems healthy"
-set_health_status 1
-exit 0
-
