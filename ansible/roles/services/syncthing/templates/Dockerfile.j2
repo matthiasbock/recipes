@@ -1,8 +1,14 @@
 
-FROM {{ IMAGE_FROM }}
+FROM {{ docker.image.from | default('docker.io/syncthing/syncthing:latest') }}
 
-# Add health check script
-COPY healthcheck.sh /usr/local/bin/healthcheck.sh
+# Add script to monitor container health
+COPY healthcheck.sh {{ docker.image.healthcheck.command | default('/usr/local/bin/healthcheck.sh') }}
 
-# Set the health check
-HEALTHCHECK --interval=300s --timeout=20s --start-period=60s --retries=1 CMD ["/usr/local/bin/healthcheck.sh"]
+# Install the health monitoring script
+HEALTHCHECK \
+--interval={{ docker.image.healthcheck.interval | default('300s') }} \
+--timeout={{ docker.image.healthcheck.timeout | default('20s') }} \
+--start-period={{ docker.image.healthcheck.start_period | default('60s') }} \
+--retries={{ docker.image.healthcheck.retries | default('1') }} \
+CMD ["{{ docker.image.healthcheck.command | default('/usr/local/bin/healthcheck.sh') }}"]
+

@@ -12,9 +12,8 @@ ssl:
 #
 prometheus:
   dir: /var/lib/prometheus
-  metric: syncthing_health_status
-  filepath_local: "{{ prometheus.dir }}/node-exporter/syncthing_health.prom"
-  filepath_container: "{{ prometheus.filepath_local }}"
+  filepath_host: "{{ prometheus.dir }}/node-exporter/syncthing_health.prom"
+  filepath_container: "{{ prometheus.filepath_host }}"
 
 
 #
@@ -33,7 +32,7 @@ container:
     - "{{ syncthing.dir }}:/var/syncthing:rw"
     - "{{ ssl.filepath_private_key }}:/var/syncthing/config/https-key.pem:ro"
     - "{{ ssl.filepath_certificate }}:/var/syncthing/config/https-cert.pem:ro"
-    - "{{ prometheus.filepath_local }}:{{ prometheus.filepath_container }}:rw"
+    - "{{ prometheus.filepath_host }}:{{ prometheus.filepath_container }}:rw"
 
   # The container user and group starting Syncthing
   user: www-data
