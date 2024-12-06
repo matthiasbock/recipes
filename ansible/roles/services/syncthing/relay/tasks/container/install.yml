@@ -1,0 +1,16 @@
+---
+- name: Create Docker network for Syncthing relay container
+  include_role:
+    name: docker
+    tasks_from: network/create.yml
+  vars:
+    docker: "{{ syncthing.relay.docker }}"
+
+
+- name: Create Syncthing relay container
+  include_role:
+    name: docker
+    tasks_from: container/create.yml
+  vars:
+    docker: "{{ syncthing.relay.docker }}"
+

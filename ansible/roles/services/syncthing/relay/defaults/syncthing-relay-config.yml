@@ -1,0 +1,10 @@
+---
+#
+# Configure a Syncthing relay server
+#
+syncthing:
+  relay:
+    config:
+      listenAddress: 0.0.0.0:22067
+
+

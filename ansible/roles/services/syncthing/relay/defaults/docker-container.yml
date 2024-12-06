@@ -1,0 +1,31 @@
+---
+syncthing:
+  relay:
+    docker:
+      container:
+        name: syncthing-relay
+        base_image: docker.io/syncthing/relaysrv:1.27
+        user: www-data
+        group: www-data
+        ports:
+          - "22067:22067"
+        volumes: []
+        env: []
+        restart_policy: unless-stopped
+
+        # Note:
+        # When deriving the container from the custom Docker image,
+        # the healthcheck script is already configured.
+        # healthcheck:
+        #   test: []
+
+      network:
+        name: relay0
+        bridge_name: br_relay0
+        subnet:
+          prefix: "172.18"
+          number: "1"
+          bits: "30"
+        enable_ipv6: false
+        internal: true
+

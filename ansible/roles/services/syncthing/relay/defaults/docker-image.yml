@@ -1,0 +1,30 @@
+---
+#
+# Configure a Docker image running a Syncthing relay server
+#
+syncthing:
+  relay:
+    docker:
+      image:
+        name: syncthing-relay:custom
+        from: docker.io/syncthing/relaysrv:1.27
+
+        # Network ports typically used by Syncthing relay
+        expose:
+          tcp:
+            - 22067    # Relay protocol
+          udp: []
+
+        # Add health monitoring
+        healthcheck:
+          command: /usr/local/bin/healthcheck.sh
+          start_period: 30s
+          start_interval: 10s
+          interval: 300s
+          timeout: 60s
+          retries: 1
+
+        add_templates:
+          - src: healthcheck.sh.j2
+            dest: /usr/local/bin/healthcheck.sh
+            mode: '0755'

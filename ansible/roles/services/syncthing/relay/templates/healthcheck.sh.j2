@@ -1,0 +1,28 @@
+#!/bin/sh
+#
+# Health check for Syncthing relay server
+#
+
+# The name of the container this script is running in
+:${CONTAINER_NAME:="{{ container.name }}"}
+
+# Prometheus configuration
+:${PROMETHEUS_FILEPATH:="{{ prometheus.filepath_container | default('/var/lib/prometheus/node-exporter/syncthing-relay.prom') }}"}
+
+# Port to check for connectivity
+:${TCP_PORT:="22067"}
+
+check_tcp_port() {
+  local PORT=$1
+  command -v nc >/dev/null 2>&1 || return 1
+  nc -vzw 3 localhost $PORT 2>&1
+  return $?
+}
+
+# Check if relay port is accessible
+echo "Checking relay port ${TCP_PORT}..."
+if check_tcp_port "${TCP_PORT}"; then
+    exit 0
+else
+    exit 1
+fi

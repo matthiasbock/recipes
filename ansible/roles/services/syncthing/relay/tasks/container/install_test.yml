@@ -1,0 +1,37 @@
+---
+- name: Test Syncthing container installation
+  hosts: all
+  tasks:
+    - name: Get Docker state
+      include_role:
+        name: docker
+        tasks_from: daemon/save_state.yml
+
+    - name: Install Syncthing container
+      block:
+        - name: Create and start Syncthing container
+          include_role:
+            name: syncthing
+            tasks_from: relay/container/install.yml
+
+        - name: Check if container exists
+          include_role:
+            name: docker
+            tasks_from: container/assert/present.yml
+
+        - name: Check if container is running
+          include_role:
+            name: docker
+            tasks_from: container/assert/started.yml
+
+      always:
+        - name: Remove created container
+          docker_container:
+            name: "{{ container.name }}"
+            state: absent
+
+        - name: Restore previous Docker state
+          include_role:
+            name: docker
+            tasks_from: daemon/restore_state.yml
+

@@ -1,0 +1,32 @@
+---
+- name: Test Syncthing container uninstallation
+  hosts: all
+  tasks:
+    - name: Get Docker state
+      include_role:
+        name: docker
+        tasks_from: daemon/state/save.yml
+
+    - name: Uninstall Syncthing
+      block:
+        - name: Remove Syncthing container
+          include_role:
+            name: syncthing
+            tasks_from: container/uninstall.yml
+
+        - name: Check if container exists
+          include_role:
+            name: docker
+            tasks_from: container/assert/absent.yml
+
+      always:
+        - name: Remove created container
+          docker_container:
+            name: "{{ container.name }}"
+            state: absent
+
+        - name: Restore previous Docker state
+          include_role:
+            name: docker
+            tasks_from: daemon/state/restore.yml
+

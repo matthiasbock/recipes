@@ -1,0 +1,14 @@
+---
+#
+# Default configuration for a Syncthing relay server
+#
+
+# How to derive a custom Docker image
+- include_vars: docker-image.yml
+
+# How to create a Docker container from a Docker image
+- include_vars: docker-container.yml
+
+# Syncthing relay server settings
+- include_vars: syncthing-relay-config.yml
+
