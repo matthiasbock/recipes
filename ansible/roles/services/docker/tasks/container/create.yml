@@ -3,8 +3,37 @@
 # Links:
 # * https://docs.ansible.com/ansible/latest/collections/community/docker/docker_container_module.html
 #
-- name: Create dedicated network
-  include_tasks: network/create.yml
+# - name: Create dedicated network
+#   include_tasks: network/create.yml
+
+
+#
+# Resolve the user and group IDs on the remote host
+# to enable mapping to the UID and GID of the executable
+# running inside the container
+#
+- name: Resolve user and group IDs
+  block:
+    - name: Get user ID
+      command: "id -u {{ docker.container.user }}"
+      register: docker_container_uid
+      changed_when: false
+
+    - name: Get group ID
+      command: "id -g {{ docker.container.group }}"
+      register: docker_container_gid
+      changed_when: false
+
+    - name: Set user and group facts
+      set_fact:
+        docker: "{{
+          docker | combine({
+            'container': docker.container | combine({
+              'uid': docker_container_uid.stdout,
+              'gid': docker_container_gid.stdout
+            })
+          })
+        }}"
 
 
 - name: Create Docker container
@@ -17,8 +46,6 @@
     env: "{{ docker.container.env | default([]) }}"
     volumes: "{{ docker.container.volumes | list + docker.container.additional_volumes | default([]) | list }}"
 
-    restart_policy: "{{ docker.container.restart_policy }}"
-    restart_retries: 3
 
     # TODO:
     # Limit capabilities
@@ -33,15 +60,20 @@
         ipv4_address: "{{ docker.network.subnet.prefix }}.2"
     ports: "{{ docker.container.ports }}"
 
-    # healthcheck:
-    #   # Check if nginx server is healthy by curl'ing the server.
-    #   # If this fails or timeouts, the healthcheck fails.
-    #   test: ["CMD", "curl", "--fail", "http://nginx.host.com"]
-    #   interval: 1m30s
-    #   timeout: 10s
-    #   retries: 3
-    #   start_period: 30s
-    #   start_interval: 10s
+    healthcheck:
+      # Check if nginx server is healthy by curl'ing the server.
+      # If this fails or timeouts, the healthcheck fails.
+      # test: ["CMD", "curl", "--fail", "http://nginx.host.com"]
+      test: []
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+      start_interval: 10s
 
-    log-driver: journald
-    state: present
+    log-driver: "{{ docker.container.log_driver | journald }}"
+    state: "{{ docker.container.state | present }}"
+
+    restart_policy: "{{ docker.container.restart_policy }}"
+    restart_retries: 3
+

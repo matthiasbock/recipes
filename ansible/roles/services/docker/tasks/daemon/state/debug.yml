@@ -1,0 +1,8 @@
+---
+- name: Print Docker state (debug)
+  debug:
+    msg: |
+      Docker package state: {{ docker.package.saved_state }}
+      Docker service state: {{ docker.service.saved_state }}
+  changed_when: false
+

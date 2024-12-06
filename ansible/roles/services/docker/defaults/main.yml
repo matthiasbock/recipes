@@ -10,9 +10,11 @@ docker_forwarded_host: "unix://{{ docker_sock_local }}"
 
 docker:
   package:
+    name: docker.io
     saved_state: null
 
   service:
+    filepath: /usr/lib/systemd/system/docker.service
     saved_state: null
 
   forwarding:

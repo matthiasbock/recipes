@@ -1,23 +1,55 @@
 ---
-- name: Get the state of the Docker daemon (absent/started/stopped)
+- name: Get the state of the Docker package
   block:
-    #
-    # FIXME: Doesn't work:
-    #
-    # - name: Get Docker service status
-    #   service_facts:
-    #
-    # - name: Get Docker service status
-    #   set_fact:
-    #     DOCKER_STATE: "{{ ansible_facts.services['docker.service'].status }}"
-    #
     - name: Check if Docker is installed
-      command: which docker
-      register: which_docker
-      ignore_errors: true
+      package_facts:
+        manager: auto
       changed_when: false
 
-    - name: Get the state of the Docker service
+    - name: Set temporary package state fact
+      set_fact:
+        docker_package_saved_state: >-
+          {% if docker.package.name in ansible_facts.packages %}
+          present
+          {% else %}
+          absent
+          {% endif %}
+        docker: >-
+          {{
+            docker |
+            combine({
+              'package': {
+                'is_installed': (docker.package.name in ansible_facts.packages) | bool
+              }
+            })
+          }}
+
+    - name: Update docker.package fact
+      set_fact:
+        docker: >-
+          {{
+            docker |
+            combine({
+              'package': {
+                'saved_state': docker_package_saved_state | trim
+              }
+            })
+          }}
+
+    - name: Unset temporary package fact
+      set_fact:
+        docker_package_saved_state: null
+
+
+- name: Check if a systemd docker unit exists
+  stat:
+    path: "{{ docker.service.filepath }}"
+  register: docker_service_unit
+
+
+- name: Get the state of the Docker service
+  block:
+    - name: Use systemctl to query the status of the Docker service
       shell:
         cmd: |
           systemctl status docker.service |
@@ -26,24 +58,12 @@
           sed -Ee 's/^[^\(]*\(([^\)]+)\).*$/\1/g'
       register: docker_service_status
       changed_when: false
-      when: which_docker.rc == 0
+      when: docker.package.is_installed
 
-    - name: Print the docker facts
-      debug:
-        msg: "{{ docker }}"
-      when:
-        - debug | default(false) | bool
-
-    - name: Elaborate state
+    - name: Set temporary service state fact
       set_fact:
-        docker_package_saved_state: >-
-          {% if which_docker.rc == 0 %}
-          present
-          {% else %}
-          absent
-          {% endif %}
         docker_service_saved_state: >-
-          {% if which_docker.rc != 0 %}
+          {% if (not docker.package.is_installed) or (not docker_service_unit.stat.exists) %}
           absent
           {% elif docker_service_status.stdout == 'running' %}
           started
@@ -51,30 +71,24 @@
           stopped
           {% endif %}
 
-    - name: Update docker dictionary
+    - name: Update docker service fact
       set_fact:
         docker: >-
           {{
             docker |
             combine({
-              'package':{
-                'saved_state': docker_package_saved_state | trim
-              },
               'service':{
                 'saved_state': docker_service_saved_state | trim
               }
             })
           }}
+        docker_service_saved_state: null
 
-    - name: Print the docker facts
-      debug:
-        msg: "{{ docker }}"
-      when:
-        - debug | default(false) | bool
+  # This task is always run. The sub-task setting the saved state
+  # is capable of detecting if the Docker package or service unit is absent.
+  # when:
+    # Docker is installed
+    # - docker.package.is_installed
+    # Docker service unit exists
+    # - docker_service_unit.stat.exists
 
-    - name: Print Docker state
-      debug:
-        msg: |
-          Docker package state: {{ docker.package.saved_state }}
-          Docker service state: {{ docker.service.saved_state }}
-      changed_when: false

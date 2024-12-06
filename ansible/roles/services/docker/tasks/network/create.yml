@@ -2,14 +2,6 @@
 #
 # https://docs.ansible.com/ansible/latest/collections/community/docker/docker_network_module.html
 #
-- name: Print the facts
-  debug:
-    msg: "{{ docker }}"
-
-- name: Debug
-  debug:
-    msg: "{{ docker.network.subnet.cidr }}"
-
 - name: Create Docker network
   docker_network:
     name: "{{ docker.network.name }}"
@@ -22,3 +14,4 @@
       # - gateway: "{{ docker.network.subnet.prefix }}.1"
     enable_ipv6: "{{ docker.network.enable_ipv6 }}"
     internal: "{{ docker.network.internal }}"
+

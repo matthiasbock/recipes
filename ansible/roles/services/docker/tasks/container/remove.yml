@@ -1,4 +1,22 @@
 ---
+#
+# TODO:
+# Get the state of the Docker daemon before starting it and
+# restore that state when the task has completed.
+#
+
+- name: Ensure Docker is installed
+  apt:
+    name: docker.io
+    state: present
+
+
+- name: Ensure Docker is running
+  service:
+    name: docker
+    state: started
+
+
 - name: Remove Docker container
   docker_container:
     name: "{{ docker.container.name }}"

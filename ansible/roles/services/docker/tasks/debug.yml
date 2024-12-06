@@ -1,0 +1,5 @@
+---
+- name: Print the docker facts (debug)
+  debug:
+    msg: "{{ docker }}"
+  changed_when: false

@@ -1,0 +1,9 @@
+---
+- name: Print docker.network facts
+  debug:
+    msg: "{{ docker.network }}"
+
+# - name: Print CIDR
+#   debug:
+#     msg: "CIDR: {{ docker.network.subnet.cidr }}"
+
