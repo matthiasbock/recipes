@@ -1,0 +1,16 @@
+
+# Check if OpenSSH is available
+Get-WindowsCapability -Online | Where-Object Name -like 'OpenSSH*'
+
+# Install OpenSSH Server
+Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0
+
+# Start sshd service
+Start-Service sshd
+
+# Set to start automatically
+Set-Service -Name sshd -StartupType 'Automatic'
+
+# Configure PowerShell as default shell
+New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -PropertyType String -Force
+
