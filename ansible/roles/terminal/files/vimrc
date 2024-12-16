@@ -1,0 +1,10 @@
+
+# Disable mouse
+set mouse=
+
+# Enable syntax highlighting
+syntax on
+
+# Set color scheme
+color desert
+

@@ -1,0 +1,26 @@
+---
+- name: Ensure vim is installed
+  ansible.builtin.package:
+    name: vim
+    state: present
+
+- name: Copy .vimc to user homes
+  ansible.builtin.template:
+    src: vimrc
+    dest: "{{ lookup('ansible.builtin.passwd', item).home }}/.vimrc"
+    owner: "{{ item }}"
+    group: "{{ item }}"
+    mode: '0644'
+    force: no
+  with_items: "{{ ansible_facts['users'] | map(attribute='name') | select('match', '^[^_].*') | list }}"
+  when: item != 'root'
+
+- name: Copy .vimrc for root
+  ansible.builtin.template:
+    src: vimrc
+    dest: "{{ lookup('ansible.builtin.passwd', 'root').home }}/.vimrc"
+    owner: root
+    group: root
+    mode: '0644'
+    force: no
+
