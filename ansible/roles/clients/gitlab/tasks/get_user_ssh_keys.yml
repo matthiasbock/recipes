@@ -14,11 +14,13 @@
 # - debug:
 #     var: gitlab_ssh_keys.keys
 
-- include_tasks: get_user_info.yml
+# - include_tasks: get_user_info.yml
+- include_tasks: login.yml
 
-- name: Get the list of the SSH keys configured for user '{{ gitlab.username }}' on '{{ gitlab.hostname }}'
+- name: Get the list of the SSH keys of user '{{ gitlab.username }}' on '{{ gitlab.hostname }}'
   uri:
-    url: "{{ gitlab.api_url }}/user/keys"
+    # url: "{{ gitlab.api_url }}/user/keys"
+    url: "{{ gitlab.api_url }}/users/{{ gitlab.username }}/keys"
     method: GET
     headers:
       PRIVATE-TOKEN: "{{ gitlab.api_token }}"

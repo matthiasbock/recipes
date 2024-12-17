@@ -1,0 +1,26 @@
+---
+- include_tasks: get_api_url.yml
+
+- name: Validate the access token
+  uri:
+    url: "{{ gitlab.api_url }}/admin/token"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ gitlab.api_token }}"
+      token: "{{ gitlab.api_token }}"
+    return_content: yes
+  failed_when: >
+      status_code != 200
+  register: token_validation
+  ignore_errors: true
+
+- name: Print token validation error
+  debug:
+    msg: >-
+      {% if token_validation.status == 401 %}Unauthorized
+      {% elif token_validation.status == 403 %}Insufficient priviledges
+      {% elif token_validation.status == 404 %}Token not found
+      {% elif token_validation.status == 422 %}Unsupported token type
+      {% endif %}
+  when: token_validation.status != 200
+
