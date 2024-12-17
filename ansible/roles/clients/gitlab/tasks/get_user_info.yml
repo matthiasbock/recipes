@@ -1,0 +1,19 @@
+---
+- include_tasks: get_api_url.yml
+
+- name: Get info on user '{{ gitlab.username }}' on '{{ gitlab.hostname }}'
+  uri:
+    url: "{{ gitlab.api_url }}/user"
+    method: GET
+    headers:
+      PRIVATE-TOKEN: "{{ gitlab.api_token }}"
+    return_content: yes
+  register: gitlab_user_info
+
+- name: Update gitlab.user fact from API response
+  set_fact:
+    gitlab: "{{ gitlab | combine({'user': gitlab_user_info.json}) }}"
+
+# - debug:
+#     var: gitlab.user
+

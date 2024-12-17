@@ -1,0 +1,15 @@
+---
+gitlab:
+  # The hostname or address of the GitLab instance to connect to
+  hostname: "gitlab.example.com"
+
+  # The access token to use for authentication
+  api_token: "..."
+
+  # The name of the user to authenticate as
+  username: "..."
+
+  # All information the server has about the above user
+  user:
+    ssh_keys:
+

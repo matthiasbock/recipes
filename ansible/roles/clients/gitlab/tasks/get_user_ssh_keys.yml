@@ -1,0 +1,39 @@
+---
+#
+# Requires ansible collection community.general:
+#   ansible-galaxy collection install community.general
+#
+# - name: Get SSH keys configured for Gitlab user {{ gitlab.user }} on {{ gitlab.hostname }}
+#   community.general.gitlab_user_key:
+#     api_url: "https://{{ gitlab.hostname }}/api/v4"
+#     api_token: "{{ gitlab.api_token }}"
+#     user: "{{ gitlab.user }}"
+#     state: present  # or 'absent' to remove keys
+#   register: gitlab_ssh_keys
+
+# - debug:
+#     var: gitlab_ssh_keys.keys
+
+- include_tasks: get_user_info.yml
+
+- name: Get the list of the SSH keys configured for user '{{ gitlab.username }}' on '{{ gitlab.hostname }}'
+  uri:
+    url: "{{ gitlab.api_url }}/user/keys"
+    method: GET
+    headers:
+      PRIVATE-TOKEN: "{{ gitlab.api_token }}"
+    return_content: yes
+  register: gitlab_user_ssh_keys
+
+- name: Update gitlab.user.ssh_keys fact from API response
+  set_fact:
+    gitlab: "{{ gitlab | combine({'user': {'ssh_keys': gitlab_user_ssh_keys}}, recursive=True) }}"
+
+- name: Print SSH keys
+  debug:
+    msg: "SSH Key: {{ item.title }}: ({{ item.key }})"
+  loop: "{{ gitlab.user.ssh_keys }}"
+
+# - debug:
+#     var: gitlab.user.ssh_keys
+

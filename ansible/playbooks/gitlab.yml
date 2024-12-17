@@ -1,0 +1,19 @@
+---
+- name: Configure GitLab
+  hosts: gitlab.com
+  vars:
+    # The invoked client runs locally
+    ansible_connection: local
+
+    # The remote GitLab instance is configured using API requests
+    gitlab:
+      hostname: gitlab.com
+      username: user
+      api_token: ...
+
+  roles:
+    # Get a list of all SSH keys configured for user '{{ gitlab.username }}'
+    - role: clients/gitlab
+      tasks_from: get_user_ssh_keys.yml
+      # FIXME: This should work, but for some reason those tasks are not being executed.
+

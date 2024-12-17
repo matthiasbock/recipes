@@ -1,0 +1,9 @@
+---
+- name: Get GitLab API URL
+  set_fact:
+    gitlab: "{{ gitlab | combine({'api_url': 'https://' + (gitlab.hostname | default('gitlab.com')) + '/api/v4'}) }}"
+  when: (gitlab is not defined) or (gitlab.api_url is not defined) or (not gitlab.api_url)
+
+# - debug:
+#     var: gitlab.api_url
+
