@@ -1,0 +1,7 @@
+---
+# Default remote user
+ssh_remote_user: "{{ ansible_user }}"
+
+# Default local user
+ssh_local_user: "{{ ansible_user }}"
+

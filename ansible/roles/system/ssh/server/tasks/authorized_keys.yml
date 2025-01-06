@@ -1,0 +1,28 @@
+#
+# Install a local user's SSH public key in a
+# remote user's list of keys authorized
+# for password-less login
+#
+---
+- name: Check whether the remote user exists
+  stat:
+    path: "/home/{{ ssh_remote_user }}"
+  register: remote_user_exists
+  failed_when: not remote_user_exists.stat.exists
+
+- name: Ensure .ssh directory exists in remote user's home directory
+  file:
+    path: "/home/{{ ssh_remote_user }}/.ssh/"
+    state: directory
+    mode: 0700
+    owner: "{{ ssh_remote_user }}"
+    group: "{{ ssh_remote_user }}"
+
+- name: Add public key to authorized_keys
+  authorized_key:
+    user: "{{ ssh_remote_user }}"
+    key: "/{{ (ssh_local_user == 'root') | ternary('/root', '/home/' ~ ssh_local_user) }}/.ssh/id_rsa.pub"
+    path: "/home/{{ ssh_remote_user }}/.ssh/authorized_keys"
+    state: present
+    manage_dir: false
+
