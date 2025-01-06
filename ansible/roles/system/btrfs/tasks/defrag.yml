@@ -1,0 +1,9 @@
+
+TODO:
+
+# Relocate extents to optimize performance
+btrfs balance start <mount_point>
+
+# Scan the filesystem for identical extents (based on their checksums) and merge them
+btrfs filesystem deduplicate <mount_point>
+
