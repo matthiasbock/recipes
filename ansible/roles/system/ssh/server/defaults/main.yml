@@ -5,3 +5,12 @@ ssh_remote_user: "{{ ansible_user }}"
 # Default local user
 ssh_local_user: "{{ ansible_user }}"
 
+# Complete list of keys accepted for an sshd_config update
+sshd_config_keys:
+  - PubkeyAuthentication
+  - PasswordAuthentication
+  - UseDNS
+  - X11Forwarding
+  - AllowTcpForwarding
+  - PermitTunnel
+

@@ -1,0 +1,35 @@
+---
+- name: Get the state of the SSH service
+  ansible.builtin.service_facts:
+    name: sshd
+  register: sshd_state
+
+- name: Check SSH daemon config
+  ansible.builtin.fail:
+    msg: "Unsupported variable: {{ item }}."
+  when: item not in sshd_config_keys
+  loop: "{{ vars.keys() | difference(sshd_config_keys) }}"
+
+- name: Compose SSH daemon configuration update
+  ansible.builtin.set_fact:
+    sshd_config_update: "{{ dict(sshd_config_keys | zip(sshd_config_keys | map('extract', hostvars))) }}"
+
+- name: Print SSH daemon configuration update
+  ansible.builtin.debug:
+    msg: "{{ sshd_config_update }}"
+
+- name: Update SSH daemon config
+  ansible.posix.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^(#)?{{ item.key }}"
+    line: "{{ item.key }} {{ item.value }}"
+    state: present
+    backrefs: yes
+  when: item.value is defined
+  with_dict: "{{ sshd_config_update }}"
+
+- name: Restore previous state of SSH daemon
+  ansible.builtin.service:
+    name: sshd
+    state: "{{ sshd_state.services['sshd'].state | default('started') }}"
+
