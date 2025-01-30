@@ -10,3 +10,4 @@
   debug:
     msg: "{{ installed_apps_output.stdout_lines }}"
   tags: query
+

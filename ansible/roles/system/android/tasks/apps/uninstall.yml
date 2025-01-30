@@ -11,3 +11,4 @@
   debug:
     msg: "{{ uninstall_output.stdout }}"
   tags: uninstall
+

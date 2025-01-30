@@ -1,0 +1,6 @@
+---
+- name: Ensure adb is installed
+  package:
+    name: adb
+    state: present
+

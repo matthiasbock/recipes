@@ -1,14 +1,6 @@
 ---
-# Main tasks file for the Android role
-
-- name: Ensure adb is installed
-  package:
-    name: adb
-    state: present
-  tags: install
-
 - name: Connect to the Android device over Wi-Fi
   command: adb connect {{ ADB_DEVICE_IP }}
   register: adb_connect_output
   changed_when: "'already connected' not in adb_connect_output.stdout"
-  tags: connect
+

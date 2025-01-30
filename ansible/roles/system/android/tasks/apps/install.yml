@@ -1,13 +1,28 @@
 ---
 # Install an APK on the Android device
 
-- name: Install APK on the Android device
-  command: adb -s {{ ADB_DEVICE_IP }} install -r {{ APK_PATH }}
+- name: Get list of devices connected via ADB
+  command: adb devices
+  register: adb_devices_output
+
+- name: Parse list of connected devices
+  set_fact:
+    connected_devices: "{{ adb_devices_output.stdout_lines | select('match', 'device$') | list }}"
+
+- name: Fail when no devices are connected
+  fail:
+    msg: "No connected devices found. Please connect a device and enable USB debugging."
+  when: connected_devices | length == 0
+
+- name: Install APK on all devices
+  when: connected_devices | length > 0
+  command: adb -s "{{ item.split('\t')[0] }}" install -r "{{ APK_PATH }}"
+  loop: "{{ connected_devices }}"
   register: install_output
   changed_when: "'Success' in install_output.stdout"
-  tags: install
+  ignore_errors: yes
 
-- name: Display installation result
+- name: Print installation log
   debug:
     msg: "{{ install_output.stdout }}"
-  tags: install
+
