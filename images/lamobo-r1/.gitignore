@@ -1,4 +1,5 @@
 
+# Experiments
 ansible.cfg
 
 # Downloads / Generated
@@ -8,4 +9,15 @@ ansible.cfg
 *.gz
 *.jigdo
 *.template
-*-index.json
+*.json
+MANIFEST
+debian-cd_info.tar.gz
+mini.iso
+uImage
+uInitrd
+vmlinuz
+jigdo-file-cache.db
+
+# Temporary
+*.tmp
+

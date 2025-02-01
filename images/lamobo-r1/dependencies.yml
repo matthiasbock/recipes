@@ -1,0 +1,10 @@
+
+
+- name: Install required packages on the build host
+  package:
+    update_cache: yes
+    name: "{{ lookup('file', './dependencies.txt').splitlines() | select('match', '^(?!#|$)') | list }}"
+    state: present
+  become: yes
+
+

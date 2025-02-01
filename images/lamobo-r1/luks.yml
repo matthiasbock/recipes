@@ -1,0 +1,5 @@
+
+    # LUKS_KEYFILE: ./luks.key
+    LUKS_PASSWORD: "your_secure_password_here"
+
+

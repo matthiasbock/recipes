@@ -1,5 +1,5 @@
 ---
-- name: Create Lamobo Banana Pi R1 System Image
+- name: Create a Banana Pi Lamobo R1 Debian image
   hosts: localhost
   vars:
     # Properties of the image to create
@@ -11,10 +11,13 @@
     MOUNTPOINT_IMAGE: "/mnt"
     MOUNTPOINT_DVD: "/media/cdrom"
 
-    # Include local package cache
+    DIR_DVD: "{{ MOUNTPOINT_IMAGE }}/var/lib/apt/dvd"
+    SOURCES_LIST: "{{ MOUNTPOINT_IMAGE }}/etc/apt/sources.list.d/dvd.list"
+
+    # Include local package cache when Jigdo compiles the image
     APT_CACHE: "/var/cache/apt"
 
-    # Apparently dl.sd-card-images.johang.se requires a user-agent
+    # Downloading from dl.sd-card-images.johang.se requires a user-agent
     USER_AGENT: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
 
     # Precompiled image
@@ -37,117 +40,27 @@
     URL_JIGDO_TEMPLATE: "https://cdimage.debian.org/debian-cd/current/armhf/jigdo-dvd/debian-12.5.0-armhf-DVD-1.template"
     # DVD_IMAGE: debian.iso
 
-    DIR_DVD: "{{ MOUNTPOINT_IMAGE }}/var/lib/apt/dvd"
-    SOURCES_LIST: "{{ MOUNTPOINT_IMAGE }}/etc/apt/sources.list.d/dvd.list"
-
     # LUKS_KEYFILE: ./luks.key
     LUKS_PASSWORD: "your_secure_password_here"
 
-    DOCKER_IMAGE: "debian:bookworm"
+    # DOCKER_IMAGE: "debian:bookworm"
 
   tasks:
-    - name: Install required packages
-      apt:
-        name:
-          - xz-utils
-          - unzip
-          - gzip
-          - curl
-          - jigdo-file
-          - cryptsetup
-          - btrfs-progs
-          - docker.io
-          - jq
-        state: present
-      become: yes
-      become_user: root
 
     - name: Download Debian image index
       shell: >
-        curl -s -o - "{{ URL_DEBIAN_INDEX }}" |
-        tail -n+2 |
-        head -n-1 |
-        jq
-        > "{{ DEBIAN_INDEX }}"
+
       args:
         creates: "{{ DEBIAN_INDEX }}"
 
-    # Parsing JSON, sorting suitable entries by date, selecting latest image using head
-    - name: Extract latest Debian image info for lamobo-r1
-      shell: >
-        jq -r '.[] | select(.os == "debian") | select(.dist == "{{ DEBIAN_DISTRO }}") |  select(.arch == "{{ DEBIAN_ARCH }}") | select(.dtbs[] | contains("{{ DEBIAN_DTBS }}")) | "\(.build) \(.path) \(.password)"' "{{ DEBIAN_INDEX }}" |
-        sort -r |
-        head -n1
-      register: debian_image_info
 
-    - name: Set Debian image URL
-      set_fact:
-        URL_DEBIAN: "{{ URL_DEBIAN_BASE }}{{ debian_image_info.stdout.split(' ')[1] }}"
-
-    - name: Download pre-compiled images
-      get_url:
-        url: "{{ item }}"
-        headers:
-          User-Agent: "{{ USER_AGENT }}"
-        dest: "{{ playbook_dir }}"
-      loop:
-        - "{{ URL_UBOOT }}"
-        - "{{ URL_DEBIAN }}"
-
-    # - name: calculate hash for existing file
-    #   stat:
-    #     path: /usr/bin/yq
-    #     checksum_algorithm: sha256
-    #   register: resultStat
-
-    # - name: (re)download file
-    #   become: true
-    #   get_url:
-    #     url: https://github.com/mikefarah/yq/releases/download/v4.34.1/yq_linux_amd64
-    #     #url: https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-    #     dest: /usr/bin/yq
-    #     checksum: "{{ '' if not resultStat.stat.exists else 'sha256:' + resultStat.stat.checksum }}"
-    #     #force: true
-    #     owner: root
-    #     group: root
-    #     mode: '0755'
 
     - name: Create SD card image
       shell: zcat {{ URL_UBOOT | basename }} {{ URL_DEBIAN | basename }} > {{ IMAGE }}
       args:
         creates: "{{ IMAGE }}"
 
-    - name: Download Jigdo files
-      get_url:
-        url: "{{ item }}"
-        headers:
-          User-Agent: "{{ USER_AGENT }}"
-        dest: "{{ playbook_dir }}"
-      loop:
-        - "{{ URL_JIGDO }}"
-        - "{{ URL_JIGDO_TEMPLATE }}"
 
-    - name: Decompress Jigdo file
-      command: gunzip {{ URL_JIGDO | basename }}.gz
-      args:
-        creates: "{{ URL_JIGDO | basename }}"
-
-    - name: Get DVD image filename
-      shell: grep ^Filename {{ URL_JIGDO | basename }} | cut -d'=' -f2
-      register: dvd_filename
-
-    - name: Set DVD image path
-      set_fact:
-        DVD_IMAGE: "{{ dvd_filename.stdout }}"
-
-    - name: Compose DVD image using jigdo
-      command: >
-        jigdo-lite
-        --scan "{{ MOUNTPOINT_DVD }}"
-        --scan "{{ APT_CACHE }}"
-        "{{ URL_JIGDO | basename }}"
-      args:
-        creates: "{{ DVD_IMAGE }}"
 
     - name: Enlarge SD card image
       block:
@@ -192,7 +105,7 @@
         opts: ro,loop
         state: mounted
 
-    - name: Copy DVD contents
+    - name: Copy DVD contents to mounted SD card image
       copy:
         src: "{{ MOUNTPOINT_DVD }}/"
         dest: "{{ DIR_DVD }}/"
@@ -233,3 +146,4 @@
 
     - name: Remove loop device
       command: losetup -d {{ loop_device.stdout }}
+

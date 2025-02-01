@@ -1,9 +1,7 @@
 
-include lamobo-image.mk
+SHELL = /bin/bash
 
+include debian.mk
+include image.mk
+include johang.mk
 
-.PHONY: all
-all: lamobo-image
-
-.PHONY: clean
-clean: clean-lamobo-image
