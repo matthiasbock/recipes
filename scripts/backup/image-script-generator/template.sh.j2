@@ -1,0 +1,28 @@
+#!/bin/bash
+
+create_image() {
+  dd if=/dev/urandom of={{ image_path }} bs=1M count={{ dvd_size_mb }} status=progress
+}
+
+create_image
+
+openssl rand -out {{ key_file }} -base64 32
+cryptsetup luksFormat {{ image_path }} --key-file {{ key_file }} << EOF
+yes
+EOF
+cryptsetup luksOpen {{ image_path }} backup_dvd{{ dvd_index }} --key-file {{ key_file }}
+mkfs.btrfs -d dup /dev/mapper/backup_dvd{{ dvd_index }}
+mkdir -p /mnt/dvd{{ dvd_index }}
+mount -o compress=no,autodefrag /dev/mapper/backup_dvd{{ dvd_index }} /mnt/dvd{{ dvd_index }}
+mkdir -p /mnt/dvd{{ dvd_index }}/{{ source_folder_basename }}
+
+{% for file in files %}
+mkdir -p $(dirname "{{ file.destination_path }}")
+cp -r "{{ file.source_path }}" "{{ file.destination_path }}"
+{% endfor %}
+
+btrfs filesystem defragment -r /mnt/dvd{{ dvd_index }}
+btrfs filesystem deduplicate /mnt/dvd{{ dvd_index }}
+btrfs scrub start /mnt/dvd{{ dvd_index }}
+umount /mnt/dvd{{ dvd_index }}
+cryptsetup luksClose backup_dvd{{ dvd_index }}
