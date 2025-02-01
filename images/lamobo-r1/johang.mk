@@ -42,39 +42,36 @@ $(JOHANG_INDEX):
 
 
 .PHONY: johang-os-info
-johang-info: $(JOHANG_OS_INFO)
+johang-os-info: $(JOHANG_OS_INFO)
 $(JOHANG_OS_INFO): $(JOHANG_INDEX)
+	echo -n "https://dl.sd-card-images.johang.se" > $@
 	jq -r \
-		'.[] |
-		select(.os == "$(JOHANG_OS)") |
-		select(.dist == "$(JOHANG_DISTRO)") |
-		select(.arch == "$(JOHANG_ARCH)") |
-		select(.dtbs[] |
-		contains("$(JOHANG_DTBS))") |
-		"\(.build) \(.path) \(.password)"' \
+		'.[] | select(.os == "$(JOHANG_OS)") | select(.dist == "$(JOHANG_DISTRO)") | select(.arch == "$(JOHANG_ARCH)") | select(.dtbs[] | contains("$(JOHANG_DTBS)")) | "\(.build) \(.path) \(.password)"' \
 		$(JOHANG_INDEX) | \
 	sort -r | \
 	head -n1 | \
-	awk '{print $2}' \
-	> $@
+	awk '{print substr($$0,12,length($$0)-12-6)}' \
+	>> "$@"
 
 
 $(JOHANG_OS_IMAGE): $(JOHANG_OS_INFO)
-	OS_URL="https://dl.sd-card-images.johang.se$(cat $<)" && \
+	OS_URL="$$(cat $^)" && \
 	OS_FILENAME="$$(basename $$OS_URL)" && \
 	wget \
-		-U "$(JOHANG_USER_AGENT)"
-		-O "$$OS_FILENAME" \
+		-U "$(JOHANG_USER_AGENT)" \
+		-c \
 		--progress=dot:mega \
+		-O "$$OS_FILENAME" \
 		"$$OS_URL"
 
 
 $(JOHANG_UBOOT_IMAGE): #$(JOHANG_INDEX)
 	wget \
 		-U "$(JOHANG_USER_AGENT)" \
-		-O "$@.gz" \
+		-c \
 		--progress=dot:mega \
-		"$(JOHANG_URL_UBOOT)"
+		-O "$@.gz" \
+		"$(JOHANG_UBOOT_URL)"
 	&& \
 	gzip -d "$@"
 
