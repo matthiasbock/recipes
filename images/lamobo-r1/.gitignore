@@ -10,6 +10,7 @@ ansible.cfg
 *.jigdo
 *.template
 *.json
+*.txt
 MANIFEST
 debian-cd_info.tar.gz
 mini.iso
