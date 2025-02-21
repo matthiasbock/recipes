@@ -15,6 +15,10 @@
 	path = lib/assets/widevine
 	url = git@github.com:proprietary/chromium-widevine.git
 
+[submodule "lib/assets/public-keys"]
+	path = lib/assets/public-keys
+	url = ssh://git@git-ext.charite.de:2022/matthiasbock/public-keys.git
+
 [submodule "lib/ansible/debian"]
 	path = lib/ansible/debian
 	url = git@github.com:/liv-io/ansible-roles-debian.git
