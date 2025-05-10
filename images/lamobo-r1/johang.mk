@@ -1,12 +1,14 @@
 
-JOHANG_LAMOBO_INFO_URL = https://sd-card-images.johang.se/boards/lamobo_r1.html
+#
+# https://sd-card-images.johang.se/boards/lamobo_r1.html
+#
 
-JOHANG_IMAGE ?= lamobo_r1.img
-
-JOHANG_OS ?= debian
+JOHANG_BOARD  ?= lamobo_r1
+JOHANG_OS     ?= debian
 JOHANG_DISTRO ?= bookworm
-JOHANG_ARCH ?= armhf
-JOHANG_DTBS ?= sun7i-a20-lamobo-r1
+JOHANG_ARCH   ?= armhf
+JOHANG_DTBS   ?= sun7i-a20-lamobo-r1
+JOHANG_IMAGE  ?= "$(JOHANG_BOARD).img"
 
 # Downloading from dl.sd-card-images.johang.se requires a user-agent
 JOHANG_USER_AGENT ?= Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36
@@ -98,12 +100,20 @@ $(JOHANG_UBOOT_INDEX):
 	jq > $@
 
 
+.PHONY: johang-boards
+johang-boards: $(JOHANG_UBOOT_INDEX)
+	@jq -r \
+		'.[] | .board' \
+		"$<" | \
+	sort -u
+
+
 .PHONY: johang-uboot-url
 johang-uboot-url: $(JOHANG_UBOOT_URL)
 $(JOHANG_UBOOT_URL): $(JOHANG_UBOOT_INDEX)
 	@echo -n "https://dl.sd-card-images.johang.se" > "$@"
 	@jq -r \
-		'.[] | select(.board == "lamobo_r1") | .path' \
+		'.[] | select(.board == "$(JOHANG_BOARD)") | .path' \
 		"$<" >> "$@" || rm "$@"
 
 

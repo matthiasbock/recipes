@@ -139,6 +139,7 @@ jigdo-image: $(JIGDO_IMAGE)
 $(JIGDO_IMAGE): $(JIGDO_RECIPE) $(JIGDO_TEMPLATE)
 	FILENAME=$$(grep ^Filename $(JIGDO_RECIPE) | cut -d'=' -f2) && \
 	echo "Creating image: $${FILENAME}" && \
+	{ [ -f "$$FILENAME" ] && rm "$$FILENAME"; } && \
 	jigdo-lite \
 		--scan . \
 		--scan $(MOUNTPOINT_JIGDO_IMAGE) \

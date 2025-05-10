@@ -1,6 +1,12 @@
 
 # BananaPi Lamobo R1
 
+Makefiles for building a bootable Debian GNU/Linux image for the Lamobo R1.
+The image is created by combining bootloader and base system from johang.se
+with contents from a Debian Live/Install DVD.
+
+## Hardware
+
 * SoC: Allwinner A20
 * Bootloader: U-Boot
 * Kernel: in /boot on the system partition (device-specific?)
