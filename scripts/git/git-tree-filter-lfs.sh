@@ -16,7 +16,7 @@ fi
 
 # File extensions to track via git (case-insensitive)
 TEXT="txt rst md log"
-STRUCTURED="csv tsv xml xsl xslt xsd svg htm html css json"
+STRUCTURED="csv tsv xml xsl xslt xsd svg htm html css json scad"
 CODE="c cpp cxx h hpp hxx sh py pl js sql"
 
 export EXT_GIT="$TEXT $STRUCTURED $CODE"
@@ -28,8 +28,10 @@ DATABASES="db db3 db4 sqlite sqlite3 hdf hdf5"
 IMAGES="img iso"
 LIBREOFFICE="odt ods odp"
 MSOFFICE="doc docx xls xlsx ppt pptx potx"
-DOCUMENTS="$LIBREOFFICE $MSOFFICE pdf ppm ps eps"
-PICTURES="jpg jpeg png bmp tif tiff tga webp xcf psd"
+FREECAD="fcstd fcstd1"
+AUTOCAD="dxf"
+DOCUMENTS="$LIBREOFFICE $MSOFFICE pdf ppm ps eps $FREECAD $AUTOCAD"
+PICTURES="jpg jpeg png dng bmp tif tiff tga webp xcf psd"
 AUDIO="wav off mp3 m4a au"
 VIDEO="avi webm m2ts mp4 mkv"
 
