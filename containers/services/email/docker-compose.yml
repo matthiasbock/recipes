@@ -1,0 +1,55 @@
+#
+# A docker-compose file for a dovecot server
+#
+version: "3.9"
+
+networks:
+  network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.10.42.0/21
+          gateway: 172.10.42.1
+    enable_ipv6: false
+
+services:
+  dovecot:
+    image: docker.io/mailcow/dovecot:2.4
+    volumes:
+      - /etc/dovecot:/etc/dovecot:ro
+      - /etc/letsencrypt/live:/etc/letsencrypt/live:ro
+      - /etc/letsencrypt/archive:/etc/letsencrypt/archive:ro
+      - /etc/ssl/certs:/etc/ssl/certs:ro
+      - /usr/share/ca-certificates:/usr/share/ca-certificates:ro
+    ports:
+      - 110:110
+      - 143:143
+      - 993:993
+    networks:
+      network:
+        ipv4_address: 172.10.42.2
+    user: mail:mail
+    restart: unless-stopped
+
+  postfix:
+    # Build from Dockerfile in subfolder postfix/
+    build: ./postfix
+    volumes:
+      - /etc/postfix:/etc/postfix
+      - /etc/dovecot/users.conf:/etc/postfix/users.conf:ro
+      - /etc/letsencrypt/live:/etc/letsencrypt/live:ro
+      - /etc/letsencrypt/archive:/etc/letsencrypt/archive:ro
+      - /etc/ssl/certs:/etc/ssl/certs:ro
+      - /usr/share/ca-certificates:/usr/share/ca-certificates:ro
+    ports:
+      - 25:25
+      - 465:465
+      - 587:587
+    networks:
+      network:
+        ipv4_address: 172.10.42.3
+    user: mail:mail
+    depends_on:
+      - dovecot
+    restart: unless-stopped
+
