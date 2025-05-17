@@ -1,0 +1,30 @@
+#
+# A docker-compose script for a NextCloud container
+#
+version: '2'
+
+# Dedicated network
+networks:
+  nextcloud:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.17.10.0/24
+          gateway: 172.17.10.1
+
+# Container
+services:
+  nextcloud:
+    image: nextcloud:29.0-apache
+    container_name: <container name>
+    restart: unless-stopped
+    ports:
+      - "15080:80"
+    volumes:
+      - /srv/nextcloud/data:/var/www/html
+    environment:
+      - APACHE_SERVERNAME=nextcloud.local
+    networks:
+      - nextcloud
+
