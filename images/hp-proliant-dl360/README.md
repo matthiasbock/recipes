@@ -4,7 +4,7 @@
 Constraints:
 
 * 32GB micro SD card
-* those machine likely don't support GPT partition tables, only DOS
+* those machine (likely) don't support GPT partition tables, only DOS
 * GRUB
 
 ## Derive from existing system
