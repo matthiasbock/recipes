@@ -1,0 +1,6 @@
+---
+- name: Enable nftables service
+  systemd:
+    name: nftables
+    enabled: yes
+

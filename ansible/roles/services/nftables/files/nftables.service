@@ -1,0 +1,24 @@
+#
+# Applies firewall rules when the network comes up
+#
+[Unit]
+Description=Load nftables rules when the network is up
+Documentation=man:nft(8) http://wiki.nftables.org
+Wants=network-pre.target
+Before=network-pre.target
+DefaultDependencies=no
+
+[Service]
+Type=oneshot
+ExecStart=/etc/nftables.conf
+ExecReload=/etc/nftables.conf
+ExecStop=/usr/sbin/nft flush ruleset
+RemainAfterExit=yes
+StandardInput=null
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=sysinit.target
+WantedBy=multi-user.target
+WantedBy=network-online.target

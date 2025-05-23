@@ -1,0 +1,6 @@
+---
+- name: Make sure nftables is installed
+  package:
+    name: nftables
+    state: present
+

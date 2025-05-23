@@ -1,0 +1,4 @@
+---
+- include_tasks: upload.yml
+- include_tasks: enable.yml
+- include_tasks: start.yml

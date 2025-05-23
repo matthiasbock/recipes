@@ -1,0 +1,10 @@
+Deletes the `nftables.service` unit file
+
+This assumes, it has previously been disabled,
+i.e. all symlinks in `/etc/systemd/system` have been removed.
+---
+- name: Delete nftables service unit file
+  file:
+    path: /etc/systemd/system/nftables.service
+    state: absent
+

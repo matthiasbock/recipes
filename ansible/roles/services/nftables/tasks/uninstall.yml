@@ -1,0 +1,4 @@
+---
+- include_tasks: stop.yml
+- include_tasks: disable.yml
+- include_tasks: remove.yml

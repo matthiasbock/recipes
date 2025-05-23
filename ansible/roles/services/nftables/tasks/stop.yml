@@ -1,0 +1,5 @@
+---
+- name: Disable nftables service
+  systemd:
+    name: nftables
+    state: stopped

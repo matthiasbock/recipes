@@ -1,0 +1,20 @@
+Uploads the `nftables.service` unit file
+to the ansible host's `/etc/systemd/system` directory
+---
+- name: Clear override configurations
+  file:
+    path: /etc/systemd/system/nftables.service.d/override.conf
+    state: absent
+
+- name: Upload nftables service unit file
+  copy:
+    src: nftables.service
+    dest: /etc/systemd/system/nftables.service
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Reload systemd daemon
+  systemd:
+    daemon_reload: yes
+
