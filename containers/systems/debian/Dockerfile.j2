@@ -39,28 +39,24 @@ COPY lib/assets/apt/sources.list.d/*.list /etc/apt/sources.list.d/disabled/
 COPY lib/assets/apt/keys/ /etc/apt/trusted.gpg.d/
 
 # Update package lists and upgrade system
-RUN apt-get update && \
+RUN \
+    rm -f /etc/apt/sources.list && \
+    apt-get update && \
     apt-get upgrade -y && \
     apt-get clean
 
-# Install additional packages from debian-essentials and console-tools bundles
+COPY lib/assets/apt/package-bundles/*.list lib/assets/apt/package-bundles/compiler /etc/apt/package-bundles/
+
+# Install additional packages
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        build-essential \
-        git \
-        vim \
-        nano \
-        htop \
-        tree \
-        less \
-        grep \
-        sed \
-        gawk \
-        curl \
-        wget \
-        unzip \
-        zip \
-        sudo && \
+    apt-get install -y --no-install-recommends --no-install-suggests \
+        $(grep -v ^# /etc/apt/package-bundles/debian-essentials.list) \
+        $(grep -v ^# /etc/apt/package-bundles/console-tools.list) \
+        $(grep -v ^# /etc/apt/package-bundles/networking.list) \
+        $(grep -v ^# /etc/apt/package-bundles/build-tools.list) \
+        $(grep -v ^# /etc/apt/package-bundles/python3.list) \
+        $(grep -v ^# /etc/apt/package-bundles/version-control.list) \
+        && \
     apt-get clean
 
 # Configure sudo for runner user
