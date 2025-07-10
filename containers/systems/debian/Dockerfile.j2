@@ -36,7 +36,7 @@ RUN apt-get update && \
 # Copy sources lists and GPG keys (these would need to be created based on your assets)
 COPY lib/assets/apt/sources.list.d/bookworm.list /etc/apt/sources.list.d/
 COPY lib/assets/apt/sources.list.d/*.list /etc/apt/sources.list.d/disabled/
-COPY lib/assets/apt/keys/ /etc/apt/trusted.gpg.d/
+COPY lib/assets/apt/keys/*.asc lib/assets/apt/keys/*.gpg /etc/apt/trusted.gpg.d/
 
 # Update package lists and upgrade system
 RUN \
@@ -45,6 +45,7 @@ RUN \
     apt-get upgrade -y && \
     apt-get clean
 
+COPY lib/assets/apt/sources.list.d/nvidia/debian.list /etc/apt/sources.list.d/
 COPY lib/assets/apt/package-bundles/*.list lib/assets/apt/package-bundles/compiler /etc/apt/package-bundles/
 
 # Install additional packages
