@@ -41,11 +41,11 @@ COPY lib/assets/apt/keys/*.asc lib/assets/apt/keys/*.gpg /etc/apt/trusted.gpg.d/
 # Update package lists and upgrade system
 RUN \
     rm -f /etc/apt/sources.list && \
+    sed -e 's/^\(deb\) (^https:\/\/security).* \(bookworm.*\)$/\1 https:\/\/debian.charite.de\/debian\/ \2/g' -i /etc/apt/sources.list.d/bookworm.list && \
     apt-get update && \
     apt-get upgrade -y && \
     apt-get clean
 
-COPY lib/assets/apt/sources.list.d/nvidia/debian.list /etc/apt/sources.list.d/
 COPY lib/assets/apt/package-bundles/*.list lib/assets/apt/package-bundles/compiler /etc/apt/package-bundles/
 
 # Install additional packages
@@ -60,6 +60,13 @@ RUN apt-get update && \
         && \
     apt-get clean
 
+# Configure shell for runner user
+RUN echo 'export PS1="\u@\h:\w\$ "' >> /home/runner/.bashrc && \
+    echo 'alias ll="ls -la"' >> /home/runner/.bashrc && \
+    echo 'alias la="ls -A"' >> /home/runner/.bashrc && \
+    echo 'alias l="ls -CF"' >> /home/runner/.bashrc && \
+    chown -R runner:runner /home/runner
+
 # Configure sudo for runner user
 COPY lib/assets/sudoers.d/runner /etc/sudoers.d/runner
 RUN chmod 440 /etc/sudoers.d/runner
@@ -72,22 +79,42 @@ RUN mkdir -p /home/runner/.ccache && \
     ln -s /home/runner/.ccache /root/.ccache && \
     chown runner:runner /home/runner/.ccache
 
-# Configure shell for runner user
-RUN echo 'export PS1="\u@\h:\w\$ "' >> /home/runner/.bashrc && \
-    echo 'alias ll="ls -la"' >> /home/runner/.bashrc && \
-    echo 'alias la="ls -A"' >> /home/runner/.bashrc && \
-    echo 'alias l="ls -CF"' >> /home/runner/.bashrc
+#
+# Install OpenCL packages
+#
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends --no-install-suggests \
+        $(grep -v ^# /etc/apt/package-bundles/opencl.list) \
+        && \
+    apt-get clean
+
+#
+# Install Nvidia packages
+#
+COPY lib/assets/apt/sources.list.d/nvidia/debian.list /etc/apt/sources.list.d/
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends --no-install-suggests \
+        $(grep -v ^# /etc/apt/package-bundles/nvidia.list) \
+        && \
+    apt-get clean
 
 # Clean up expendable files
 RUN apt-get autoremove -y && \
     apt-get autoclean && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /tmp/* && \
-    rm -rf /var/tmp/* && \
+    rm -rf \
+        /var/lib/apt/lists/* \
+        /tmp/* \
+        /var/tmp/* \
+        /usr/share/doc \
+        /usr/share/man \
+        /usr/share/locale \
+        /usr/share/zoneinfo \
+        /usr/share/i18n \
+        /usr/share/iso-codes \
+        /usr/share/X11 \
+        /usr/share/icons \
+        && \
     find /var/log -type f -exec truncate -s 0 {} \;
-
-# Set proper ownership
-RUN chown -R runner:runner /home/runner
 
 # Switch to runner user
 USER runner
@@ -97,4 +124,3 @@ WORKDIR /home/runner
 # ENTRYPOINT ["/bin/bash"]
 # CMD ["-l", "-c"]
 CMD ["/bin/bash"]
-

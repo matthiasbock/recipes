@@ -17,6 +17,11 @@ TAG=$(REGISTRY)/$(REPO)/$(IMAGE)
 all: $(RELEASE)-$(ARCH)
 
 
+.PHONY: nvidia-list-installed
+nvidia-list-installed:
+	apt list --installed 2>/dev/null | fgrep -i nvidia | cut -d/ -f1
+
+
 .SECONDARY: $(DOCKERFILE)
 .PHONY: $(RELEASE)-$(ARCH)
 $(RELEASE)-$(ARCH): $(DOCKERFILE)
