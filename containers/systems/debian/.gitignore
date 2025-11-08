@@ -1,0 +1,5 @@
+
+# Generated
+Dockerfile.*
+!Dockerfile.j2
+
