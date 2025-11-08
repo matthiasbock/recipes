@@ -1,28 +1,56 @@
 #!/bin/bash
+#
+# Create a CD or DVD image file
+# with a LUKS-encrypted BTRFS formatted filesystem
+# containing the specified list of files and folders
+#
 
+set -e
+
+# Create (empty) image file
 create_image() {
+  # TODO: Make sure, this file is not (still) mounted somewhere
+  # TODO: If the file already exists and no -f switch was given, print an error and exit
+
   dd if=/dev/urandom of={{ image_path }} bs=1M count={{ dvd_size_mb }} status=progress
 }
 
 create_image
 
+# Create a new key
 openssl rand -out {{ key_file }} -base64 32
+
+# Format the image as LUKS-encrypted volume
 cryptsetup luksFormat {{ image_path }} --key-file {{ key_file }} << EOF
 yes
 EOF
+
+# Open the LUKS-encrypted volume
 cryptsetup luksOpen {{ image_path }} backup_dvd{{ dvd_index }} --key-file {{ key_file }}
+
+# Create BTRFS filesystem
 mkfs.btrfs -d dup /dev/mapper/backup_dvd{{ dvd_index }}
+
+# Mount decrypted LUKS volume
 mkdir -p /mnt/dvd{{ dvd_index }}
 mount -o compress=no,autodefrag /dev/mapper/backup_dvd{{ dvd_index }} /mnt/dvd{{ dvd_index }}
 mkdir -p /mnt/dvd{{ dvd_index }}/{{ source_folder_basename }}
 
+# Copy all files
 {% for file in files %}
 mkdir -p $(dirname "{{ file.destination_path }}")
 cp -r "{{ file.source_path }}" "{{ file.destination_path }}"
 {% endfor %}
 
+# Optimize filesystem
 btrfs filesystem defragment -r /mnt/dvd{{ dvd_index }}
 btrfs filesystem deduplicate /mnt/dvd{{ dvd_index }}
 btrfs scrub start /mnt/dvd{{ dvd_index }}
+
+# TODO: Wait until scrubbing is finished
+
+# Unmount and close LUKS volume
+sync
 umount /mnt/dvd{{ dvd_index }}
 cryptsetup luksClose backup_dvd{{ dvd_index }}
+
