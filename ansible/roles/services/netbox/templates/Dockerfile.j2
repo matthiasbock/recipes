@@ -1,0 +1,56 @@
+FROM debian:stable
+
+# Install required packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    python3-pip \
+    python3-venv \
+    postgresql-client \
+    redis-tools \
+    curl \
+    nginx \
+    supervisor \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create Netbox user and directories
+RUN useradd -ms /bin/bash unit
+RUN mkdir -p /opt/netbox /etc/netbox/config /opt/netbox/netbox/media /opt/netbox/netbox/reports /opt/netbox/netbox/scripts /etc/netbox /data/redis /data/redis-cache
+
+# Set ownership of Netbox directories
+RUN chown -R unit:unit /opt/netbox /etc/netbox /data/redis /data/redis-cache
+
+# Copy Netbox source code
+COPY --chown=unit:unit . /opt/netbox/netbox
+
+# Set working directory
+WORKDIR /opt/netbox/netbox
+
+# Create virtual environment and install Netbox
+RUN python3 -m venv /opt/netbox/venv
+RUN /opt/netbox/venv/bin/pip install -r requirements.txt
+RUN /opt/netbox/venv/bin/python manage.py migrate
+RUN /opt/netbox/venv/bin/python manage.py collectstatic --noinput
+
+# Copy configuration files
+COPY --chown=unit:unit configuration/ /etc/netbox/config/
+
+# Copy supervisord configuration
+COPY --chown=unit:unit supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Copy healthcheck and run scripts
+COPY --chown=unit:unit healthcheck.sh /opt/netbox/healthcheck.sh
+COPY --chown=unit:unit run.sh /opt/netbox/run.sh
+
+# Make scripts executable
+RUN chmod +x /opt/netbox/healthcheck.sh /opt/netbox/run.sh
+
+# Expose ports
+EXPOSE 8080 6379 6380
+
+# Define healthcheck
+HEALTHCHECK --interval=1m --timeout=3s --retries=5 CMD /opt/netbox/healthcheck.sh
+
+# Start services
+CMD ["/opt/netbox/run.sh"]
+
+USER unit
