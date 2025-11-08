@@ -2,36 +2,45 @@
 [submodule "lib/bash"]
 	path = lib/bash
 	url = ssh://git@git.bihealth.org:2022/matthiasbock/bash-library.git
+	brach = master
 
 [submodule "lib/assets/apt"]
 	path = lib/assets/apt
 	url = ssh://git@git-ext.charite.de:2022/matthiasbock/backups/apt.git
+	brach = master
 
 [submodule "lib/assets/profile.d"]
 	path = lib/assets/profile.d
 	url = ssh://git@git-ext.charite.de:2022/matthiasbock/backups/profile.d.git
+	brach = bash-container-library
 
 [submodule "lib/assets/widevine"]
 	path = lib/assets/widevine
 	url = git@github.com:proprietary/chromium-widevine.git
+	brach = master
 
 [submodule "lib/assets/public-keys"]
 	path = lib/assets/public-keys
 	url = ssh://git@git-ext.charite.de:2022/matthiasbock/public-keys.git
+	brach = master
 
 [submodule "lib/ansible/debian"]
 	path = lib/ansible/debian
 	url = git@github.com:/liv-io/ansible-roles-debian.git
+	brach = master
 
 [submodule "lib/ansible/debootstrap"]
 	path = lib/ansible/debootstrap
 	url = git@github.com:/nilsmeyer/ansible-debootstrap.git
+	brach = master
 
 [submodule "lib/ansible/debian-bootstrap"]
 	path = lib/ansible/debian-bootstrap
 	url = git@github.com:/HanXHX/ansible-debian-bootstrap.git
+	brach = master
 
 [submodule "lib/ansible/openwrt"]
 	path = lib/ansible/openwrt
 	url = git@github.com:gekmihesg/ansible-openwrt.git
+	brach = master
 
