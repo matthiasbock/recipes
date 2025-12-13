@@ -1,0 +1,10 @@
+
+# Potential secrets
+*password*
+*secret*
+*.key
+
+# Binaries
+*.bin
+*.iso
+*.deb
